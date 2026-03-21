@@ -228,7 +228,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 
             <div class="gewerk-group-label">Unterstützung</div>
             <label class="gewerk-item checkbox-item" style="grid-column:1/-1"><input type="checkbox" name="gewerk" value="helfer" id="cb-helfer" onchange="toggleLevel('helfer')"><span class="check-box"></span><span class="check-label">Allgemeiner Helfer / -in</span></label>
-            <div class="gewerk-level" id="level-helfer" style="grid-column:1/-1"><span class="gewerk-level-name">Helfer:</span><div class="level-pills" id="pills-helfer"></div><input type="hidden" name="level_helfer" id="level-val-helfer"></div>
+            <div class="gewerk-level" id="level-helfer" style="grid-column:1/-1;display:none!important"></div>
           </div>
         </div>
         <div class="field"><label>Qualifikationen (optional)</label><input type="text" name="qualifikationen" placeholder="z.B. Staplerschein, Schweißerpass …"></div>
@@ -391,6 +391,7 @@ function toggleLevel(value) {
   var cb = document.getElementById('cb-' + value);
   var level = document.getElementById('level-' + value);
   if (!level) return;
+  if (value === 'helfer') return; // no experience level for general helper
   if (cb.checked) {
     level.classList.add('visible');
   } else {
