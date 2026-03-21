@@ -14,7 +14,7 @@ html, body { background: #f4f1e8 !important; color: #1c1b18 !important; }
   --ink: #1c1b18; --paper: #f4f1e8; --cream: #ece8dc;
   --accent: #b85c2a; --accent-light: #f0d9cc;
   --muted: #79776e; --border: #d6d0c4; --radius: 5px;
-  --success: #3a7a52;
+  --success: #3a7a52; --danger: #991b1b;
 }
 body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 .shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
@@ -29,7 +29,7 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 .nav-item.active { background: var(--accent); color: white; font-weight: 500; }
 .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
 .main { display: flex; flex-direction: column; }
-.topbar { padding: 18px 28px; border-bottom: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: space-between; }
+.topbar { padding: 18px 28px; border-bottom: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .topbar h1 { font-family: 'DM Serif Display', serif; font-size: 22px; font-weight: 400; }
 .topbar p { font-size: 12px; color: var(--muted); font-weight: 300; margin-top: 2px; }
 .btn { padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; border-radius: var(--radius); cursor: pointer; transition: all 0.15s; font-weight: 400; border: none; }
@@ -37,37 +37,49 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 .btn-accent:hover { opacity: 0.88; }
 .btn-outline { background: white; border: 1px solid var(--border); color: var(--ink); }
 .btn-outline:hover { border-color: var(--ink); }
-.btn-sm { padding: 5px 11px; font-size: 11px; }
-.content { padding: 28px; flex: 1; display: flex; flex-direction: column; gap: 28px; }
-.section { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.section-head { padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--paper); display: flex; align-items: center; justify-content: space-between; }
-.section-title { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-.section-sub { font-size: 12px; color: var(--muted); font-weight: 300; margin-top: 2px; }
-.gewerk-group { border-bottom: 1px solid var(--border); }
-.gewerk-group:last-child { border-bottom: none; }
-.group-label { padding: 10px 20px 6px; font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: var(--cream); border-bottom: 1px solid var(--border); }
-.gewerk-row { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--border); transition: background 0.12s; }
-.gewerk-row:last-child { border-bottom: none; }
-.gewerk-row:hover { background: var(--paper); }
-.gewerk-toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
-.gewerk-toggle input { opacity: 0; width: 100%; height: 100%; position: absolute; cursor: pointer; margin: 0; z-index: 1; }
+.content { padding: 28px; flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+/* TABLE */
+.table-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.table-head { padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--paper); display: flex; align-items: center; justify-content: space-between; }
+.table-title { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+table { width: 100%; border-collapse: collapse; }
+th { background: var(--paper); padding: 10px 16px; font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); text-align: left; border-bottom: 1px solid var(--border); }
+td { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--paper); }
+
+/* TOGGLE */
+.toggle-wrap { position: relative; width: 36px; height: 20px; flex-shrink: 0; display: inline-block; }
+.toggle-wrap input { opacity: 0; width: 100%; height: 100%; position: absolute; cursor: pointer; margin: 0; z-index: 1; }
 .toggle-track { width: 36px; height: 20px; background: var(--border); border-radius: 10px; transition: background 0.2s; }
-.gewerk-toggle input:checked + .toggle-track { background: var(--success); }
+.toggle-wrap input:checked + .toggle-track { background: var(--success); }
 .toggle-thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.2s; pointer-events: none; }
-.gewerk-toggle input:checked ~ .toggle-thumb { transform: translateX(16px); }
-.gewerk-name { flex: 1; font-size: 14px; font-weight: 400; }
-.gewerk-name.inactive { color: var(--muted); text-decoration: line-through; }
-.gewerk-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: var(--accent-light); color: var(--accent); }
-.gewerk-badge.custom { background: #e8f4ed; color: var(--success); }
-.gewerk-count { font-size: 12px; color: var(--muted); min-width: 60px; text-align: right; }
-.add-form { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); align-items: flex-end; flex-wrap: wrap; }
-.add-field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 160px; }
-.add-field label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.add-field input { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 300; border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 12px; outline: none; background: var(--paper); }
+.toggle-wrap input:checked ~ .toggle-thumb { transform: translateX(16px); }
+
+/* INLINE EDIT */
+.inline-num { width: 64px; font-family: 'DM Sans', sans-serif; font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 8px; text-align: center; outline: none; background: var(--paper); }
+.inline-num:focus { border-color: var(--accent); background: white; }
+.gewerk-name-inactive { color: var(--muted); text-decoration: line-through; }
+.badge-custom { display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 8px; background: #e8f4ed; color: var(--success); border: 1px solid #b0d9bc; margin-left: 6px; }
+.status-bar { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; }
+.dot-ok { background: var(--success); }
+.dot-warn { background: var(--accent); }
+.dot-miss { background: var(--danger); }
+
+/* ADD ROW */
+.add-row { display: flex; gap: 10px; padding: 14px 16px; border-top: 2px dashed var(--border); align-items: flex-end; flex-wrap: wrap; background: var(--paper); }
+.add-field { display: flex; flex-direction: column; gap: 4px; }
+.add-field label { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.add-field input { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 300; border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; outline: none; background: white; }
 .add-field input:focus { border-color: var(--accent); }
+.add-field input[type=number] { width: 80px; text-align: center; }
+
+/* SAVE BAR */
 .save-bar { background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .save-bar p { font-size: 13px; color: var(--muted); font-weight: 300; }
-.save-success { display: none; font-size: 13px; color: var(--success); font-weight: 400; }
+.save-ok { font-size: 13px; color: var(--success); display: none; }
 
 /* MOBILE */
 .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; flex-direction: column; gap: 5px; }
@@ -79,8 +91,10 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
   .sidebar { display: flex; position: fixed; left: -240px; top: 0; height: 100vh; width: 240px; z-index: 20; transition: left 0.25s ease; }
   .sidebar.open { left: 0; }
   .hamburger { display: flex; }
-  .topbar { padding: 12px 16px; gap: 10px; }
+  .topbar { padding: 12px 16px; flex-wrap: wrap; }
   .content { padding: 16px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
 }
 </style>
 </head>
@@ -102,13 +116,13 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
         Gewerke verwalten
       </button>
-      <button class="nav-item" onclick="window.location.href='team.html'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-        Teams
-      </button>
       <button class="nav-item" onclick="window.location.href='gantt.html'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Gewerk-Planung
+      </button>
+      <button class="nav-item" onclick="window.location.href='team.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Teams
       </button>
     </nav>
   </div>
@@ -116,54 +130,55 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
   <div class="main">
     <div class="topbar" style="gap:12px">
       <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-      <div>
+      <div style="flex:1">
         <h1>Gewerke verwalten</h1>
-        <p>Aktiviere die Gewerke die für dieses Projekt relevant sind. Aktive Gewerke erscheinen im Anmeldeformular und in der Gantt-Planung.</p>
+        <p>Aktive Gewerke erscheinen im Anmeldeformular. Mindestpersonenzahl wird bei der Teamplanung angezeigt.</p>
       </div>
-      <button class="btn btn-accent" onclick="saveGewerke()">Änderungen speichern</button>
+      <button class="btn btn-accent" onclick="saveGewerke()">Speichern</button>
     </div>
 
     <div class="content">
 
       <div class="save-bar">
-        <p>Änderungen werden erst wirksam wenn du auf „Speichern" klickst. Deaktivierte Gewerke bleiben bei bestehenden Anmeldungen erhalten.</p>
-        <div style="display:flex;gap:8px;align-items:center">
-          <span class="save-success" id="save-success">✓ Gespeichert</span>
+        <p>Änderungen werden erst nach „Speichern" für alle Seiten wirksam.</p>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="save-ok" id="save-ok">✓ Gespeichert</span>
           <button class="btn btn-accent" onclick="saveGewerke()">Speichern</button>
         </div>
       </div>
 
-      <!-- STANDARD GEWERKE -->
-      <div class="section">
-        <div class="section-head">
-          <div>
-            <div class="section-title">Standard-Gewerke</div>
-            <div class="section-sub">Vordefinierte Gewerke – aktivieren oder deaktivieren</div>
-          </div>
-          <div style="font-size:12px;color:var(--muted)" id="active-count">– aktiv</div>
+      <div class="table-card">
+        <div class="table-head">
+          <span class="table-title" id="tbl-title">Alle Gewerke</span>
+          <span style="font-size:12px;color:var(--muted)" id="tbl-sub"></span>
         </div>
-        <div id="standard-list"></div>
-      </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px">Aktiv</th>
+              <th>Gewerk</th>
+              <th style="width:110px;text-align:center">Min. Personen</th>
+              <th style="width:110px;text-align:center">Angemeldet</th>
+              <th style="width:80px;text-align:center">Status</th>
+              <th style="width:40px"></th>
+            </tr>
+          </thead>
+          <tbody id="gewerk-tbody">
+            <tr><td colspan="6" style="padding:32px;text-align:center;color:var(--muted)">Wird geladen…</td></tr>
+          </tbody>
+        </table>
 
-      <!-- EIGENE GEWERKE -->
-      <div class="section">
-        <div class="section-head">
-          <div>
-            <div class="section-title">Eigene Gewerke</div>
-            <div class="section-sub">Projektspezifische Gewerke hinzufügen</div>
-          </div>
-        </div>
-        <div id="custom-list"></div>
-        <div class="add-form">
+        <!-- ADD ROW -->
+        <div class="add-row">
           <div class="add-field">
-            <label>Bezeichnung *</label>
-            <input type="text" id="new-name" placeholder="z.B. Gerüstbau Spezial">
+            <label>Neues Gewerk</label>
+            <input type="text" id="new-name" placeholder="Bezeichnung eingeben …" style="width:220px">
           </div>
-          <div class="add-field" style="max-width:180px">
-            <label>Gruppe</label>
-            <input type="text" id="new-gruppe" placeholder="z.B. Spezialgewerke">
+          <div class="add-field">
+            <label>Min. Personen</label>
+            <input type="number" id="new-min" min="1" value="1">
           </div>
-          <button class="btn btn-outline" onclick="addCustom()" style="margin-bottom:0;align-self:flex-end">+ Hinzufügen</button>
+          <button class="btn btn-outline" onclick="addGewerk()" style="align-self:flex-end">+ Hinzufügen</button>
         </div>
       </div>
 
@@ -204,26 +219,18 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const STANDARD_GEWERKE = [
-  {id:'maurer',     label:'Maurer / -in',           gruppe:'Rohbau & Konstruktion'},
-  {id:'zimmerer',   label:'Zimmerer / -in',          gruppe:'Rohbau & Konstruktion'},
-  {id:'betonbauer', label:'Betonbauer / -in',        gruppe:'Rohbau & Konstruktion'},
-  {id:'stahlbau',   label:'Stahlbau',                gruppe:'Rohbau & Konstruktion'},
-  {id:'elektriker', label:'Elektriker / -in',        gruppe:'Technischer Ausbau'},
-  {id:'sanitaer',   label:'Sanitär / HZG',           gruppe:'Technischer Ausbau'},
-  {id:'trockenbau', label:'Trockenbau',              gruppe:'Technischer Ausbau'},
-  {id:'maler',      label:'Maler / -in',             gruppe:'Innenausbau'},
-  {id:'fliesen',    label:'Fliesen / Estrich',       gruppe:'Innenausbau'},
-  {id:'schreiner',  label:'Schreiner / Tischler',    gruppe:'Innenausbau'},
-  {id:'bodenbelag', label:'Bodenbelag',              gruppe:'Innenausbau'},
-  {id:'dachdecker', label:'Dachdecker / -in',        gruppe:'Außenarbeiten'},
-  {id:'geruestbau', label:'Gerüstbau',               gruppe:'Außenarbeiten'},
-  {id:'garten',     label:'Garten / Außen',          gruppe:'Außenarbeiten'},
-  {id:'helfer',     label:'Allgemeiner Helfer / -in',gruppe:'Unterstützung'},
+const BASIS_GEWERKE = [
+  {id:'maurer',label:'Maurer / -in'},{id:'zimmerer',label:'Zimmerer / -in'},
+  {id:'betonbauer',label:'Betonbauer / -in'},{id:'stahlbau',label:'Stahlbau'},
+  {id:'elektriker',label:'Elektriker / -in'},{id:'sanitaer',label:'Sanitär / HZG'},
+  {id:'trockenbau',label:'Trockenbau'},{id:'maler',label:'Maler / -in'},
+  {id:'fliesen',label:'Fliesen / Estrich'},{id:'schreiner',label:'Schreiner / Tischler'},
+  {id:'bodenbelag',label:'Bodenbelag'},{id:'dachdecker',label:'Dachdecker / -in'},
+  {id:'geruestbau',label:'Gerüstbau'},{id:'garten',label:'Garten / Außen'},
+  {id:'helfer',label:'Allgemeiner Helfer / -in'}
 ];
 
-let activeIds = new Set();
-let customGewerke = [];
+let gewerke = []; // [{id, label, active, minPersons, custom}]
 let personCounts = {};
 
 onAuthStateChanged(auth, async user => {
@@ -234,130 +241,115 @@ onAuthStateChanged(auth, async user => {
     const snap = await getDoc(doc(db, 'planung', 'gewerke'));
     if (snap.exists()) {
       const data = snap.data();
-      activeIds = new Set(data.active || STANDARD_GEWERKE.map(g => g.id));
-      customGewerke = data.custom || [];
+      // Merge basis with saved state
+      const saved = data.gewerke || [];
+      const savedMap = {};
+      saved.forEach(g => savedMap[g.id] = g);
+
+      gewerke = BASIS_GEWERKE.map(b => ({
+        id: b.id, label: b.label,
+        active: savedMap[b.id] ? savedMap[b.id].active !== false : true,
+        minPersons: savedMap[b.id]?.minPersons || 1,
+        custom: false
+      }));
+
+      // Add custom ones
+      saved.filter(g => g.custom).forEach(g => gewerke.push(g));
     } else {
-      // Default: all active
-      activeIds = new Set(STANDARD_GEWERKE.map(g => g.id));
-      customGewerke = [];
+      gewerke = BASIS_GEWERKE.map(b => ({id:b.id,label:b.label,active:true,minPersons:1,custom:false}));
     }
-  } catch(e) { activeIds = new Set(STANDARD_GEWERKE.map(g => g.id)); }
+  } catch(e) {
+    gewerke = BASIS_GEWERKE.map(b => ({id:b.id,label:b.label,active:true,minPersons:1,custom:false}));
+  }
 
   // Count persons per gewerk
   try {
     const snap2 = await getDocs(collection(db, 'anmeldungen'));
     snap2.forEach(d => {
-      const data = d.data();
-      (data.gewerke || []).forEach(g => {
-        personCounts[g] = (personCounts[g] || 0) + 1;
-      });
+      (d.data().gewerke || []).forEach(g => { personCounts[g] = (personCounts[g]||0)+1; });
     });
   } catch(e) {}
 
-  renderAll();
+  render();
 });
 
-function renderAll() {
-  renderStandard();
-  renderCustom();
-  updateCount();
-}
+function render() {
+  const tbody = document.getElementById('gewerk-tbody');
+  const active = gewerke.filter(g => g.active).length;
+  document.getElementById('tbl-title').textContent = gewerke.length + ' Gewerke';
+  document.getElementById('tbl-sub').textContent = active + ' aktiv';
 
-function renderStandard() {
-  const list = document.getElementById('standard-list');
-  const groups = {};
-  STANDARD_GEWERKE.forEach(g => {
-    if (!groups[g.gruppe]) groups[g.gruppe] = [];
-    groups[g.gruppe].push(g);
-  });
-
-  list.innerHTML = Object.keys(groups).map(grp => {
-    const rows = groups[grp].map(g => {
-      const active = activeIds.has(g.id);
-      const count = personCounts[g.id] || 0;
-      return `<div class="gewerk-row">
-        <label class="gewerk-toggle">
-          <input type="checkbox" ${active ? 'checked' : ''} onchange="toggleGewerk('${g.id}', this.checked)">
+  tbody.innerHTML = gewerke.map((g, i) => {
+    const count = personCounts[g.id] || 0;
+    const min = g.minPersons || 1;
+    const statusClass = count >= min ? 'dot-ok' : count > 0 ? 'dot-warn' : 'dot-miss';
+    const statusTitle = count >= min ? 'Besetzt' : count > 0 ? 'Unterbesetzt' : 'Unbesetzt';
+    return `<tr>
+      <td>
+        <label class="toggle-wrap">
+          <input type="checkbox" ${g.active ? 'checked' : ''} onchange="toggleActive(${i}, this.checked)">
           <div class="toggle-track"></div>
           <div class="toggle-thumb"></div>
         </label>
-        <span class="gewerk-name${active ? '' : ' inactive'}" id="name-${g.id}">${g.label}</span>
-        <span class="gewerk-badge">Standard</span>
-        <span class="gewerk-count">${count > 0 ? count + ' Person' + (count !== 1 ? 'en' : '') : ''}</span>
-      </div>`;
-    }).join('');
-    return `<div class="gewerk-group"><div class="group-label">${grp}</div>${rows}</div>`;
+      </td>
+      <td>
+        <span class="${g.active ? '' : 'gewerk-name-inactive'}">${g.label}</span>
+        ${g.custom ? '<span class="badge-custom">Eigenes</span>' : ''}
+      </td>
+      <td style="text-align:center">
+        <input class="inline-num" type="number" min="1" value="${min}"
+          onchange="setMin(${i}, this.value)" title="Mindestpersonenzahl">
+      </td>
+      <td style="text-align:center;font-size:13px">
+        <strong style="color:${count >= min ? 'var(--success)' : count > 0 ? 'var(--accent)' : 'var(--danger)'}">${count}</strong>
+      </td>
+      <td style="text-align:center">
+        <div class="status-bar" style="justify-content:center" title="${statusTitle}">
+          <div class="status-dot ${statusClass}"></div>
+          <span style="font-size:11px;color:var(--muted)">${statusTitle}</span>
+        </div>
+      </td>
+      <td style="text-align:center">
+        ${g.custom ? `<button onclick="removeGewerk(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:0 4px" title="Entfernen">✕</button>` : ''}
+      </td>
+    </tr>`;
   }).join('');
 }
 
-function renderCustom() {
-  const list = document.getElementById('custom-list');
-  if (customGewerke.length === 0) {
-    list.innerHTML = '<div style="padding:16px 20px;font-size:13px;color:var(--muted);font-weight:300">Noch keine eigenen Gewerke angelegt.</div>';
-    return;
-  }
-  list.innerHTML = customGewerke.map((g, i) => {
-    const active = activeIds.has(g.id);
-    const count = personCounts[g.id] || 0;
-    return `<div class="gewerk-row">
-      <label class="gewerk-toggle">
-        <input type="checkbox" ${active ? 'checked' : ''} onchange="toggleGewerk('${g.id}', this.checked)">
-        <div class="toggle-track"></div>
-        <div class="toggle-thumb"></div>
-      </label>
-      <span class="gewerk-name${active ? '' : ' inactive'}">${g.label}</span>
-      <span class="gewerk-badge custom">Eigenes Gewerk</span>
-      <span class="gewerk-count">${count > 0 ? count + ' Person' + (count !== 1 ? 'en' : '') : ''}</span>
-      <button onclick="removeCustom(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px">✕</button>
-    </div>`;
-  }).join('');
-}
-
-function updateCount() {
-  const n = activeIds.size;
-  document.getElementById('active-count').textContent = n + ' aktiv';
-}
-
-window.toggleGewerk = function(id, checked) {
-  if (checked) activeIds.add(id);
-  else activeIds.delete(id);
-  // Update name style immediately
-  const nameEl = document.getElementById('name-' + id);
-  if (nameEl) nameEl.classList.toggle('inactive', !checked);
-  updateCount();
+window.toggleActive = function(i, val) {
+  gewerke[i].active = val;
+  render();
 };
 
-window.addCustom = function() {
+window.setMin = function(i, val) {
+  gewerke[i].minPersons = Math.max(1, parseInt(val) || 1);
+};
+
+window.addGewerk = function() {
   const name = document.getElementById('new-name').value.trim();
-  const gruppe = document.getElementById('new-gruppe').value.trim() || 'Eigene Gewerke';
+  const min = parseInt(document.getElementById('new-min').value) || 1;
   if (!name) { alert('Bitte einen Namen eingeben.'); return; }
-  const id = 'custom_' + Date.now();
-  customGewerke.push({ id, label: name, gruppe });
-  activeIds.add(id);
+  gewerke.push({ id: 'custom_' + Date.now(), label: name, active: true, minPersons: min, custom: true });
   document.getElementById('new-name').value = '';
-  document.getElementById('new-gruppe').value = '';
-  renderCustom();
-  updateCount();
+  document.getElementById('new-min').value = '1';
+  render();
 };
 
-window.removeCustom = function(idx) {
-  if (!confirm('Eigenes Gewerk wirklich entfernen?')) return;
-  activeIds.delete(customGewerke[idx].id);
-  customGewerke.splice(idx, 1);
-  renderCustom();
-  updateCount();
+window.removeGewerk = function(i) {
+  if (!confirm('Gewerk entfernen?')) return;
+  gewerke.splice(i, 1);
+  render();
 };
 
 window.saveGewerke = async function() {
   try {
     await setDoc(doc(db, 'planung', 'gewerke'), {
-      active: [...activeIds],
-      custom: customGewerke,
+      gewerke: gewerke,
       savedAt: new Date().toISOString()
     });
-    const s = document.getElementById('save-success');
-    s.style.display = 'inline';
-    setTimeout(() => s.style.display = 'none', 3000);
+    const el = document.getElementById('save-ok');
+    el.style.display = 'inline';
+    setTimeout(() => el.style.display = 'none', 3000);
   } catch(e) { alert('Fehler: ' + e.message); }
 };
 </script>

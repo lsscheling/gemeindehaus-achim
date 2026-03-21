@@ -289,7 +289,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
         </button>
         <button class="nav-item" onclick="window.location.href='team.html'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          Teams
+          Team-Übersicht
         </button>
         <button class="nav-item" onclick="showPanel('schichtplan')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -300,10 +300,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
           Abwesenheiten
         </button>
         <div class="nav-section-label" style="margin-top:8px">Planung</div>
-        <button class="nav-item" onclick="window.location.href='team.html'">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          Team-Übersicht
-        </button>
+        
         <button class="nav-item" onclick="window.location.href='gantt.html'">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           Gewerk-Planung
@@ -380,23 +377,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
         </div>
       </div>
 
-      <!-- TEAMS -->
-      <div id="panel-teams" class="panel">
-        <div class="topbar">
-          <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-          <div><div class="topbar-title">Teams</div><div class="topbar-sub">Personen Gruppen zuordnen</div></div>
-          <div class="topbar-actions">
-            <button class="btn btn-accent" onclick="addTeam()">+ Neues Team</button>
-          </div>
-        </div>
-        <div class="content">
-          <div class="teams-grid" id="teams-grid">
-            <div class="loading">Teams werden geladen…</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SCHICHTPLAN -->
       <div id="panel-schichtplan" class="panel">
         <div class="topbar">
           <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
