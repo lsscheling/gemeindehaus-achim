@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anmeldung – Gemeindehaus Achim</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root { color-scheme: light; }
+html, body { background-color: #f4f1e8 !important; color: #1c1b18 !important; }
+@media (prefers-color-scheme: dark) {
+  html, body { background-color: #f4f1e8 !important; color: #1c1b18 !important; }
+  * { color-scheme: light !important; }
+  input, select, textarea, button { background-color: white !important; color: #1c1b18 !important; }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #1c1b18; --paper: #f4f1e8; --cream: #ece8dc;
+  --accent: #b85c2a; --accent-light: #f0d9cc;
+  --muted: #79776e; --border: #d6d0c4; --success: #3a7a52; --radius: 5px;
+}
+body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+.page { max-width: 720px; margin: 0 auto; min-height: 100vh; }
+.form-side { padding: 40px 40px 64px; display: flex; flex-direction: column; }
+.logo { display: flex; align-items: center; gap: 10px; margin-bottom: 40px; }
+.logo-mark { width: 28px; height: 28px; background: var(--accent); border-radius: 5px; display: flex; align-items: center; justify-content: center; }
+.logo-mark svg { width: 14px; height: 14px; fill: white; }
+.logo-text { font-size: 13px; font-weight: 500; }
+.logo-sub { font-size: 11px; color: var(--muted); font-weight: 300; margin-top: 1px; }
+.form-header { margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+.form-header h1 { font-family: 'DM Serif Display', serif; font-size: 32px; font-weight: 400; line-height: 1.2; margin-bottom: 10px; }
+.form-header h1 span { font-style: italic; color: var(--accent); }
+.form-header p { font-size: 13px; font-weight: 300; color: var(--muted); line-height: 1.7; }
+
+/* TABS */
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); margin-bottom: 28px; border-bottom: 1px solid var(--border); }
+.tab { padding: 10px 4px; font-size: 11px; font-weight: 400; color: var(--muted); cursor: pointer; border: none; background: transparent; font-family: 'DM Sans', sans-serif; transition: color 0.15s; border-bottom: 3px solid transparent; margin-bottom: -1px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tab.active { color: var(--accent) !important; border-bottom: 3px solid var(--accent) !important; font-weight: 500 !important; background: transparent !important; }
+.tab-panel { display: none; flex-direction: column; gap: 18px; }
+.tab-panel.active { display: flex; }
+
+/* FIELDS */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.field input, .field select, .field textarea { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 300; background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 11px 13px; color: var(--ink); outline: none; width: 100%; transition: border-color 0.15s; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+.field textarea { resize: vertical; min-height: 70px; }
+.field select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2379776e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; padding-right: 34px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.section-title { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.divider { height: 1px; background: var(--border); }
+.notice { font-size: 12px; color: var(--muted); font-weight: 300; line-height: 1.55; margin-top: 2px; }
+
+/* CHECKBOXES */
+.checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.checkbox-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; background: white; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: border-color 0.15s; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.checkbox-item:hover { border-color: var(--accent); }
+.checkbox-item input[type="checkbox"] { display: none; }
+.check-box { width: 15px; height: 15px; border: 1.5px solid var(--border); border-radius: 2px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.checkbox-item input:checked ~ .check-box { background: var(--accent); border-color: var(--accent); }
+.checkbox-item input:checked ~ .check-box::after { content: ''; display: block; width: 7px; height: 4px; border-left: 1.5px solid white; border-bottom: 1.5px solid white; transform: rotate(-45deg) translateY(-1px); }
+.check-label { font-size: 13px; font-weight: 300; }
+
+/* TELEGRAM */
+.telegram-info { background: #eef4fb; border: 1px solid #c2d8ef; border-radius: var(--radius); padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; }
+.tg-icon { width: 28px; height: 28px; background: #2ea6e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.tg-icon svg { width: 14px; height: 14px; fill: white; }
+.telegram-info p { font-size: 13px; color: #2a5070; font-weight: 300; line-height: 1.65; }
+.telegram-info strong { font-weight: 500; }
+
+/* GEWERK */
+.gewerk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.gewerk-group-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 8px 0 2px; grid-column: 1 / -1; }
+.gewerk-item { display: flex; align-items: center; gap: 8px; padding: 8px 11px; background: white; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; user-select: none; transition: border-color 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.gewerk-item:hover { border-color: var(--accent); }
+.gewerk-level { display: none; grid-column: 1 / -1; background: var(--accent-light); border: 1px solid #ddb99a; border-radius: var(--radius); padding: 10px 14px; align-items: center; gap: 10px; flex-wrap: wrap; }
+.gewerk-level.visible { display: flex; }
+.gewerk-level-name { font-size: 11px; font-weight: 500; color: var(--accent); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.06em; }
+.level-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.level-pill { padding: 4px 12px; border: 1px solid #ddb99a; border-radius: 20px; font-size: 12px; cursor: pointer; background: white; color: var(--ink); transition: all 0.12s; user-select: none; font-family: 'DM Sans', sans-serif; font-weight: 300; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.level-pill:hover { border-color: var(--accent); color: var(--accent); }
+.level-pill.selected { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* SCHICHT */
+.schicht-box { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.schicht-header { padding: 11px 16px; background: var(--cream); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.schicht-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.schicht-row { display: flex; flex-direction: column; gap: 8px; }
+.schicht-label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
+.schicht-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.schicht-pill { padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; cursor: pointer; background: white; color: var(--ink); transition: all 0.12s; user-select: none; font-weight: 300; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.schicht-pill:hover { border-color: var(--accent); color: var(--accent); }
+.schicht-pill.selected { background: var(--accent); border-color: var(--accent); color: white; font-weight: 400; }
+.schicht-divider { height: 1px; background: var(--border); }
+.schicht-freitext label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; display: block; margin-bottom: 5px; }
+.schicht-freitext textarea { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 300; background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; color: var(--ink); resize: vertical; min-height: 60px; width: 100%; outline: none; }
+.konti-info { background: #fdf5ee; border: 1px solid var(--accent-light); border-radius: var(--radius); padding: 10px 13px; font-size: 12px; color: #7a3a12; font-weight: 300; line-height: 1.6; display: none; }
+.konti-info.visible { display: block; }
+.konti-info strong { font-weight: 500; }
+.wechsel-detail { display: none; background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; flex-direction: column; gap: 12px; }
+.wechsel-detail.visible { display: flex; }
+.wechsel-title { font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+
+/* CALENDAR */
+.cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+.cal-nav button { background: white; border: 1px solid var(--border); border-radius: var(--radius); width: 36px; height: 36px; cursor: pointer; font-size: 18px; color: var(--muted); display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.cal-nav button:hover:not(:disabled) { border-color: var(--ink); color: var(--ink); }
+.cal-month-label { font-family: 'DM Serif Display', serif; font-size: 16px; font-weight: 400; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-dow { text-align: center; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 4px 0; }
+.cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 300; border-radius: 3px; border: 1px solid transparent; background: white; color: var(--ink); -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer; }
+.cal-day.other-month { color: var(--border); background: transparent; cursor: default; }
+.cal-day.past { color: var(--border); cursor: default; background: transparent; }
+.cal-day.today { font-weight: 500; border-color: var(--accent); color: var(--accent); }
+.cal-day.range-start { background: var(--accent) !important; color: white !important; border-color: var(--accent) !important; border-radius: 3px 0 0 3px; }
+.cal-day.range-end { background: var(--accent) !important; color: white !important; border-color: var(--accent) !important; border-radius: 0 3px 3px 0; }
+.cal-day.range-start.range-end { border-radius: 3px; }
+.cal-day.in-range { background: var(--accent-light) !important; color: var(--ink) !important; border-color: transparent !important; border-radius: 0; }
+.cal-hint { font-size: 12px; color: var(--accent); font-weight: 400; min-height: 18px; margin-top: 6px; }
+
+/* ABSENCE CHIPS */
+.absence-chips { display: flex; flex-direction: column; gap: 5px; }
+.absence-chip { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: white; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; }
+.chip-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 4px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.chip-remove:hover { color: #c0392b; }
+
+/* BUTTONS */
+.submit-btn { padding: 13px 24px; background: var(--ink); color: white; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.submit-btn:hover { background: #2e2d28; }
+.btn-back { padding: 13px 24px; background: white; color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; transition: border-color 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.btn-back:hover { border-color: var(--ink); }
+.btn-row { display: flex; gap: 10px; justify-content: space-between; margin-top: 8px; }
+.success-msg { display: none; padding: 14px 18px; background: #edf7f0; border: 1px solid #aad4b8; border-radius: var(--radius); color: var(--success); font-size: 13px; line-height: 1.6; }
+
+@media (max-width: 600px) {
+  .form-side { padding: 24px 16px 48px; }
+  .row { grid-template-columns: 1fr; }
+  .checkbox-grid { grid-template-columns: 1fr; }
+  .gewerk-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="form-side">
+    <div class="logo">
+      <div class="logo-mark"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      <div><div class="logo-text">Gemeindehaus Achim</div><div class="logo-sub">Helferanmeldung</div></div>
+    </div>
+
+    <div class="form-header">
+      <h1>Schön, dass du<br>dabei bist. <span>Melde dich an.</span></h1>
+      <p>Deine Daten sind nur für die Projektleitung sichtbar.</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('person',0)">1 · Angaben</button>
+      <button class="tab" onclick="switchTab('gewerk',1)">2 · Gewerk</button>
+      <button class="tab" onclick="switchTab('verfueg',2)">3 · Verfügbarkeit</button>
+      <button class="tab" onclick="switchTab('abwesen',3)">4 · Abwesenheiten</button>
+    </div>
+
+    <form id="anmeldeform" onsubmit="handleSubmit(event)">
+
+      <!-- TAB 1 -->
+      <div class="tab-panel active" id="tab-person">
+        <div class="section-title">Persönliche Daten</div>
+        <div class="row">
+          <div class="field"><label>Vorname *</label><input type="text" name="vorname" required placeholder="Max"></div>
+          <div class="field"><label>Nachname *</label><input type="text" name="nachname" required placeholder="Mustermann"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>E-Mail *</label><input type="email" name="email" required placeholder="max@beispiel.de"></div>
+          <div class="field"><label>Telefon</label><input type="tel" name="telefon" placeholder="+49 170 ..."></div>
+        </div>
+        <div class="divider"></div>
+        <div class="section-title">Telegram</div>
+        <div class="telegram-info">
+          <div class="tg-icon"><svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/></svg></div>
+          <p><strong>Kein Benutzername nötig.</strong> Nach der Anmeldung erhältst du per E-Mail einen Link. Öffnest du ihn auf dem Handy, verbindet sich Telegram automatisch.</p>
+        </div>
+        <div class="btn-row"><span></span><button type="button" class="submit-btn" style="background:var(--accent)" onclick="switchTab('gewerk',1)">Weiter →</button></div>
+      </div>
+
+      <!-- TAB 2 -->
+      <div class="tab-panel" id="tab-gewerk">
+        <div class="section-title">Gewerk & Fähigkeiten</div>
+        <p class="notice" style="font-size:13px;color:var(--ink)">Du kannst mehrere Gewerke auswählen. Bei jedem Gewerk bitte das Erfahrungslevel angeben.</p>
+        <div class="field">
+          <label>Gewerk(e) *</label>
+          <div class="gewerk-grid" id="gewerk-grid">
+            <div class="gewerk-group-label">Rohbau & Konstruktion</div>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="maurer" id="cb-maurer" onchange="toggleLevel('maurer')"><span class="check-box"></span><span class="check-label">Maurer / -in</span></label>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="zimmerer" id="cb-zimmerer" onchange="toggleLevel('zimmerer')"><span class="check-box"></span><span class="check-label">Zimmerer / -in</span></label>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="betonbauer" id="cb-betonbauer" onchange="toggleLevel('betonbauer')"><span class="check-box"></span><span class="check-label">Betonbauer / -in</span></label>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="stahlbau" id="cb-stahlbau" onchange="toggleLevel('stahlbau')"><span class="check-box"></span><span class="check-label">Stahlbau</span></label>
+            <div class="gewerk-level" id="level-maurer"><span class="gewerk-level-name">Maurer:</span><div class="level-pills" id="pills-maurer"></div><input type="hidden" name="level_maurer" id="level-val-maurer"></div>
+            <div class="gewerk-level" id="level-zimmerer"><span class="gewerk-level-name">Zimmerer:</span><div class="level-pills" id="pills-zimmerer"></div><input type="hidden" name="level_zimmerer" id="level-val-zimmerer"></div>
+            <div class="gewerk-level" id="level-betonbauer"><span class="gewerk-level-name">Betonbauer:</span><div class="level-pills" id="pills-betonbauer"></div><input type="hidden" name="level_betonbauer" id="level-val-betonbauer"></div>
+            <div class="gewerk-level" id="level-stahlbau"><span class="gewerk-level-name">Stahlbau:</span><div class="level-pills" id="pills-stahlbau"></div><input type="hidden" name="level_stahlbau" id="level-val-stahlbau"></div>
+
+            <div class="gewerk-group-label">Technischer Ausbau</div>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="elektriker" id="cb-elektriker" onchange="toggleLevel('elektriker')"><span class="check-box"></span><span class="check-label">Elektriker / -in</span></label>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="sanitaer" id="cb-sanitaer" onchange="toggleLevel('sanitaer')"><span class="check-box"></span><span class="check-label">Sanitär / HZG</span></label>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="trockenbau" id="cb-trockenbau" onchange="toggleLevel('trockenbau')"><span class="check-box"></span><span class="check-label">Trockenbau</span></label>
+            <div class="gewerk-level" id="level-elektriker"><span class="gewerk-level-name">Elektriker:</span><div class="level-pills" id="pills-elektriker"></div><input type="hidden" name="level_elektriker" id="level-val-elektriker"></div>
+            <div class="gewerk-level" id="level-sanitaer"><span class="gewerk-level-name">Sanitär:</span><div class="level-pills" id="pills-sanitaer"></div><input type="hidden" name="level_sanitaer" id="level-val-sanitaer"></div>
+            <div class="gewerk-level" id="level-trockenbau"><span class="gewerk-level-name">Trockenbau:</span><div class="level-pills" id="pills-trockenbau"></div><input type="hidden" name="level_trockenbau" id="level-val-trockenbau"></div>
+
+            <div class="gewerk-group-label">Innenausbau</div>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="maler" id="cb-maler" onchange="toggleLevel('maler')"><span class="check-box"></span><span class="check-label">Maler / -in</span></label>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="fliesen" id="cb-fliesen" onchange="toggleLevel('fliesen')"><span class="check-box"></span><span class="check-label">Fliesen / Estrich</span></label>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="schreiner" id="cb-schreiner" onchange="toggleLevel('schreiner')"><span class="check-box"></span><span class="check-label">Schreiner / Tischler</span></label>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="bodenbelag" id="cb-bodenbelag" onchange="toggleLevel('bodenbelag')"><span class="check-box"></span><span class="check-label">Bodenbelag</span></label>
+            <div class="gewerk-level" id="level-maler"><span class="gewerk-level-name">Maler:</span><div class="level-pills" id="pills-maler"></div><input type="hidden" name="level_maler" id="level-val-maler"></div>
+            <div class="gewerk-level" id="level-fliesen"><span class="gewerk-level-name">Fliesen:</span><div class="level-pills" id="pills-fliesen"></div><input type="hidden" name="level_fliesen" id="level-val-fliesen"></div>
+            <div class="gewerk-level" id="level-schreiner"><span class="gewerk-level-name">Schreiner:</span><div class="level-pills" id="pills-schreiner"></div><input type="hidden" name="level_schreiner" id="level-val-schreiner"></div>
+            <div class="gewerk-level" id="level-bodenbelag"><span class="gewerk-level-name">Bodenbelag:</span><div class="level-pills" id="pills-bodenbelag"></div><input type="hidden" name="level_bodenbelag" id="level-val-bodenbelag"></div>
+
+            <div class="gewerk-group-label">Außenarbeiten</div>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="dachdecker" id="cb-dachdecker" onchange="toggleLevel('dachdecker')"><span class="check-box"></span><span class="check-label">Dachdecker / -in</span></label>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="geruestbau" id="cb-geruestbau" onchange="toggleLevel('geruestbau')"><span class="check-box"></span><span class="check-label">Gerüstbau</span></label>
+            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="garten" id="cb-garten" onchange="toggleLevel('garten')"><span class="check-box"></span><span class="check-label">Garten / Außen</span></label>
+            <div class="gewerk-level" id="level-dachdecker"><span class="gewerk-level-name">Dachdecker:</span><div class="level-pills" id="pills-dachdecker"></div><input type="hidden" name="level_dachdecker" id="level-val-dachdecker"></div>
+            <div class="gewerk-level" id="level-geruestbau"><span class="gewerk-level-name">Gerüstbau:</span><div class="level-pills" id="pills-geruestbau"></div><input type="hidden" name="level_geruestbau" id="level-val-geruestbau"></div>
+            <div class="gewerk-level" id="level-garten"><span class="gewerk-level-name">Garten:</span><div class="level-pills" id="pills-garten"></div><input type="hidden" name="level_garten" id="level-val-garten"></div>
+
+            <div class="gewerk-group-label">Unterstützung</div>
+            <label class="gewerk-item checkbox-item" style="grid-column:1/-1"><input type="checkbox" name="gewerk" value="helfer" id="cb-helfer" onchange="toggleLevel('helfer')"><span class="check-box"></span><span class="check-label">Allgemeiner Helfer / -in</span></label>
+            <div class="gewerk-level" id="level-helfer" style="grid-column:1/-1;display:none!important"></div>
+          </div>
+        </div>
+        <div class="field"><label>Qualifikationen (optional)</label><input type="text" name="qualifikationen" placeholder="z.B. Staplerschein, Schweißerpass …"></div>
+        <div class="field"><label>Teamwunsch (optional)</label><input type="text" name="teamwunsch" placeholder="z.B. gerne mit Klaus zusammen"></div>
+        <div class="btn-row">
+          <button type="button" class="btn-back" onclick="switchTab('person',0)">← Zurück</button>
+          <button type="button" class="submit-btn" style="background:var(--accent)" onclick="switchTab('verfueg',2)">Weiter →</button>
+        </div>
+      </div>
+
+      <!-- TAB 3 -->
+      <div class="tab-panel" id="tab-verfueg">
+        <div class="section-title">Schichtmodell</div>
+        <p style="font-size:13px;line-height:1.7;color:var(--ink)">Arbeitest du im Schichtsystem? Wähle dein Muster – wir planen dich nur für deine freien Zeiten ein.</p>
+        <div class="schicht-box">
+          <div class="schicht-header">Schichtmodell (optional)</div>
+          <div class="schicht-body">
+            <div class="schicht-row">
+              <div class="schicht-label">Schichtart</div>
+              <div class="schicht-pills">
+                <span class="schicht-pill" data-group="schichtart" data-val="frueh">Frühschicht</span>
+                <span class="schicht-pill" data-group="schichtart" data-val="spaet">Spätschicht</span>
+                <span class="schicht-pill" data-group="schichtart" data-val="nacht">Nachtschicht</span>
+                <span class="schicht-pill" data-group="schichtart" data-val="wechsel">Wechselschicht</span>
+                <span class="schicht-pill" data-group="schichtart" data-val="konti">Kontischicht</span>
+                <span class="schicht-pill" data-group="schichtart" data-val="sonstiges">Sonstiges</span>
+              </div>
+            </div>
+            <div class="konti-info" id="konti-info"><strong>Kontischicht:</strong> Mo+Di → Mi+Do → Fr+Sa+So, Früh → Spät → Nacht → Frei. Bitte Startpunkt im Freitextfeld angeben.</div>
+            <div class="wechsel-detail" id="wechsel-detail">
+              <div class="wechsel-title">Wechselschicht-Muster</div>
+              <div class="schicht-row">
+                <div class="schicht-label">Gerade Kalenderwochen</div>
+                <div class="schicht-pills">
+                  <span class="schicht-pill" data-group="gerade" data-val="frueh">Frühschicht</span>
+                  <span class="schicht-pill" data-group="gerade" data-val="spaet">Spätschicht</span>
+                  <span class="schicht-pill" data-group="gerade" data-val="nacht">Nachtschicht</span>
+                  <span class="schicht-pill" data-group="gerade" data-val="frei">Frei</span>
+                </div>
+              </div>
+              <div class="schicht-row">
+                <div class="schicht-label">Ungerade Kalenderwochen</div>
+                <div class="schicht-pills">
+                  <span class="schicht-pill" data-group="ungerade" data-val="frueh">Frühschicht</span>
+                  <span class="schicht-pill" data-group="ungerade" data-val="spaet">Spätschicht</span>
+                  <span class="schicht-pill" data-group="ungerade" data-val="nacht">Nachtschicht</span>
+                  <span class="schicht-pill" data-group="ungerade" data-val="frei">Frei</span>
+                </div>
+              </div>
+            </div>
+            <div class="schicht-divider"></div>
+            <div class="schicht-freitext">
+              <label>Sonderfälle / Ergänzungen (optional)</label>
+              <textarea name="schicht_freitext" placeholder="z.B. jede 3. Woche Nachtschicht …"></textarea>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" name="schichtart" id="hidden-schichtart">
+        <input type="hidden" name="wochenmuster_gerade" id="hidden-gerade">
+        <input type="hidden" name="wochenmuster_ungerade" id="hidden-ungerade">
+
+        <div class="divider"></div>
+        <div class="section-title">Verfügbare Wochentage</div>
+        <p style="font-size:13px;line-height:1.7;color:var(--ink)">An welchen Tagen kannst du grundsätzlich eingeplant werden?</p>
+        <div class="checkbox-grid">
+          <label class="checkbox-item"><input type="checkbox" name="wochentag" value="mo"><span class="check-box"></span><span class="check-label">Montag</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="wochentag" value="di"><span class="check-box"></span><span class="check-label">Dienstag</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="wochentag" value="mi"><span class="check-box"></span><span class="check-label">Mittwoch</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="wochentag" value="do"><span class="check-box"></span><span class="check-label">Donnerstag</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="wochentag" value="fr"><span class="check-box"></span><span class="check-label">Freitag</span></label>
+          <label class="checkbox-item"><input type="checkbox" name="wochentag" value="sa"><span class="check-box"></span><span class="check-label">Samstag</span></label>
+        </div>
+        <div class="field">
+          <label>Anmerkungen zur Verfügbarkeit (optional)</label>
+          <textarea name="verfueg_kommentar" placeholder="z.B. mittwochs nur bis 12 Uhr …"></textarea>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn-back" onclick="switchTab('gewerk',1)">← Zurück</button>
+          <button type="button" class="submit-btn" style="background:var(--accent)" onclick="switchTab('abwesen',3)">Weiter →</button>
+        </div>
+      </div>
+
+      <!-- TAB 4 -->
+      <div class="tab-panel" id="tab-abwesen">
+        <div class="section-title">Abwesenheiten</div>
+        <p style="font-size:13px;line-height:1.7;color:var(--ink)">
+          Tippe auf einen <strong>Starttag</strong>, dann auf einen <strong>Endtag</strong>.
+          Für einen einzelnen Tag zweimal denselben tippen.
+          Einen Eintrag entfernen: nochmal in den markierten Bereich tippen.<br>
+          <span style="color:var(--muted)">Jederzeit per Telegram aktualisierbar.</span>
+        </p>
+        <div>
+          <div class="cal-nav">
+            <button type="button" onclick="calPrev()">‹</button>
+            <span class="cal-month-label" id="cal-month-label"></span>
+            <button type="button" onclick="calNext()">›</button>
+          </div>
+          <div class="cal-grid" id="cal-grid">
+            <div class="cal-dow">Mo</div><div class="cal-dow">Di</div><div class="cal-dow">Mi</div>
+            <div class="cal-dow">Do</div><div class="cal-dow">Fr</div><div class="cal-dow">Sa</div><div class="cal-dow">So</div>
+          </div>
+          <div class="cal-hint" id="cal-hint"></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Eingetragene Abwesenheiten</div>
+          <div class="absence-chips" id="absence-chips">
+            <div style="font-size:13px;color:var(--muted);font-weight:300">Noch keine Abwesenheiten eingetragen.</div>
+          </div>
+        </div>
+        <div class="success-msg" id="success-msg">✓ <strong>Anmeldung eingegangen!</strong> Du erhältst in Kürze eine E-Mail mit deinem Telegram-Verknüpfungslink.</div>
+        <div class="btn-row">
+          <button type="button" class="btn-back" onclick="switchTab('verfueg',2)">← Zurück</button>
+          <button type="submit" class="submit-btn">Jetzt anmelden →</button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<script>
+// ── TABS ──
+function switchTab(id, idx) {
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('tab-' + id).classList.add('active');
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ── GEWERK LEVEL PILLS ──
+var LEVELS = [
+  {val:'profi',label:'Beruflich ausgebildet'},
+  {val:'erfahren',label:'Hobbymäßig erfahren'},
+  {val:'grundkenntnisse',label:'Grundkenntnisse'},
+  {val:'anfaenger',label:'Anfänger'}
+];
+var ALL_GEWERKE = ['maurer','zimmerer','betonbauer','stahlbau','elektriker','sanitaer','trockenbau','maler','fliesen','schreiner','bodenbelag','dachdecker','geruestbau','garten','helfer'];
+
+ALL_GEWERKE.forEach(function(g) {
+  var container = document.getElementById('pills-' + g);
+  if (!container) return;
+  LEVELS.forEach(function(lv) {
+    var span = document.createElement('span');
+    span.className = 'level-pill';
+    span.textContent = lv.label;
+    span.setAttribute('data-gewerk', g);
+    span.setAttribute('data-level', lv.val);
+    span.addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.querySelectorAll('.level-pill[data-gewerk="' + g + '"]').forEach(function(p) { p.classList.remove('selected'); });
+      span.classList.add('selected');
+      document.getElementById('level-val-' + g).value = lv.val;
+    });
+    container.appendChild(span);
+  });
+});
+
+function toggleLevel(value) {
+  var cb = document.getElementById('cb-' + value);
+  var level = document.getElementById('level-' + value);
+  if (!level) return;
+  if (value === 'helfer') return; // no experience level for general helper
+  if (cb.checked) {
+    level.classList.add('visible');
+  } else {
+    level.classList.remove('visible');
+    document.querySelectorAll('.level-pill[data-gewerk="' + value + '"]').forEach(function(p) { p.classList.remove('selected'); });
+    document.getElementById('level-val-' + value).value = '';
+  }
+}
+
+// ── SCHICHT PILLS ──
+document.querySelectorAll('.schicht-pill').forEach(function(pill) {
+  pill.addEventListener('click', function() {
+    var group = pill.dataset.group;
+    document.querySelectorAll('.schicht-pill[data-group="' + group + '"]').forEach(function(p) { p.classList.remove('selected'); });
+    pill.classList.add('selected');
+    var val = pill.dataset.val;
+    if (group === 'schichtart') {
+      document.getElementById('hidden-schichtart').value = val;
+      document.getElementById('konti-info').classList.toggle('visible', val === 'konti');
+      document.getElementById('wechsel-detail').classList.toggle('visible', val === 'wechsel');
+    } else if (group === 'gerade') {
+      document.getElementById('hidden-gerade').value = val;
+    } else if (group === 'ungerade') {
+      document.getElementById('hidden-ungerade').value = val;
+    }
+  });
+});
+
+// ── CALENDAR ──
+var today = new Date(); today.setHours(0,0,0,0);
+var calYear = today.getFullYear(), calMonth = today.getMonth();
+var selStart = null, picking = 'start', absences = [];
+var MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+function fmt(d) { return d.getDate() + '.' + (d.getMonth()+1) + '.' + d.getFullYear(); }
+
+function renderCal() {
+  document.getElementById('cal-month-label').textContent = MONTHS[calMonth] + ' ' + calYear;
+  var prevBtn = document.querySelector('.cal-nav button:first-child');
+  var thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  var curMonth = new Date(calYear, calMonth, 1);
+  if (prevBtn) { prevBtn.disabled = curMonth <= thisMonth; prevBtn.style.opacity = curMonth <= thisMonth ? '0.3' : '1'; }
+
+  var grid = document.getElementById('cal-grid');
+  var headers = Array.prototype.slice.call(grid.children, 0, 7);
+  grid.innerHTML = '';
+  headers.forEach(function(h) { grid.appendChild(h); });
+
+  var first = new Date(calYear, calMonth, 1);
+  var startDow = (first.getDay() + 6) % 7;
+  for (var i = 0; i < startDow; i++) grid.appendChild(makeDay(new Date(calYear, calMonth, 1-(startDow-i)), true));
+  var dim = new Date(calYear, calMonth+1, 0).getDate();
+  for (var d = 1; d <= dim; d++) grid.appendChild(makeDay(new Date(calYear, calMonth, d), false));
+  var total = grid.children.length - 7;
+  var rem = total % 7 === 0 ? 0 : 7-(total%7);
+  for (var j = 1; j <= rem; j++) grid.appendChild(makeDay(new Date(calYear, calMonth+1, j), true));
+}
+
+function makeDay(date, otherMonth) {
+  var el = document.createElement('div');
+  el.className = 'cal-day';
+  el.textContent = date.getDate();
+  if (otherMonth) { el.classList.add('other-month'); return el; }
+  if (date < today) { el.classList.add('past'); return el; }
+  if (date.getTime() === today.getTime()) el.classList.add('today');
+  absences.forEach(function(ab) {
+    if (date >= ab.start && date <= ab.end) {
+      if (date.getTime()===ab.start.getTime() && date.getTime()===ab.end.getTime()) el.classList.add('range-start','range-end');
+      else if (date.getTime()===ab.start.getTime()) el.classList.add('range-start');
+      else if (date.getTime()===ab.end.getTime()) el.classList.add('range-end');
+      else el.classList.add('in-range');
+    }
+  });
+  if (selStart && picking==='end' && date.getTime()===selStart.getTime()) el.classList.add('range-start','range-end');
+  el.setAttribute('data-ts', date.getTime());
+  return el;
+}
+
+function onDayClick(date) {
+  var hint = document.getElementById('cal-hint');
+  if (picking === 'start') {
+    for (var i = 0; i < absences.length; i++) {
+      if (date >= absences[i].start && date <= absences[i].end) {
+        absences.splice(i, 1); renderChips(); renderCal(); return;
+      }
+    }
+    selStart = new Date(date); picking = 'end';
+    hint.textContent = 'Endtag wählen – gleichen Tag nochmal tippen für einzelnen Tag';
+    renderCal();
+  } else {
+    var s = selStart <= date ? new Date(selStart) : new Date(date);
+    var e = selStart <= date ? new Date(date) : new Date(selStart);
+    absences.push({start: s, end: e});
+    selStart = null; picking = 'start';
+    hint.textContent = '';
+    renderChips(); renderCal();
+  }
+}
+
+function renderChips() {
+  var c = document.getElementById('absence-chips');
+  c.innerHTML = '';
+  if (absences.length === 0) {
+    c.innerHTML = '<div style="font-size:13px;color:var(--muted);font-weight:300">Noch keine Abwesenheiten eingetragen.</div>';
+  } else {
+    absences.forEach(function(ab, i) {
+      var div = document.createElement('div');
+      div.className = 'absence-chip';
+      var label = ab.start.getTime()===ab.end.getTime() ? fmt(ab.start) : fmt(ab.start)+' – '+fmt(ab.end);
+      div.innerHTML = '<span>'+label+'</span><button type="button" class="chip-remove" onclick="removeAbsence('+i+')">✕</button>';
+      c.appendChild(div);
+    });
+  }
+}
+
+function removeAbsence(idx) { absences.splice(idx,1); renderChips(); renderCal(); }
+function calPrev() { var p=new Date(calYear,calMonth-1,1); if(p<new Date(today.getFullYear(),today.getMonth(),1))return; calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCal(); }
+function calNext() { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCal(); }
+
+// ── CALENDAR TOUCH – delegated listener on grid ──
+function initCal() {
+  renderCal();
+  var grid = document.getElementById('cal-grid');
+  function handleTap(e) {
+    var t = e.target;
+    while (t && t !== grid) {
+      if (t.classList && t.classList.contains('cal-day') &&
+          !t.classList.contains('other-month') &&
+          !t.classList.contains('past')) {
+        var ts = t.getAttribute('data-ts');
+        if (ts) {
+          if (e.type === 'touchend') e.preventDefault();
+          onDayClick(new Date(parseInt(ts, 10)));
+          return;
+        }
+      }
+      t = t.parentNode;
+    }
+  }
+  grid.addEventListener('click', handleTap);
+  grid.addEventListener('touchend', handleTap, {passive: false});
+}
+
+// ── SUBMIT ──
+function handleSubmit(e) {
+  e.preventDefault();
+  var data = new FormData(document.getElementById('anmeldeform'));
+  var gewerke = data.getAll('gewerk');
+  var erfahrung = {};
+  gewerke.forEach(function(g) { erfahrung[g] = data.get('level_' + g) || ''; });
+
+  var payload = {
+    vorname: data.get('vorname') || '',
+    nachname: data.get('nachname') || '',
+    email: data.get('email') || '',
+    telefon: data.get('telefon') || '',
+    gewerke: gewerke,
+    erfahrung: erfahrung,
+    qualifikationen: data.get('qualifikationen') || '',
+    teamwunsch: data.get('teamwunsch') || '',
+    schichtart: data.get('schichtart') || '',
+    woche_gerade: data.get('wochenmuster_gerade') || '',
+    woche_ungerade: data.get('wochenmuster_ungerade') || '',
+    schicht_freitext: data.get('schicht_freitext') || '',
+    wochentage: data.getAll('wochentag'),
+    verfueg_kommentar: data.get('verfueg_kommentar') || '',
+    abwesenheiten: absences.map(function(a) { return {von: fmt(a.start), bis: fmt(a.end)}; })
+  };
+
+  var msg = document.getElementById('success-msg');
+
+  if (window.saveAnmeldung) {
+    window.saveAnmeldung(payload).then(function(result) {
+      if (result.success) {
+        msg.style.background = '#edf7f0'; msg.style.borderColor = '#aad4b8'; msg.style.color = '#3a7a52';
+        msg.innerHTML = '✓ <strong>Anmeldung eingegangen!</strong> Du erhältst in Kürze eine E-Mail mit deinem Telegram-Verknüpfungslink.';
+      } else {
+        msg.style.background = '#fdf0f0'; msg.style.borderColor = '#f0a0a0'; msg.style.color = '#c0392b';
+        msg.innerHTML = 'Fehler beim Speichern. Bitte nochmal versuchen.';
+      }
+      msg.style.display = 'block';
+    });
+  } else {
+    msg.style.display = 'block';
+  }
+
+  document.getElementById('anmeldeform').reset();
+  ALL_GEWERKE.forEach(function(g) {
+    var l = document.getElementById('level-' + g); if (l) l.classList.remove('visible');
+    document.querySelectorAll('.level-pill[data-gewerk="' + g + '"]').forEach(function(p) { p.classList.remove('selected'); });
+  });
+  document.querySelectorAll('.schicht-pill').forEach(function(p) { p.classList.remove('selected'); });
+  document.getElementById('konti-info').classList.remove('visible');
+  document.getElementById('wechsel-detail').classList.remove('visible');
+  absences = []; renderChips(); renderCal();
+  switchTab('person', 0);
+  setTimeout(function() { msg.style.display = 'none'; }, 7000);
+}
+
+// ── INIT ──
+initCal();
+</script>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
+  authDomain: "gemeindehaus-achim.firebaseapp.com",
+  projectId: "gemeindehaus-achim",
+  storageBucket: "gemeindehaus-achim.firebasestorage.app",
+  messagingSenderId: "272798328583",
+  appId: "1:272798328583:web:388aa8db19886e9be507a2"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.saveAnmeldung = async function(payload) {
+  try {
+    payload.angemeldet_am = serverTimestamp();
+    await addDoc(collection(db, 'anmeldungen'), payload);
+    return { success: true };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+};
+</script>
+
+</body>
+</html>
