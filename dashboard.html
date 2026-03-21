@@ -572,6 +572,7 @@ function buildGewerkFilter() {
 
 // ── DRAWER ──
 window.openDrawer = function(id) {
+  window._currentDrawerId = id;
   const d = allDocs.find(x => x.id === id);
   if (!d) return;
   document.getElementById('drawer-name').textContent = (d.vorname||'') + ' ' + (d.nachname||'');
@@ -579,7 +580,8 @@ window.openDrawer = function(id) {
   const gewerke = (d.gewerke||[]).map(g => {
     const level = d.erfahrung?.[g] || '';
     const levelLabel = {profi:'Profi',erfahren:'Erfahren',grundkenntnisse:'Grundkenntnisse',anfaenger:'Anfänger'}[level]||'';
-    return `<span class="badge">${GEWERK_LABELS[g]||g}${levelLabel?' · '+levelLabel:''}</span>`;
+    const showLevel = g !== 'helfer' && levelLabel;
+    return `<span class="badge">${GEWERK_LABELS[g]||g}${showLevel?' · '+levelLabel:''}</span>`;
   }).join(' ') || '–';
 
   const tage = (d.wochentage||[]).map(t => WOCHENTAGE_FULL[WOCHENTAGE_KEYS.indexOf(t)]||t).join(', ') || '–';
@@ -687,6 +689,19 @@ window.removeTeamEntry = async function(id, idx) {
   existing.splice(idx, 1);
   await updateDoc(doc(db, 'anmeldungen', id), { teams: existing, team: existing[0]?.team || null });
   window.openDrawer(id);
+};
+
+// ── DELETE PERSON ──
+window.deletePerson = async function(id) {
+  if (!id) return;
+  const d = allDocs.find(x => x.id === id);
+  const name = d ? (d.vorname||'') + ' ' + (d.nachname||'') : 'diese Person';
+  if (!confirm(name + ' wirklich unwiderruflich löschen?')) return;
+  try {
+    const { deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    await deleteDoc(doc(db, 'anmeldungen', id));
+    closeDrawer();
+  } catch(e) { alert('Fehler: ' + e.message); }
 };
 
 // ── TEAMS ──

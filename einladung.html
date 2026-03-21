@@ -149,7 +149,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <div class="card-title">Einladungslink</div>
       <div class="url-group">
         <div class="url-row">
-          <input type="text" id="qr-url-input" value="https://gemeindehaus-achim.de/anmeldung" oninput="regenerateQR()">
+          <input type="text" id="qr-url-input" value="https://lsscheling.github.io/gemeindehaus-achim/anmeldung.html" oninput="regenerateQR()">
           <button class="btn btn-outline" onclick="copyUrl(event)">Kopieren</button>
         </div>
         <p class="notice">Ersetze mit der echten URL nach dem Deployment.</p>
@@ -353,7 +353,7 @@ function printQR() {
   setTimeout(function() { w.print(); }, 400);
 }
 
-generateQR('https://gemeindehaus-achim.de/anmeldung');
+generateQR('https://lsscheling.github.io/gemeindehaus-achim/anmeldung.html');
 </script>
 
   <script type="module">
