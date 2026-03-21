@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gewerke – Gemeindehaus Achim</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root { color-scheme: light; }
+html, body { background: #f4f1e8 !important; color: #1c1b18 !important; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #1c1b18; --paper: #f4f1e8; --cream: #ece8dc;
+  --accent: #b85c2a; --accent-light: #f0d9cc;
+  --muted: #79776e; --border: #d6d0c4; --radius: 5px;
+  --success: #3a7a52;
+}
+body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
+.shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+.sidebar { background: var(--ink); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.sidebar-logo-text { font-size: 13px; font-weight: 500; color: white; }
+.sidebar-logo-sub { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 300; margin-top: 1px; }
+.sidebar-nav { padding: 16px 12px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.25); padding: 10px 12px 4px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius); color: rgba(255,255,255,0.55); font-size: 13px; cursor: pointer; border: none; background: none; font-family: 'DM Sans', sans-serif; width: 100%; text-align: left; transition: all 0.15s; }
+.nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: var(--accent); color: white; font-weight: 500; }
+.nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.main { display: flex; flex-direction: column; }
+.topbar { padding: 18px 28px; border-bottom: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: space-between; }
+.topbar h1 { font-family: 'DM Serif Display', serif; font-size: 22px; font-weight: 400; }
+.topbar p { font-size: 12px; color: var(--muted); font-weight: 300; margin-top: 2px; }
+.btn { padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; border-radius: var(--radius); cursor: pointer; transition: all 0.15s; font-weight: 400; border: none; }
+.btn-accent { background: var(--accent); color: white; }
+.btn-accent:hover { opacity: 0.88; }
+.btn-outline { background: white; border: 1px solid var(--border); color: var(--ink); }
+.btn-outline:hover { border-color: var(--ink); }
+.btn-sm { padding: 5px 11px; font-size: 11px; }
+.content { padding: 28px; flex: 1; display: flex; flex-direction: column; gap: 28px; }
+.section { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.section-head { padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--paper); display: flex; align-items: center; justify-content: space-between; }
+.section-title { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.section-sub { font-size: 12px; color: var(--muted); font-weight: 300; margin-top: 2px; }
+.gewerk-group { border-bottom: 1px solid var(--border); }
+.gewerk-group:last-child { border-bottom: none; }
+.group-label { padding: 10px 20px 6px; font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); background: var(--cream); border-bottom: 1px solid var(--border); }
+.gewerk-row { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--border); transition: background 0.12s; }
+.gewerk-row:last-child { border-bottom: none; }
+.gewerk-row:hover { background: var(--paper); }
+.gewerk-toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+.gewerk-toggle input { opacity: 0; width: 100%; height: 100%; position: absolute; cursor: pointer; margin: 0; z-index: 1; }
+.toggle-track { width: 36px; height: 20px; background: var(--border); border-radius: 10px; transition: background 0.2s; }
+.gewerk-toggle input:checked + .toggle-track { background: var(--success); }
+.toggle-thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.2s; pointer-events: none; }
+.gewerk-toggle input:checked ~ .toggle-thumb { transform: translateX(16px); }
+.gewerk-name { flex: 1; font-size: 14px; font-weight: 400; }
+.gewerk-name.inactive { color: var(--muted); text-decoration: line-through; }
+.gewerk-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: var(--accent-light); color: var(--accent); }
+.gewerk-badge.custom { background: #e8f4ed; color: var(--success); }
+.gewerk-count { font-size: 12px; color: var(--muted); min-width: 60px; text-align: right; }
+.add-form { display: flex; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--border); align-items: flex-end; flex-wrap: wrap; }
+.add-field { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 160px; }
+.add-field label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.add-field input { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 300; border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 12px; outline: none; background: var(--paper); }
+.add-field input:focus { border-color: var(--accent); }
+.save-bar { background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.save-bar p { font-size: 13px; color: var(--muted); font-weight: 300; }
+.save-success { display: none; font-size: 13px; color: var(--success); font-weight: 400; }
+
+/* MOBILE */
+.hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; flex-direction: column; gap: 5px; }
+.hamburger span { display: block; width: 22px; height: 2px; background: var(--ink); border-radius: 2px; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 19; }
+.sidebar-overlay.open { display: block; }
+@media (max-width: 768px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { display: flex; position: fixed; left: -240px; top: 0; height: 100vh; width: 240px; z-index: 20; transition: left 0.25s ease; }
+  .sidebar.open { left: 0; }
+  .hamburger { display: flex; }
+  .topbar { padding: 12px 16px; gap: 10px; }
+  .content { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+<div class="shell">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">Gemeindehaus Achim</div>
+      <div class="sidebar-logo-sub">Gewerk-Verwaltung</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Navigation</div>
+      <button class="nav-item" onclick="window.location.href='dashboard.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        Gewerke verwalten
+      </button>
+      <button class="nav-item" onclick="window.location.href='team.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Teams
+      </button>
+      <button class="nav-item" onclick="window.location.href='gantt.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Gewerk-Planung
+      </button>
+    </nav>
+  </div>
+
+  <div class="main">
+    <div class="topbar" style="gap:12px">
+      <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div>
+        <h1>Gewerke verwalten</h1>
+        <p>Aktiviere die Gewerke die für dieses Projekt relevant sind. Aktive Gewerke erscheinen im Anmeldeformular und in der Gantt-Planung.</p>
+      </div>
+      <button class="btn btn-accent" onclick="saveGewerke()">Änderungen speichern</button>
+    </div>
+
+    <div class="content">
+
+      <div class="save-bar">
+        <p>Änderungen werden erst wirksam wenn du auf „Speichern" klickst. Deaktivierte Gewerke bleiben bei bestehenden Anmeldungen erhalten.</p>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="save-success" id="save-success">✓ Gespeichert</span>
+          <button class="btn btn-accent" onclick="saveGewerke()">Speichern</button>
+        </div>
+      </div>
+
+      <!-- STANDARD GEWERKE -->
+      <div class="section">
+        <div class="section-head">
+          <div>
+            <div class="section-title">Standard-Gewerke</div>
+            <div class="section-sub">Vordefinierte Gewerke – aktivieren oder deaktivieren</div>
+          </div>
+          <div style="font-size:12px;color:var(--muted)" id="active-count">– aktiv</div>
+        </div>
+        <div id="standard-list"></div>
+      </div>
+
+      <!-- EIGENE GEWERKE -->
+      <div class="section">
+        <div class="section-head">
+          <div>
+            <div class="section-title">Eigene Gewerke</div>
+            <div class="section-sub">Projektspezifische Gewerke hinzufügen</div>
+          </div>
+        </div>
+        <div id="custom-list"></div>
+        <div class="add-form">
+          <div class="add-field">
+            <label>Bezeichnung *</label>
+            <input type="text" id="new-name" placeholder="z.B. Gerüstbau Spezial">
+          </div>
+          <div class="add-field" style="max-width:180px">
+            <label>Gruppe</label>
+            <input type="text" id="new-gruppe" placeholder="z.B. Spezialgewerke">
+          </div>
+          <button class="btn btn-outline" onclick="addCustom()" style="margin-bottom:0;align-self:flex-end">+ Hinzufügen</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar() {
+  var s = document.querySelector('.sidebar');
+  var o = document.getElementById('sidebar-overlay');
+  if (s) s.classList.toggle('open');
+  if (o) o.classList.toggle('open');
+}
+function closeSidebar() {
+  var s = document.querySelector('.sidebar');
+  var o = document.getElementById('sidebar-overlay');
+  if (s) s.classList.remove('open');
+  if (o) o.classList.remove('open');
+}
+</script>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, getDocs, collection } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
+  authDomain: "gemeindehaus-achim.firebaseapp.com",
+  projectId: "gemeindehaus-achim",
+  storageBucket: "gemeindehaus-achim.firebasestorage.app",
+  messagingSenderId: "272798328583",
+  appId: "1:272798328583:web:388aa8db19886e9be507a2"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const STANDARD_GEWERKE = [
+  {id:'maurer',     label:'Maurer / -in',           gruppe:'Rohbau & Konstruktion'},
+  {id:'zimmerer',   label:'Zimmerer / -in',          gruppe:'Rohbau & Konstruktion'},
+  {id:'betonbauer', label:'Betonbauer / -in',        gruppe:'Rohbau & Konstruktion'},
+  {id:'stahlbau',   label:'Stahlbau',                gruppe:'Rohbau & Konstruktion'},
+  {id:'elektriker', label:'Elektriker / -in',        gruppe:'Technischer Ausbau'},
+  {id:'sanitaer',   label:'Sanitär / HZG',           gruppe:'Technischer Ausbau'},
+  {id:'trockenbau', label:'Trockenbau',              gruppe:'Technischer Ausbau'},
+  {id:'maler',      label:'Maler / -in',             gruppe:'Innenausbau'},
+  {id:'fliesen',    label:'Fliesen / Estrich',       gruppe:'Innenausbau'},
+  {id:'schreiner',  label:'Schreiner / Tischler',    gruppe:'Innenausbau'},
+  {id:'bodenbelag', label:'Bodenbelag',              gruppe:'Innenausbau'},
+  {id:'dachdecker', label:'Dachdecker / -in',        gruppe:'Außenarbeiten'},
+  {id:'geruestbau', label:'Gerüstbau',               gruppe:'Außenarbeiten'},
+  {id:'garten',     label:'Garten / Außen',          gruppe:'Außenarbeiten'},
+  {id:'helfer',     label:'Allgemeiner Helfer / -in',gruppe:'Unterstützung'},
+];
+
+let activeIds = new Set();
+let customGewerke = [];
+let personCounts = {};
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { window.location.href = 'dashboard.html'; return; }
+
+  // Load saved config
+  try {
+    const snap = await getDoc(doc(db, 'planung', 'gewerke'));
+    if (snap.exists()) {
+      const data = snap.data();
+      activeIds = new Set(data.active || STANDARD_GEWERKE.map(g => g.id));
+      customGewerke = data.custom || [];
+    } else {
+      // Default: all active
+      activeIds = new Set(STANDARD_GEWERKE.map(g => g.id));
+      customGewerke = [];
+    }
+  } catch(e) { activeIds = new Set(STANDARD_GEWERKE.map(g => g.id)); }
+
+  // Count persons per gewerk
+  try {
+    const snap2 = await getDocs(collection(db, 'anmeldungen'));
+    snap2.forEach(d => {
+      const data = d.data();
+      (data.gewerke || []).forEach(g => {
+        personCounts[g] = (personCounts[g] || 0) + 1;
+      });
+    });
+  } catch(e) {}
+
+  renderAll();
+});
+
+function renderAll() {
+  renderStandard();
+  renderCustom();
+  updateCount();
+}
+
+function renderStandard() {
+  const list = document.getElementById('standard-list');
+  const groups = {};
+  STANDARD_GEWERKE.forEach(g => {
+    if (!groups[g.gruppe]) groups[g.gruppe] = [];
+    groups[g.gruppe].push(g);
+  });
+
+  list.innerHTML = Object.keys(groups).map(grp => {
+    const rows = groups[grp].map(g => {
+      const active = activeIds.has(g.id);
+      const count = personCounts[g.id] || 0;
+      return `<div class="gewerk-row">
+        <label class="gewerk-toggle">
+          <input type="checkbox" ${active ? 'checked' : ''} onchange="toggleGewerk('${g.id}', this.checked)">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+        <span class="gewerk-name${active ? '' : ' inactive'}" id="name-${g.id}">${g.label}</span>
+        <span class="gewerk-badge">Standard</span>
+        <span class="gewerk-count">${count > 0 ? count + ' Person' + (count !== 1 ? 'en' : '') : ''}</span>
+      </div>`;
+    }).join('');
+    return `<div class="gewerk-group"><div class="group-label">${grp}</div>${rows}</div>`;
+  }).join('');
+}
+
+function renderCustom() {
+  const list = document.getElementById('custom-list');
+  if (customGewerke.length === 0) {
+    list.innerHTML = '<div style="padding:16px 20px;font-size:13px;color:var(--muted);font-weight:300">Noch keine eigenen Gewerke angelegt.</div>';
+    return;
+  }
+  list.innerHTML = customGewerke.map((g, i) => {
+    const active = activeIds.has(g.id);
+    const count = personCounts[g.id] || 0;
+    return `<div class="gewerk-row">
+      <label class="gewerk-toggle">
+        <input type="checkbox" ${active ? 'checked' : ''} onchange="toggleGewerk('${g.id}', this.checked)">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+      <span class="gewerk-name${active ? '' : ' inactive'}">${g.label}</span>
+      <span class="gewerk-badge custom">Eigenes Gewerk</span>
+      <span class="gewerk-count">${count > 0 ? count + ' Person' + (count !== 1 ? 'en' : '') : ''}</span>
+      <button onclick="removeCustom(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function updateCount() {
+  const n = activeIds.size;
+  document.getElementById('active-count').textContent = n + ' aktiv';
+}
+
+window.toggleGewerk = function(id, checked) {
+  if (checked) activeIds.add(id);
+  else activeIds.delete(id);
+  // Update name style immediately
+  const nameEl = document.getElementById('name-' + id);
+  if (nameEl) nameEl.classList.toggle('inactive', !checked);
+  updateCount();
+};
+
+window.addCustom = function() {
+  const name = document.getElementById('new-name').value.trim();
+  const gruppe = document.getElementById('new-gruppe').value.trim() || 'Eigene Gewerke';
+  if (!name) { alert('Bitte einen Namen eingeben.'); return; }
+  const id = 'custom_' + Date.now();
+  customGewerke.push({ id, label: name, gruppe });
+  activeIds.add(id);
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-gruppe').value = '';
+  renderCustom();
+  updateCount();
+};
+
+window.removeCustom = function(idx) {
+  if (!confirm('Eigenes Gewerk wirklich entfernen?')) return;
+  activeIds.delete(customGewerke[idx].id);
+  customGewerke.splice(idx, 1);
+  renderCustom();
+  updateCount();
+};
+
+window.saveGewerke = async function() {
+  try {
+    await setDoc(doc(db, 'planung', 'gewerke'), {
+      active: [...activeIds],
+      custom: customGewerke,
+      savedAt: new Date().toISOString()
+    });
+    const s = document.getElementById('save-success');
+    s.style.display = 'inline';
+    setTimeout(() => s.style.display = 'none', 3000);
+  } catch(e) { alert('Fehler: ' + e.message); }
+};
+</script>
+</body>
+</html>
