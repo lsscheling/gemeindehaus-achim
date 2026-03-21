@@ -117,9 +117,26 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
 .delete-btn { color: #c0392b; background: none; border: 1px solid #f0a0a0; border-radius: var(--radius); padding: 8px 14px; font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; margin-right: auto; }
 .delete-btn:hover { background: #fdf0f0; }
+
+/* MOBILE NAV */
+.hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; color: white; flex-direction: column; gap: 5px; }
+.hamburger span { display: block; width: 22px; height: 2px; background: white; border-radius: 2px; transition: all 0.2s; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 19; }
+.sidebar-overlay.open { display: block; }
+@media (max-width: 768px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { display: flex; position: fixed; left: -240px; top: 0; height: 100vh; width: 240px; z-index: 20; transition: left 0.25s ease; }
+  .sidebar.open { left: 0; }
+  .hamburger { display: flex; }
+  .topbar { padding: 12px 16px; }
+  .content, .content { padding: 16px; }
+}
 </style>
 </head>
 <body>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
 <div class="shell">
   <div class="sidebar">
     <div class="sidebar-logo">
@@ -139,7 +156,10 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
   </div>
 
   <div class="main">
-    <div class="topbar">
+    <div class="topbar" style="gap:12px">
+      <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Menü">
+          <span></span><span></span><span></span>
+        </button>
       <div>
         <h1>Gewerk-Zeitplanung</h1>
         <p>Balken ziehen = verschieben · Ränder ziehen = Dauer · Balken klicken = bearbeiten</p>
@@ -742,6 +762,19 @@ window.saveToFirebase = async function() {
     setTimeout(() => btn.textContent = 'Speichern', 2000);
   } catch(e) { alert('Fehler: ' + e.message); }
 };
+
+function toggleSidebar() {
+  var sidebar = document.querySelector('.sidebar');
+  var overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+function closeSidebar() {
+  var sidebar = document.querySelector('.sidebar');
+  var overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
+}
 </script>
 </body>
 </html>
