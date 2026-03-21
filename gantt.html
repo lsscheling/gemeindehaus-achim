@@ -119,8 +119,8 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 .delete-btn:hover { background: #fdf0f0; }
 
 /* MOBILE NAV */
-.hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; color: white; flex-direction: column; gap: 5px; }
-.hamburger span { display: block; width: 22px; height: 2px; background: white; border-radius: 2px; transition: all 0.2s; }
+.hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; color: var(--ink); flex-direction: column; gap: 5px; }
+.hamburger span { display: block; width: 22px; height: 2px; background: var(--ink); border-radius: 2px; transition: all 0.2s; }
 .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 19; }
 .sidebar-overlay.open { display: block; }
 @media (max-width: 768px) {
@@ -157,9 +157,8 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 
   <div class="main">
     <div class="topbar" style="gap:12px">
-      <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Menü">
-          <span></span><span></span><span></span>
-        </button>
+      <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      
       <div>
         <h1>Gewerk-Zeitplanung</h1>
         <p>Balken ziehen = verschieben · Ränder ziehen = Dauer · Balken klicken = bearbeiten</p>
@@ -763,17 +762,20 @@ window.saveToFirebase = async function() {
   } catch(e) { alert('Fehler: ' + e.message); }
 };
 
+</script>
+
+<script>
 function toggleSidebar() {
-  var sidebar = document.querySelector('.sidebar');
-  var overlay = document.getElementById('sidebar-overlay');
-  sidebar.classList.toggle('open');
-  overlay.classList.toggle('open');
+  var s = document.querySelector('.sidebar');
+  var o = document.getElementById('sidebar-overlay');
+  if (s) s.classList.toggle('open');
+  if (o) o.classList.toggle('open');
 }
 function closeSidebar() {
-  var sidebar = document.querySelector('.sidebar');
-  var overlay = document.getElementById('sidebar-overlay');
-  sidebar.classList.remove('open');
-  overlay.classList.remove('open');
+  var s = document.querySelector('.sidebar');
+  var o = document.getElementById('sidebar-overlay');
+  if (s) s.classList.remove('open');
+  if (o) o.classList.remove('open');
 }
 </script>
 </body>
