@@ -536,7 +536,16 @@ function renderTable(docs) {
   }
   tbody.innerHTML = docs.map(d => {
     const name = (d.vorname||'') + ' ' + (d.nachname||'');
-    const gewerke = (d.gewerke||[]).map(g => `<span class="badge">${GEWERK_LABELS[g]||g}</span>`).join('');
+    const LEVEL_COLORS_TBL = {profi:'#2d6a4f',erfahren:'#b85c2a',grundkenntnisse:'#92610a',anfaenger:'#888'};
+    const LEVEL_BG = {profi:'#d4ead9',erfahren:'#f0d9cc',grundkenntnisse:'#fef3c7',anfaenger:'#f0f0f0'};
+    const LEVEL_LABEL = {profi:'Profi',erfahren:'Erfahren',grundkenntnisse:'Grundkenntnisse',anfaenger:'Anfänger'};
+    const gewerke = (d.gewerke||[]).map(g => {
+      const lv = d.erfahrung?.[g];
+      const color = lv ? LEVEL_COLORS_TBL[lv] : 'var(--muted)';
+      const bg = lv ? LEVEL_BG[lv] : 'var(--cream)';
+      const lvLabel = lv && g !== 'helfer' ? ' · ' + LEVEL_LABEL[lv] : '';
+      return `<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:${bg};color:${color};border:1px solid ${color}33;margin:1px">${GEWERK_LABELS[g]||g}${lvLabel}</span>`;
+    }).join('');
     const schicht = d.schichtart ? d.schichtart : '–';
     const tage = (d.wochentage||[]).map(t => t.charAt(0).toUpperCase() + t.slice(1,2)).join(', ') || '–';
     const team = d.team ? `<span class="badge badge-green">${d.team}</span>` : '<span class="badge badge-gray">kein Team</span>';
