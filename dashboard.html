@@ -444,7 +444,7 @@ function getGewerkLabel(id) {
 
 let allDocs = [];
 let teams = [];
-let filteredDocs = [];
+let filteredDocs = []; window.filteredDocs = filteredDocs;
 let currentFilter = '';
 let currentGewerk = '';
 
@@ -501,6 +501,7 @@ window.loadData = function() {
     allDocs = [];
     snap.forEach(d => allDocs.push({ id: d.id, ...d.data() }));
     filteredDocs = [...allDocs];
+    window.filteredDocs = filteredDocs;
     renderAll();
   });
 }
@@ -893,22 +894,7 @@ window.exportCSV = function() {
 };
 
 // ── NAV ──
-window.window.showPanel = function(id) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const panel = document.getElementById('panel-' + id);
-  if (panel) panel.classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => {
-    const oc = n.getAttribute('onclick') || '';
-    if (oc.includes("'" + id + "'") || oc.includes('"' + id + '"')) {
-      n.classList.add('active');
-    }
-  });
-  // Re-render the panel content
-  if (id === 'schichtplan') renderSchichtplan();
-  if (id === 'abwesenheiten') renderAbwesenheiten();
-  if (id === 'anmeldungen') renderTable(filteredDocs);
-};
+window.// showPanel moved to regular script
 
 // ── MANUAL ENTRY ──
 var M_GEWERKE = ['maurer','zimmerer','betonbauer','stahlbau','elektriker','sanitaer','trockenbau','maler','fliesen','schreiner','bodenbelag','dachdecker','geruestbau','garten','helfer'];
@@ -1331,5 +1317,26 @@ window.saveEditPerson = async function() {
   </div>
 </div>
 
+
+<script>
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  var panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n) {
+    var oc = n.getAttribute('onclick') || '';
+    if (oc.indexOf("'" + id + "'") !== -1 || oc.indexOf('"' + id + '"') !== -1) {
+      n.classList.add('active');
+    }
+  });
+  // Re-render content
+  setTimeout(function() {
+    if (id === 'schichtplan' && window.renderSchichtplan) window.renderSchichtplan();
+    if (id === 'abwesenheiten' && window.renderAbwesenheiten) window.renderAbwesenheiten();
+    if (id === 'anmeldungen' && window.renderTable && window.filteredDocs) window.renderTable(window.filteredDocs);
+  }, 50);
+}
+</script>
 </body>
 </html>
