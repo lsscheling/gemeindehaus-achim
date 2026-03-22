@@ -24,12 +24,13 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 .sidebar-logo-sub { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 300; margin-top: 1px; }
 .sidebar-nav { padding: 16px 12px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.25); padding: 10px 12px 4px; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius); color: rgba(255,255,255,0.55); font-size: 13px; cursor: pointer; border: none; background: none; font-family: 'DM Sans', sans-serif; width: 100%; text-align: left; transition: all 0.15s; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius); color: rgba(255,255,255,0.55); font-size: 13px; cursor: pointer; border: none; background: none; font-family: 'DM Sans', sans-serif; width: 100%; text-align: left; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
 .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
 .nav-item.active { background: var(--accent); color: white; font-weight: 500; }
 .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+
 .main { display: flex; flex-direction: column; }
-.topbar { padding: 18px 28px; border-bottom: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.topbar { padding: 18px 28px; border-bottom: 1px solid var(--border); background: white; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-shrink: 0; }
 .topbar h1 { font-family: 'DM Serif Display', serif; font-size: 22px; font-weight: 400; }
 .topbar p { font-size: 12px; color: var(--muted); font-weight: 300; margin-top: 2px; }
 .btn { padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; border-radius: var(--radius); cursor: pointer; transition: all 0.15s; font-weight: 400; border: none; }
@@ -37,49 +38,52 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 .btn-accent:hover { opacity: 0.88; }
 .btn-outline { background: white; border: 1px solid var(--border); color: var(--ink); }
 .btn-outline:hover { border-color: var(--ink); }
-.content { padding: 28px; flex: 1; display: flex; flex-direction: column; gap: 20px; }
+.btn-danger { background: none; border: 1px solid #f0a0a0; color: var(--danger); }
+.btn-danger:hover { background: #fdf0f0; }
 
-/* TABLE */
-.table-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.table-head { padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--paper); display: flex; align-items: center; justify-content: space-between; }
-.table-title { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-table { width: 100%; border-collapse: collapse; }
-th { background: var(--paper); padding: 10px 16px; font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); text-align: left; border-bottom: 1px solid var(--border); }
-td { padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--paper); }
+.content { padding: 28px; flex: 1; overflow-y: auto; }
 
-/* TOGGLE */
-.toggle-wrap { position: relative; width: 36px; height: 20px; flex-shrink: 0; display: inline-block; }
-.toggle-wrap input { opacity: 0; width: 100%; height: 100%; position: absolute; cursor: pointer; margin: 0; z-index: 1; }
-.toggle-track { width: 36px; height: 20px; background: var(--border); border-radius: 10px; transition: background 0.2s; }
-.toggle-wrap input:checked + .toggle-track { background: var(--success); }
-.toggle-thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.2s; pointer-events: none; }
-.toggle-wrap input:checked ~ .toggle-thumb { transform: translateX(16px); }
+/* GEWERK LIST */
+.gewerk-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 24px; }
+.gewerk-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); display: flex; align-items: center; gap: 14px; padding: 14px 18px; transition: border-color 0.15s; }
+.gewerk-card:hover { border-color: var(--muted); }
+.gewerk-color { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.gewerk-info { flex: 1; }
+.gewerk-name { font-size: 14px; font-weight: 500; }
+.gewerk-meta { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; gap: 12px; flex-wrap: wrap; }
+.gewerk-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
 
-/* INLINE EDIT */
-.inline-num { width: 64px; font-family: 'DM Sans', sans-serif; font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 8px; text-align: center; outline: none; background: var(--paper); }
-.inline-num:focus { border-color: var(--accent); background: white; }
-.gewerk-name-inactive { color: var(--muted); text-decoration: line-through; }
-.badge-custom { display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 8px; background: #e8f4ed; color: var(--success); border: 1px solid #b0d9bc; margin-left: 6px; }
-.status-bar { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-.status-dot { width: 7px; height: 7px; border-radius: 50%; }
-.dot-ok { background: var(--success); }
-.dot-warn { background: var(--accent); }
-.dot-miss { background: var(--danger); }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: 400; }
+.badge-geplant { background: #d4ead9; color: var(--success); border: 1px solid #b0d9bc; }
+.badge-ungeplant { background: #fee2e2; color: var(--danger); border: 1px solid #fca5a5; }
+.badge-personen { background: var(--accent-light); color: var(--accent); border: 1px solid #ddb99a; }
+.badge-standard { background: var(--cream); color: var(--muted); border: 1px solid var(--border); }
+.badge-custom { background: #e8f4ed; color: var(--success); border: 1px solid #b0d9bc; }
 
-/* ADD ROW */
-.add-row { display: flex; gap: 10px; padding: 14px 16px; border-top: 2px dashed var(--border); align-items: flex-end; flex-wrap: wrap; background: var(--paper); }
-.add-field { display: flex; flex-direction: column; gap: 4px; }
-.add-field label { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
-.add-field input { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 300; border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; outline: none; background: white; }
-.add-field input:focus { border-color: var(--accent); }
-.add-field input[type=number] { width: 80px; text-align: center; }
+.gewerk-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.icon-btn { background: none; border: 1px solid var(--border); border-radius: var(--radius); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted); transition: all 0.15s; font-size: 14px; }
+.icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+.icon-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
 
-/* SAVE BAR */
-.save-bar { background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.save-bar p { font-size: 13px; color: var(--muted); font-weight: 300; }
-.save-ok { font-size: 13px; color: var(--success); display: none; }
+.gantt-hint { background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.gantt-hint a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.gantt-hint a:hover { text-decoration: underline; }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 50; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: white; border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 420px; padding: 28px; }
+.modal h3 { font-family: 'DM Serif Display', serif; font-size: 20px; font-weight: 400; margin-bottom: 20px; }
+.mfield { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.mfield label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.mfield input, .mfield select { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 300; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; outline: none; width: 100%; background: var(--paper); }
+.mfield input:focus, .mfield select:focus { border-color: var(--accent); }
+.mfield input[type=number] { width: 100px; }
+.color-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.color-dot { width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.15s; }
+.color-dot.selected { border-color: var(--ink); transform: scale(1.15); }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.modal-delete { margin-right: auto; }
 
 /* MOBILE */
 .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; flex-direction: column; gap: 5px; }
@@ -91,10 +95,8 @@ tr:hover td { background: var(--paper); }
   .sidebar { display: flex; position: fixed; left: -240px; top: 0; height: 100vh; width: 240px; z-index: 20; transition: left 0.25s ease; }
   .sidebar.open { left: 0; }
   .hamburger { display: flex; }
-  .topbar { padding: 12px 16px; flex-wrap: wrap; }
+  .topbar { padding: 12px 16px; }
   .content { padding: 16px; }
-  table { font-size: 12px; }
-  th, td { padding: 8px 10px; }
 }
 </style>
 </head>
@@ -125,7 +127,7 @@ tr:hover td { background: var(--paper); }
         Abwesenheiten
       </button>
       <div class="nav-label" style="margin-top:8px">Planung</div>
-      <button class="nav-item active" onclick="window.location.href='gewerke.html'">
+      <button class="nav-item active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
         Gewerke
       </button>
@@ -150,70 +152,49 @@ tr:hover td { background: var(--paper); }
       <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
       <div style="flex:1">
         <h1>Gewerke verwalten</h1>
-        <p>Aktive Gewerke erscheinen im Anmeldeformular. Mindestpersonenzahl wird bei der Teamplanung angezeigt.</p>
+        <p>Definiere alle Gewerke für dieses Projekt. Plane sie danach zeitlich im Gantt-Diagramm.</p>
       </div>
-      <button class="btn btn-accent" onclick="saveGewerke()">Speichern</button>
+      <button class="btn btn-accent" onclick="openModal()">+ Neues Gewerk</button>
     </div>
 
-    <div class="content">
+    <div class="content" id="content">
+      <div style="padding:48px;text-align:center;color:var(--muted)">Wird geladen…</div>
+    </div>
+  </div>
+</div>
 
-      <div class="save-bar">
-        <p>Änderungen werden erst nach „Speichern" für alle Seiten wirksam.</p>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="save-ok" id="save-ok">✓ Gespeichert</span>
-          <button class="btn btn-accent" onclick="saveGewerke()">Speichern</button>
-        </div>
-      </div>
-
-      <div class="table-card">
-        <div class="table-head">
-          <span class="table-title" id="tbl-title">Alle Gewerke</span>
-          <span style="font-size:12px;color:var(--muted)" id="tbl-sub"></span>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th style="width:40px">Aktiv</th>
-              <th>Gewerk</th>
-              <th style="width:110px;text-align:center">Min. Personen</th>
-              <th style="width:110px;text-align:center">Angemeldet</th>
-              <th style="width:80px;text-align:center">Status</th>
-              <th style="width:40px"></th>
-            </tr>
-          </thead>
-          <tbody id="gewerk-tbody">
-            <tr><td colspan="6" style="padding:32px;text-align:center;color:var(--muted)">Wird geladen…</td></tr>
-          </tbody>
-        </table>
-
-        <!-- ADD ROW -->
-        <div class="add-row">
-          <div class="add-field">
-            <label>Neues Gewerk</label>
-            <input type="text" id="new-name" placeholder="Bezeichnung eingeben …" style="width:220px">
-          </div>
-          <div class="add-field">
-            <label>Min. Personen</label>
-            <input type="number" id="new-min" min="1" value="1">
-          </div>
-          <button class="btn btn-outline" onclick="addGewerk()" style="align-self:flex-end">+ Hinzufügen</button>
-        </div>
-      </div>
-
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">Neues Gewerk</h3>
+    <div class="mfield">
+      <label>Bezeichnung *</label>
+      <input type="text" id="m-name" placeholder="z.B. Maurer, Elektriker …">
+    </div>
+    <div class="mfield">
+      <label>Mindestpersonen</label>
+      <input type="number" id="m-min" min="1" value="1">
+    </div>
+    <div class="mfield">
+      <label>Farbe</label>
+      <div class="color-grid" id="color-grid"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger modal-delete" id="m-del" onclick="deleteGewerk()" style="display:none">Löschen</button>
+      <button class="btn btn-outline" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-accent" onclick="saveGewerk()">Speichern</button>
     </div>
   </div>
 </div>
 
 <script>
 function toggleSidebar() {
-  var s = document.querySelector('.sidebar');
-  var o = document.getElementById('sidebar-overlay');
+  var s = document.querySelector('.sidebar'), o = document.getElementById('sidebar-overlay');
   if (s) s.classList.toggle('open');
   if (o) o.classList.toggle('open');
 }
 function closeSidebar() {
-  var s = document.querySelector('.sidebar');
-  var o = document.getElementById('sidebar-overlay');
+  var s = document.querySelector('.sidebar'), o = document.getElementById('sidebar-overlay');
   if (s) s.classList.remove('open');
   if (o) o.classList.remove('open');
 }
@@ -222,7 +203,7 @@ function closeSidebar() {
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, getDocs, collection } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, getDocs, collection, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
@@ -237,138 +218,206 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const BASIS_GEWERKE = [
-  {id:'maurer',label:'Maurer / -in'},{id:'zimmerer',label:'Zimmerer / -in'},
-  {id:'betonbauer',label:'Betonbauer / -in'},{id:'stahlbau',label:'Stahlbau'},
-  {id:'elektriker',label:'Elektriker / -in'},{id:'sanitaer',label:'Sanitär / HZG'},
-  {id:'trockenbau',label:'Trockenbau'},{id:'maler',label:'Maler / -in'},
-  {id:'fliesen',label:'Fliesen / Estrich'},{id:'schreiner',label:'Schreiner / Tischler'},
-  {id:'bodenbelag',label:'Bodenbelag'},{id:'dachdecker',label:'Dachdecker / -in'},
-  {id:'geruestbau',label:'Gerüstbau'},{id:'garten',label:'Garten / Außen'},
-  {id:'helfer',label:'Allgemeiner Helfer / -in'}
+const COLORS = ['#7a3a12','#2d6a4f','#185fa5','#633806','#534AB7','#993C1D','#854F0B','#3B6D11','#0F6E56','#993556','#5F5E5A','#A32D2D'];
+
+// Default basis gewerke
+const BASIS = [
+  'Maurer / -in','Zimmerer / -in','Betonbauer / -in','Stahlbau',
+  'Elektriker / -in','Sanitär / HZG','Trockenbau',
+  'Maler / -in','Fliesen / Estrich','Schreiner / Tischler','Bodenbelag',
+  'Dachdecker / -in','Gerüstbau','Garten / Außen','Allgemeiner Helfer / -in'
 ];
 
-let gewerke = []; // [{id, label, active, minPersons, custom}]
+let gewerke = [];   // [{id, name, minPersons, color}]
+let ganttGewerke = [];
 let personCounts = {};
+let editingId = null;
+let selectedColor = COLORS[0];
 
 onAuthStateChanged(auth, async user => {
   if (!user) { window.location.href = 'dashboard.html'; return; }
 
-  // Load saved config
+  // Load gewerke
   try {
-    const snap = await getDoc(doc(db, 'planung', 'gewerke'));
-    if (snap.exists()) {
-      const data = snap.data();
-      // Merge basis with saved state
-      const saved = data.gewerke || [];
-      const savedMap = {};
-      saved.forEach(g => savedMap[g.id] = g);
-
-      gewerke = BASIS_GEWERKE.map(b => ({
-        id: b.id, label: b.label,
-        active: savedMap[b.id] ? savedMap[b.id].active !== false : true,
-        minPersons: savedMap[b.id]?.minPersons || 1,
-        custom: false
-      }));
-
-      // Add custom ones
-      saved.filter(g => g.custom).forEach(g => gewerke.push(g));
+    const snap = await getDoc(doc(db, 'planung', 'gewerkeList'));
+    if (snap.exists() && snap.data().gewerke?.length > 0) {
+      gewerke = snap.data().gewerke;
     } else {
-      gewerke = BASIS_GEWERKE.map(b => ({id:b.id,label:b.label,active:true,minPersons:1,custom:false}));
+      // First time: init from basis
+      gewerke = BASIS.map((name, i) => ({
+        id: 'gw_' + i + '_' + Date.now(),
+        name, minPersons: 1, color: COLORS[i % COLORS.length]
+      }));
+      await saveToFirebase();
     }
-  } catch(e) {
-    gewerke = BASIS_GEWERKE.map(b => ({id:b.id,label:b.label,active:true,minPersons:1,custom:false}));
-  }
+  } catch(e) { gewerke = []; }
+
+  // Load gantt
+  try {
+    const snap2 = await getDoc(doc(db, 'planung', 'gantt'));
+    ganttGewerke = snap2.exists() ? (snap2.data().gewerke || []) : [];
+  } catch(e) { ganttGewerke = []; }
 
   // Count persons per gewerk
   try {
-    const snap2 = await getDocs(collection(db, 'anmeldungen'));
-    snap2.forEach(d => {
-      (d.data().gewerke || []).forEach(g => { personCounts[g] = (personCounts[g]||0)+1; });
+    const snap3 = await getDocs(collection(db, 'anmeldungen'));
+    snap3.forEach(d => {
+      const gw = d.data().gewerk;
+      if (gw) personCounts[gw] = (personCounts[gw] || 0) + 1;
+      // Also count from gewerke array
+      (d.data().gewerke || []).forEach(g => {
+        personCounts[g] = (personCounts[g] || 0) + 0; // just init
+      });
     });
   } catch(e) {}
 
   render();
 });
 
-function render() {
-  const tbody = document.getElementById('gewerk-tbody');
-  const active = gewerke.filter(g => g.active).length;
-  document.getElementById('tbl-title').textContent = gewerke.length + ' Gewerke';
-  document.getElementById('tbl-sub').textContent = active + ' aktiv';
-
-  tbody.innerHTML = gewerke.map((g, i) => {
-    const count = personCounts[g.id] || 0;
-    const min = g.minPersons || 1;
-    const statusClass = count >= min ? 'dot-ok' : count > 0 ? 'dot-warn' : 'dot-miss';
-    const statusTitle = count >= min ? 'Besetzt' : count > 0 ? 'Unterbesetzt' : 'Unbesetzt';
-    return `<tr>
-      <td>
-        <label class="toggle-wrap">
-          <input type="checkbox" ${g.active ? 'checked' : ''} onchange="toggleActive(${i}, this.checked)">
-          <div class="toggle-track"></div>
-          <div class="toggle-thumb"></div>
-        </label>
-      </td>
-      <td>
-        <span class="${g.active ? '' : 'gewerk-name-inactive'}">${g.label}</span>
-        ${g.custom ? '<span class="badge-custom">Eigenes</span>' : ''}
-      </td>
-      <td style="text-align:center">
-        <input class="inline-num" type="number" min="1" value="${min}"
-          onchange="setMin(${i}, this.value)" title="Mindestpersonenzahl">
-      </td>
-      <td style="text-align:center;font-size:13px">
-        <strong style="color:${count >= min ? 'var(--success)' : count > 0 ? 'var(--accent)' : 'var(--danger)'}">${count}</strong>
-      </td>
-      <td style="text-align:center">
-        <div class="status-bar" style="justify-content:center" title="${statusTitle}">
-          <div class="status-dot ${statusClass}"></div>
-          <span style="font-size:11px;color:var(--muted)">${statusTitle}</span>
-        </div>
-      </td>
-      <td style="text-align:center">
-        ${g.custom ? `<button onclick="removeGewerk(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:0 4px" title="Entfernen">✕</button>` : ''}
-      </td>
-    </tr>`;
-  }).join('');
+async function saveToFirebase() {
+  await setDoc(doc(db, 'planung', 'gewerkeList'), {
+    gewerke, savedAt: new Date().toISOString()
+  });
 }
 
-window.toggleActive = function(i, val) {
-  gewerke[i].active = val;
-  render();
+function isGeplant(gw) {
+  return ganttGewerke.some(g => g.gewerkId === gw.id || g.name === gw.name);
+}
+
+function getGanttDates(gw) {
+  const g = ganttGewerke.find(g => g.gewerkId === gw.id || g.name === gw.name);
+  return g ? { start: g.start, end: g.end } : null;
+}
+
+function render() {
+  const content = document.getElementById('content');
+  const ungeplant = gewerke.filter(g => !isGeplant(g)).length;
+
+  let html = '';
+
+  // Hint if any ungeplant
+  if (ungeplant > 0) {
+    html += `<div class="gantt-hint">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>${ungeplant} Gewerk${ungeplant !== 1 ? 'e' : ''} noch nicht im Gantt geplant. <a href="gantt.html">Zur Gantt-Planung →</a></span>
+    </div>`;
+  }
+
+  html += '<div class="gewerk-list">';
+  gewerke.forEach(gw => {
+    const geplant = isGeplant(gw);
+    const dates = getGanttDates(gw);
+    const count = personCounts[gw.id] || 0;
+    const dateStr = dates ? dates.start + ' – ' + dates.end : '';
+
+    html += `<div class="gewerk-card">
+      <div class="gewerk-color" style="background:${gw.color}"></div>
+      <div class="gewerk-info">
+        <div class="gewerk-name">${gw.name}</div>
+        <div class="gewerk-meta">
+          <span>Min. ${gw.minPersons} Person${gw.minPersons !== 1 ? 'en' : ''}</span>
+          ${dateStr ? `<span>📅 ${dateStr}</span>` : ''}
+        </div>
+        <div class="gewerk-badges">
+          <span class="badge ${geplant ? 'badge-geplant' : 'badge-ungeplant'}">
+            ${geplant ? '✓ Im Gantt geplant' : '⚠ Noch nicht geplant'}
+          </span>
+          ${count > 0 ? `<span class="badge badge-personen">${count} Person${count !== 1 ? 'en' : ''} zugewiesen</span>` : ''}
+        </div>
+      </div>
+      <div class="gewerk-actions">
+        <button class="icon-btn" onclick="editGewerk('${gw.id}')" title="Bearbeiten">✎</button>
+        <button class="icon-btn danger" onclick="confirmDelete('${gw.id}')" title="Löschen">✕</button>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Stats footer
+  html += `<div style="font-size:12px;color:var(--muted);text-align:center;padding:8px">
+    ${gewerke.length} Gewerke · ${gewerke.filter(g=>isGeplant(g)).length} geplant · ${gewerke.filter(g=>!isGeplant(g)).length} ungeplant
+  </div>`;
+
+  content.innerHTML = html;
+}
+
+// ── MODAL ──
+function buildColorGrid(sel) {
+  const grid = document.getElementById('color-grid');
+  grid.innerHTML = '';
+  COLORS.forEach(c => {
+    const dot = document.createElement('div');
+    dot.className = 'color-dot' + (c === sel ? ' selected' : '');
+    dot.style.background = c;
+    dot.onclick = () => {
+      document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+      dot.classList.add('selected');
+      selectedColor = c;
+    };
+    grid.appendChild(dot);
+  });
+}
+
+window.openModal = function() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Neues Gewerk';
+  document.getElementById('m-name').value = '';
+  document.getElementById('m-min').value = '1';
+  document.getElementById('m-del').style.display = 'none';
+  selectedColor = COLORS[gewerke.length % COLORS.length];
+  buildColorGrid(selectedColor);
+  document.getElementById('modal').classList.add('open');
+  setTimeout(() => document.getElementById('m-name').focus(), 100);
 };
 
-window.setMin = function(i, val) {
-  gewerke[i].minPersons = Math.max(1, parseInt(val) || 1);
+window.editGewerk = function(id) {
+  const gw = gewerke.find(g => g.id === id);
+  if (!gw) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = gw.name + ' bearbeiten';
+  document.getElementById('m-name').value = gw.name;
+  document.getElementById('m-min').value = gw.minPersons || 1;
+  document.getElementById('m-del').style.display = 'block';
+  selectedColor = gw.color;
+  buildColorGrid(selectedColor);
+  document.getElementById('modal').classList.add('open');
 };
 
-window.addGewerk = function() {
-  const name = document.getElementById('new-name').value.trim();
-  const min = parseInt(document.getElementById('new-min').value) || 1;
+window.closeModal = function() {
+  document.getElementById('modal').classList.remove('open');
+  editingId = null;
+};
+
+window.saveGewerk = async function() {
+  const name = document.getElementById('m-name').value.trim();
+  const min = parseInt(document.getElementById('m-min').value) || 1;
   if (!name) { alert('Bitte einen Namen eingeben.'); return; }
-  gewerke.push({ id: 'custom_' + Date.now(), label: name, active: true, minPersons: min, custom: true });
-  document.getElementById('new-name').value = '';
-  document.getElementById('new-min').value = '1';
+
+  if (editingId) {
+    const gw = gewerke.find(g => g.id === editingId);
+    if (gw) { gw.name = name; gw.minPersons = min; gw.color = selectedColor; }
+  } else {
+    gewerke.push({ id: 'gw_' + Date.now(), name, minPersons: min, color: selectedColor });
+  }
+
+  await saveToFirebase();
+  closeModal();
   render();
 };
 
-window.removeGewerk = function(i) {
-  if (!confirm('Gewerk entfernen?')) return;
-  gewerke.splice(i, 1);
-  render();
+window.confirmDelete = function(id) {
+  editingId = id;
+  deleteGewerk();
 };
 
-window.saveGewerke = async function() {
-  try {
-    await setDoc(doc(db, 'planung', 'gewerke'), {
-      gewerke: gewerke,
-      savedAt: new Date().toISOString()
-    });
-    const el = document.getElementById('save-ok');
-    el.style.display = 'inline';
-    setTimeout(() => el.style.display = 'none', 3000);
-  } catch(e) { alert('Fehler: ' + e.message); }
+window.deleteGewerk = async function() {
+  if (!editingId) return;
+  const gw = gewerke.find(g => g.id === editingId);
+  if (!confirm(`"${gw?.name}" wirklich löschen?`)) return;
+  gewerke = gewerke.filter(g => g.id !== editingId);
+  await saveToFirebase();
+  closeModal();
+  render();
 };
 </script>
 </body>
