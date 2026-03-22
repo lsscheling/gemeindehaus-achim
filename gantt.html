@@ -19,12 +19,13 @@ html, body { background: #f4f1e8 !important; color: #1c1b18 !important; }
 }
 body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 .shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
-.sidebar { background: var(--ink); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+.sidebar { background: var(--ink); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
 .sidebar-logo-text { font-size: 13px; font-weight: 500; color: white; }
 .sidebar-logo-sub { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 300; margin-top: 1px; }
 .sidebar-nav { padding: 16px 12px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius); color: rgba(255,255,255,0.55); font-size: 13px; cursor: pointer; border: none; background: none; font-family: 'DM Sans', sans-serif; width: 100%; text-align: left; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+.nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.25); padding: 10px 12px 4px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius); color: rgba(255,255,255,0.55); font-size: 13px; cursor: pointer; border: none; background: none; font-family: 'DM Sans', sans-serif; width: 100%; text-align: left; transition: all 0.15s; }
 .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
 .nav-item.active { background: var(--accent); color: white; font-weight: 500; }
 .nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
@@ -118,9 +119,9 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 .delete-btn { color: #c0392b; background: none; border: 1px solid #f0a0a0; border-radius: var(--radius); padding: 8px 14px; font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; margin-right: auto; }
 .delete-btn:hover { background: #fdf0f0; }
 
-/* MOBILE NAV */
-.hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; color: var(--ink); flex-direction: column; gap: 5px; }
-.hamburger span { display: block; width: 22px; height: 2px; background: var(--ink); border-radius: 2px; transition: all 0.2s; }
+/* MOBILE */
+.hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; flex-direction: column; gap: 5px; }
+.hamburger span { display: block; width: 22px; height: 2px; background: var(--ink); border-radius: 2px; }
 .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 19; }
 .sidebar-overlay.open { display: block; }
 @media (max-width: 768px) {
@@ -128,8 +129,10 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
   .sidebar { display: flex; position: fixed; left: -240px; top: 0; height: 100vh; width: 240px; z-index: 20; transition: left 0.25s ease; }
   .sidebar.open { left: 0; }
   .hamburger { display: flex; }
-  .topbar { padding: 12px 16px; }
-  .content, .content { padding: 16px; }
+  .topbar { padding: 12px 16px; flex-wrap: wrap; }
+  .content { padding: 16px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
 }
 </style>
 </head>
@@ -145,8 +148,7 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
     </div>
     <nav class="sidebar-nav">
       <div class="nav-label">Übersicht</div>
-      <button class="nav-item " onclick="window.location.href='dashboard.html'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <button class="nav-item " onclick="???"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         Anmeldungen
       </button>
       <button class="nav-item " onclick="window.location.href='team.html'">
