@@ -280,32 +280,33 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
     </div>
     <nav class="sidebar-nav">
       <div class="nav-label">Übersicht</div>
-      <button class="nav-item active" onclick="???"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <button class="nav-item active" onclick="showPanel('anmeldungen')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         Anmeldungen
       </button>
-      <button class="nav-item " onclick="window.location.href='team.html'">
+      <button class="nav-item" onclick="window.location.href='team.html'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
         Teams
       </button>
-      <button class="nav-item " onclick="window.location.href='dashboard.html'">
+      <button class="nav-item" onclick="showPanel('schichtplan')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Schichtplan
       </button>
-      <button class="nav-item " onclick="window.location.href='dashboard.html'">
+      <button class="nav-item" onclick="showPanel('abwesenheiten')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         Abwesenheiten
       </button>
       <div class="nav-label" style="margin-top:8px">Planung</div>
-      <button class="nav-item " onclick="window.location.href='gewerke.html'">
+      <button class="nav-item" onclick="window.location.href='gewerke.html'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
         Gewerke
       </button>
-      <button class="nav-item " onclick="window.location.href='gantt.html'">
+      <button class="nav-item" onclick="window.location.href='gantt.html'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Gewerk-Planung
       </button>
       <div class="nav-label" style="margin-top:8px">Einladung</div>
-      <button class="nav-item " onclick="window.location.href='einladung.html'">
+      <button class="nav-item" onclick="window.location.href='einladung.html'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
         QR-Code & Einladung
       </button>
@@ -432,6 +433,14 @@ const GEWERK_LABELS = {
   maler:'Maler',fliesen:'Fliesen',schreiner:'Schreiner',bodenbelag:'Bodenbelag',
   dachdecker:'Dachdecker',geruestbau:'Gerüstbau',garten:'Garten',helfer:'Helfer'
 };
+function getGewerkLabel(id) {
+  if (window._gewerkeList) {
+    const gw = window._gewerkeList.find(g => g.id === id);
+    if (gw) return gw.name;
+  }
+  return GEWERK_LABELS[id] || id;
+}
+
 
 let allDocs = [];
 let teams = [];
@@ -477,6 +486,12 @@ async function loadGantt() {
     const snap = await getDoc(doc(db, 'planung', 'gantt'));
     window._ganttGewerke = snap.exists() ? (snap.data().gewerke || []) : [];
   } catch(e) { window._ganttGewerke = []; }
+
+  // Load gewerkeList (defined in gewerke.html)
+  try {
+    const snap2 = await getDoc(doc(db, 'planung', 'gewerkeList'));
+    window._gewerkeList = snap2.exists() ? (snap2.data().gewerke || []) : [];
+  } catch(e) { window._gewerkeList = []; }
 }
 
 function loadData() {
@@ -600,11 +615,15 @@ window.openDrawer = function(id) {
   if (!d) return;
   document.getElementById('drawer-name').textContent = (d.vorname||'') + ' ' + (d.nachname||'');
 
+  const LEVEL_COLORS_D = {profi:'#2d6a4f',erfahren:'#b85c2a',grundkenntnisse:'#92610a',anfaenger:'#888'};
+  const LEVEL_BG_D = {profi:'#d4ead9',erfahren:'#f0d9cc',grundkenntnisse:'#fef3c7',anfaenger:'#f0f0f0'};
+  const LEVEL_LBL_D = {profi:'Profi',erfahren:'Erfahren',grundkenntnisse:'Grundkenntnisse',anfaenger:'Anfänger'};
   const gewerke = (d.gewerke||[]).map(g => {
-    const level = d.erfahrung?.[g] || '';
-    const levelLabel = {profi:'Profi',erfahren:'Erfahren',grundkenntnisse:'Grundkenntnisse',anfaenger:'Anfänger'}[level]||'';
-    const showLevel = g !== 'helfer' && levelLabel;
-    return `<span class="badge">${GEWERK_LABELS[g]||g}${showLevel?' · '+levelLabel:''}</span>`;
+    const lv = d.erfahrung?.[g] || '';
+    const color = lv ? LEVEL_COLORS_D[lv] : 'var(--muted)';
+    const bg = lv ? LEVEL_BG_D[lv] : 'var(--cream)';
+    const lvLabel = lv && g !== 'helfer' ? ' · ' + LEVEL_LBL_D[lv] : '';
+    return `<span style="display:inline-block;padding:3px 10px;border-radius:10px;font-size:12px;background:${bg};color:${color};border:1px solid ${color}40;margin:2px">${getGewerkLabel(g)}${lvLabel}</span>`;
   }).join(' ') || '–';
 
   const tage = (d.wochentage||[]).map(t => WOCHENTAGE_FULL[WOCHENTAGE_KEYS.indexOf(t)]||t).join(', ') || '–';
@@ -616,10 +635,13 @@ window.openDrawer = function(id) {
     d.woche_ungerade ? 'Ungerade KW: ' + d.woche_ungerade : '',
   ].filter(Boolean).join(' · ') : '–';
 
-  // Build gewerk assignment from GEWERK_LIST
+  // Build gewerk assignment from gewerkeList (defined in gewerke.html)
   const assignedGewerk = d.gewerk || '';
-  const gewerkOptions = GEWERK_LIST.map(g =>
-    '<option value="' + g.id + '"' + (assignedGewerk === g.id ? ' selected' : '') + '>' + g.label + '</option>'
+  const activeGewerke = (window._gewerkeList && window._gewerkeList.length > 0)
+    ? window._gewerkeList
+    : GEWERK_LIST.map(g => ({id: g.id, name: g.label, color: '#888'}));
+  const gewerkOptions = activeGewerke.map(g =>
+    '<option value="' + g.id + '"' + (assignedGewerk === g.id ? ' selected' : '') + '>' + g.name + '</option>'
   ).join('');
 
   // Get gantt dates for this gewerk if available
