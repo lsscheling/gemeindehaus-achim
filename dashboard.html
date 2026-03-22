@@ -424,6 +424,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Expose auth functions globally so regular scripts can call them
+window._firebaseAuth = auth;
+window._signIn = (email, pw) => signInWithEmailAndPassword(auth, email, pw);
+window._signOut = () => signOut(auth);
+
 const WOCHENTAGE = ['Mo','Di','Mi','Do','Fr','Sa'];
 const WOCHENTAGE_FULL = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
 const WOCHENTAGE_KEYS = ['mo','di','mi','do','fr','sa'];
@@ -449,22 +454,7 @@ let currentFilter = '';
 let currentGewerk = '';
 
 // ── AUTH ──
-window.window.doLogin = async function() {
-  const email = document.getElementById('login-email').value;
-  const pw = document.getElementById('login-password').value;
-  const err = document.getElementById('login-error');
-  err.style.display = 'none';
-  try {
-    await signInWithEmailAndPassword(auth, email, pw);
-  } catch(e) {
-    err.textContent = 'Falsche E-Mail oder falsches Passwort.';
-    err.style.display = 'block';
-  }
-};
-
-window.doLogout = async function() {
-  await signOut(auth);
-};
+window.// doLogin moved to regular script - uses window._signIn
 
 document.getElementById('login-password').addEventListener('keydown', e => {
   if (e.key === 'Enter') window.doLogin();
@@ -1320,6 +1310,22 @@ window.saveEditPerson = async function() {
 
 
 <script>
+async function doLogin() {
+  const email = document.getElementById('login-email').value;
+  const pw = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  err.style.display = 'none';
+  if (!window._signIn) { err.textContent = 'Bitte kurz warten…'; err.style.display = 'block'; return; }
+  try {
+    await window._signIn(email, pw);
+  } catch(e) {
+    err.textContent = 'Falsche E-Mail oder falsches Passwort.';
+    err.style.display = 'block';
+  }
+}
+async function doLogout() {
+  if (window._signOut) await window._signOut();
+}
 function showPanel(id) {
   document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
   document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
