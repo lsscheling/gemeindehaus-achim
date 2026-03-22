@@ -580,10 +580,15 @@ function setupDrag(bar, g) {
 // ── MODAL ──
 function buildGewerkSelect(selectedId) {
   var sel = document.getElementById('m-gewerk');
+  // Use master list from gewerke.html if available, fallback to GEWERK_LIST
+  var list = (window._gewerkeList && window._gewerkeList.length > 0)
+    ? window._gewerkeList.map(function(g) { return {id: g.id, label: g.name, gruppe: 'Gewerke'}; })
+    : GEWERK_LIST;
   var groups = {};
-  GEWERK_LIST.forEach(function(g) {
-    if (!groups[g.gruppe]) groups[g.gruppe] = [];
-    groups[g.gruppe].push(g);
+  list.forEach(function(g) {
+    var grp = g.gruppe || 'Gewerke';
+    if (!groups[grp]) groups[grp] = [];
+    groups[grp].push(g);
   });
   sel.innerHTML = '<option value="">– Gewerk wählen –</option>';
   Object.keys(groups).forEach(function(grp) {
@@ -737,15 +742,21 @@ const db = getFirestore(app);
 onAuthStateChanged(auth, async user => {
   if (!user) return; // show demo data if not logged in
 
+  // Load gewerkeList (master list from gewerke.html)
+  try {
+    const snapGW = await getDoc(doc(db, 'planung', 'gewerkeList'));
+    if (snapGW.exists() && snapGW.data().gewerke?.length > 0) {
+      window._gewerkeList = snapGW.data().gewerke;
+    }
+  } catch(e) { window._gewerkeList = []; }
+
   // Load gantt plan
   try {
     const snap = await getDoc(doc(db, 'planung', 'gantt'));
     if (snap.exists()) {
       const data = snap.data();
       if (data.gewerke && data.gewerke.length > 0) {
-        window._gewerke !== undefined ? (_gewerke = data.gewerke) : null;
-        // use module-level assignment
-        self._gewerke = data.gewerke;
+        _gewerke = data.gewerke;
       }
       if (data.projStart) document.getElementById('proj-start').value = data.projStart;
       if (data.projEnd) document.getElementById('proj-end').value = data.projEnd;
