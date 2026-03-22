@@ -896,8 +896,15 @@ window.exportCSV = function() {
 window.showPanel = function(id) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('panel-' + id).classList.add('active');
-  event.currentTarget.classList.add('active');
+  const panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+  // Find matching nav button by its onclick content
+  document.querySelectorAll('.nav-item').forEach(n => {
+    const oc = n.getAttribute('onclick') || '';
+    if (oc.includes("'" + id + "'") || oc.includes('"' + id + '"')) {
+      n.classList.add('active');
+    }
+  });
 };
 
 // ── MANUAL ENTRY ──
