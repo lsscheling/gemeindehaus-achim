@@ -449,10 +449,11 @@ let currentFilter = '';
 let currentGewerk = '';
 
 // ── AUTH ──
-window.doLogin = async function() {
+window.window.doLogin = async function() {
   const email = document.getElementById('login-email').value;
   const pw = document.getElementById('login-password').value;
   const err = document.getElementById('login-error');
+  err.style.display = 'none';
   try {
     await signInWithEmailAndPassword(auth, email, pw);
   } catch(e) {
