@@ -472,7 +472,15 @@ onAuthStateChanged(auth, user => {
 });
 
 // ── DATA ──
+async function loadGantt() {
+  try {
+    const snap = await getDoc(doc(db, 'planung', 'gantt'));
+    window._ganttGewerke = snap.exists() ? (snap.data().gewerke || []) : [];
+  } catch(e) { window._ganttGewerke = []; }
+}
+
 function loadData() {
+  loadGantt();
   const q = query(collection(db, 'anmeldungen'), orderBy('angemeldet_am', 'desc'));
   onSnapshot(q, snap => {
     allDocs = [];
@@ -599,30 +607,17 @@ window.openDrawer = function(id) {
     d.woche_ungerade ? 'Ungerade KW: ' + d.woche_ungerade : '',
   ].filter(Boolean).join(' · ') : '–';
 
-  // Build team timeline
-  const now = new Date(); now.setHours(0,0,0,0);
-  const teamsArr = d.teams || (d.team ? [{team: d.team, von: null, bis: null}] : []);
-  const teamTimelineHtml = teamsArr.length === 0
-    ? '<div style="font-size:13px;color:var(--muted);font-weight:300">Noch kein Team zugewiesen.</div>'
-    : teamsArr.map((t, i) => {
-        const von = t.von ? new Date(t.von) : null;
-        const bis = t.bis ? new Date(t.bis) : null;
-        const isActive = (!von||von<=now) && (!bis||bis>=now);
-        const isFuture = von && von > now;
-        const cls = isActive ? 'tte-active' : isFuture ? 'tte-future' : 'tte-past';
-        const vonStr = t.von ? new Date(t.von).toLocaleDateString('de-DE') : 'Sofort';
-        const bisStr = t.bis ? new Date(t.bis).toLocaleDateString('de-DE') : 'offen';
-        return '<div class="team-timeline-entry ' + cls + '">'
-          + '<span class="tte-team">' + t.team + '</span>'
-          + '<span class="tte-dates">ab ' + vonStr + ' – ' + bisStr + '</span>'
-          + '<button class="tte-remove" onclick="window.removeTeamEntry(\'' + d.id + '\', ' + i + ')">✕</button>'
-          + '</div>';
-      }).join('');
-  const allTeamNames = new Set();
-  allDocs.forEach(x => (x.teams||[]).forEach(t => allTeamNames.add(t.team)));
-  allDocs.forEach(x => { if(x.team) allTeamNames.add(x.team); });
-  const teamOptions = '';
-  const teamOptions2 = [...allTeamNames].sort().map(t => '<option value="' + t + '">' + t + '</option>').join('');
+  // Build gewerk assignment from GEWERK_LIST
+  const assignedGewerk = d.gewerk || '';
+  const gewerkOptions = GEWERK_LIST.map(g =>
+    '<option value="' + g.id + '"' + (assignedGewerk === g.id ? ' selected' : '') + '>' + g.label + '</option>'
+  ).join('');
+
+  // Get gantt dates for this gewerk if available
+  const ganttEntry = (window._ganttGewerke || []).find(g => g.gewerkId === assignedGewerk);
+  const ganttInfo = ganttEntry
+    ? '<div style="font-size:12px;color:var(--muted);margin-top:4px">📅 ' + ganttEntry.start + ' – ' + ganttEntry.end + ' (aus Gantt-Planung)</div>'
+    : '<div style="font-size:12px;color:var(--muted);margin-top:4px">Noch kein Zeitraum im Gantt geplant.</div>';
 
   document.getElementById('drawer-body').innerHTML = `
     <div class="drawer-section">
@@ -654,15 +649,15 @@ window.openDrawer = function(id) {
       <div class="note-box">${d.teamwunsch}</div>
     </div>`:''}
     <div class="drawer-section">
-      <div class="drawer-section-title">Team-Zuordnungen</div>
-      <div id="tte-list">${teamTimelineHtml}</div>
-      <div style="font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;margin:10px 0 6px">Eintrag hinzufügen</div>
-      <div class="add-team-row">
-        <div><div class="atr-label">Team</div><select id="new-team-sel"><option value="">– wählen –</option>${teamOptions2}<option value="__new__">+ Neues Team…</option></select></div>
-        <div><div class="atr-label">Ab Datum</div><input type="date" id="new-team-from"></div>
-        <div><div class="atr-label">Bis Datum (opt.)</div><input type="date" id="new-team-to"></div>
-        <button class="btn btn-sm btn-accent" onclick="window.addTeamEntry('${d.id}')">+</button>
+      <div class="drawer-section-title">Gewerk-Zuweisung</div>
+      <div style="margin-bottom:8px">
+        <select id="gewerk-assign-sel" onchange="window.assignGewerk('${d.id}', this.value)"
+          style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;width:100%;background:var(--paper);outline:none;cursor:pointer;appearance:none">
+          <option value="">– Kein Gewerk zugewiesen –</option>
+          ${gewerkOptions}
+        </select>
       </div>
+      ${ganttInfo}
     </div>
   `;
 
@@ -673,6 +668,14 @@ window.openDrawer = function(id) {
 window.closeDrawer = function() {
   document.getElementById('drawer-overlay').classList.remove('open');
   document.getElementById('drawer').classList.remove('open');
+};
+
+window.assignGewerk = async function(id, gewerkId) {
+  const d = allDocs.find(x => x.id === id);
+  if (!d) return;
+  try {
+    await updateDoc(doc(db, 'anmeldungen', id), { gewerk: gewerkId || null });
+  } catch(e) { alert('Fehler: ' + e.message); }
 };
 
 window.addTeamEntry = async function(id) {
@@ -715,13 +718,7 @@ function renderTeams() {
   const now = new Date(); now.setHours(0,0,0,0);
   const teamMap = {};
   allDocs.forEach(d => {
-    const arr = d.teams || (d.team ? [{team: d.team, von: null, bis: null}] : []);
-    const active = arr.find(t => {
-      const von = t.von ? new Date(t.von) : null;
-      const bis = t.bis ? new Date(t.bis) : null;
-      return (!von || von <= now) && (!bis || bis >= now);
-    });
-    const key = active ? active.team : '__unassigned__';
+    const key = d.gewerk || '__unassigned__';
     if (!teamMap[key]) teamMap[key] = [];
     teamMap[key].push(d);
   });
@@ -777,13 +774,7 @@ function renderSchichtplan() {
   const now = new Date(); now.setHours(0,0,0,0);
   const teamGroups = {};
   allDocs.forEach(d => {
-    const arr = d.teams || (d.team ? [{team: d.team, von: null, bis: null}] : []);
-    const active = arr.find(t => {
-      const von = t.von ? new Date(t.von) : null;
-      const bis = t.bis ? new Date(t.bis) : null;
-      return (!von || von <= now) && (!bis || bis >= now);
-    });
-    const key = active ? active.team : '(Kein Team)';
+    const key = d.gewerk ? (GEWERK_LABELS[d.gewerk] || d.gewerk) : '(Kein Gewerk)';
     if (!teamGroups[key]) teamGroups[key] = [];
     teamGroups[key].push(d);
   });
