@@ -481,7 +481,7 @@ onAuthStateChanged(auth, user => {
 });
 
 // ── DATA ──
-async function loadGantt() {
+window.loadGantt = async function() {
   try {
     const snap = await getDoc(doc(db, 'planung', 'gantt'));
     window._ganttGewerke = snap.exists() ? (snap.data().gewerke || []) : [];
@@ -494,7 +494,7 @@ async function loadGantt() {
   } catch(e) { window._gewerkeList = []; }
 }
 
-function loadData() {
+window.loadData = function() {
   loadGantt();
   const q = query(collection(db, 'anmeldungen'), orderBy('angemeldet_am', 'desc'));
   onSnapshot(q, snap => {
@@ -505,7 +505,7 @@ function loadData() {
   });
 }
 
-function renderAll() {
+window.renderAll = function() {
   renderStats();
   renderTable(filteredDocs);
   renderTeams();
@@ -515,7 +515,7 @@ function renderAll() {
 }
 
 // ── STATS ──
-function renderStats() {
+window.renderStats = function() {
   const total = allDocs.length;
   const gewerkSet = new Set();
   let schichtCount = 0;
@@ -543,7 +543,7 @@ function renderStats() {
 }
 
 // ── TABLE ──
-function renderTable(docs) {
+window.renderTable = function(docs) {
   const tbody = document.getElementById('anmeldungen-tbody');
   if (docs.length === 0) {
     tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">Keine Einträge gefunden.</div></td></tr>';
@@ -577,17 +577,17 @@ function renderTable(docs) {
   }).join('');
 }
 
-window.filterTable = function(val) {
+window.window.filterTable = function(val) {
   currentFilter = val.toLowerCase();
   applyFilters();
 };
 
-window.filterGewerk = function(val) {
+window.window.filterGewerk = function(val) {
   currentGewerk = val;
   applyFilters();
 };
 
-function applyFilters() {
+window.applyFilters = function() {
   filteredDocs = allDocs.filter(d => {
     const name = ((d.vorname||'') + ' ' + (d.nachname||'')).toLowerCase();
     const gewerke = (d.gewerke||[]).join(' ').toLowerCase();
@@ -599,7 +599,7 @@ function applyFilters() {
   renderTable(filteredDocs);
 }
 
-function buildGewerkFilter() {
+window.buildGewerkFilter = function() {
   const gewerkSet = new Set();
   allDocs.forEach(d => (d.gewerke||[]).forEach(g => gewerkSet.add(g)));
   const sel = document.getElementById('gewerk-filter');
@@ -745,7 +745,7 @@ window.deletePerson = async function(id) {
 };
 
 // ── TEAMS ──
-function renderTeams() {
+window.renderTeams = function() {
   const now = new Date(); now.setHours(0,0,0,0);
   const teamMap = {};
   allDocs.forEach(d => {
@@ -796,7 +796,7 @@ window.addTeam = function() {
 };
 
 // ── SCHICHTPLAN ──
-function renderSchichtplan() {
+window.renderSchichtplan = function() {
   const grid = document.getElementById('schicht-grid');
   if (allDocs.length === 0) {
     grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">Noch keine Anmeldungen.</div>';
@@ -840,7 +840,7 @@ function renderSchichtplan() {
 }
 
 // ── ABWESENHEITEN ──
-function renderAbwesenheiten() {
+window.renderAbwesenheiten = function() {
   const list = document.getElementById('abw-list');
   const today = new Date(); today.setHours(0,0,0,0);
 
@@ -893,7 +893,7 @@ window.exportCSV = function() {
 };
 
 // ── NAV ──
-window.showPanel = function(id) {
+window.window.showPanel = function(id) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const panel = document.getElementById('panel-' + id);
