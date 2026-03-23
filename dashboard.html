@@ -519,7 +519,7 @@ window.loadGantt = async function() {
 
 window.loadData = function() {
   loadGantt();
-  const q = db.collection( 'anmeldungen'), orderBy('angemeldet_am', 'desc'));
+  const q = query(collection(db, 'anmeldungen'), orderBy('angemeldet_am', 'desc'));
   onSnapshot(q,  snap => {
     allDocs = [];
     snap.forEach(d => allDocs.push({ id: d.id, ...d.data() }));
