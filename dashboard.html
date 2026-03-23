@@ -1,10 +1,7 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <!-- Firebase Compat (non-module, globally accessible) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
 <meta charset="UTF-8">
 <meta name="color-scheme" content="light">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -264,7 +261,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
     <h2>Anmelden</h2>
     <div class="login-field"><label>E-Mail</label><input type="email" id="login-email" placeholder="admin@beispiel.de"></div>
     <div class="login-field"><label>Passwort</label><input type="password" id="login-password" placeholder="••••••••"></div>
-    <button class="login-btn" onclick="doLogin()">Anmelden</button>
+    <button class="login-btn" id="login-btn">Anmelden</button>
     <div class="login-error" id="login-error"></div>
   </div>
 </div>
@@ -410,8 +407,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
   <div class="drawer-body" id="drawer-body"></div>
 </div>
 
-<script>
-
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDoc, getDocs, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
@@ -422,14 +421,28 @@ const firebaseConfig = {
   appId: "1:272798328583:web:388aa8db19886e9be507a2"
 };
 
-const app = firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 // Expose auth functions globally so regular scripts can call them
 
 
 
+
+// Expose login/logout globally
+window.doLogin = async function() {
+  const email = document.getElementById('login-email').value;
+  const pw = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  err.style.display = 'none';
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+  } catch(e) {
+    err.textContent = 'Falsche E-Mail oder falsches Passwort.';
+    err.style.display = 'block';
+  }
+};
 
 const WOCHENTAGE = ['Mo','Di','Mi','Do','Fr','Sa'];
 const WOCHENTAGE_FULL = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
@@ -462,7 +475,24 @@ document.getElementById('login-password').addEventListener('keydown', e => {
   if (e.key === 'Enter') window.doLogin();
 });
 
-auth.onAuthStateChanged( user => {
+// Login button event listeners
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const email = document.getElementById('login-email').value;
+  const pw = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  err.style.display = 'none';
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+  } catch(e) {
+    err.textContent = 'Falsche E-Mail oder falsches Passwort.';
+    err.style.display = 'block';
+  }
+});
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click();
+});
+
+onAuthStateChanged(auth,  user => {
   if (user) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
@@ -476,13 +506,13 @@ auth.onAuthStateChanged( user => {
 // ── DATA ──
 window.loadGantt = async function() {
   try {
-    const snap = await db.collection('planung').doc('gantt').get();
-    window._ganttGewerke = snap.exists ? (snap.data().gewerke || []) : [];
+    const snap = await getDoc(doc(db, 'planung', 'gantt'));
+    window._ganttGewerke = snap.exists() ? (snap.data().gewerke || []) : [];
   } catch(e) { window._ganttGewerke = []; }
 
   // Load gewerkeList (defined in gewerke.html)
   try {
-    const snap2 = await db.collection('planung').doc('gewerkeList').get();
+    const snap2 = await getDoc(doc(db, 'planung', 'gewerkeList'));
     window._gewerkeList = snap2.exists() ? (snap2.data().gewerke || []) : [];
   } catch(e) { window._gewerkeList = []; }
 }
@@ -490,7 +520,7 @@ window.loadGantt = async function() {
 window.loadData = function() {
   loadGantt();
   const q = db.collection( 'anmeldungen'), orderBy('angemeldet_am', 'desc'));
-  q.onSnapshot( snap => {
+  onSnapshot(q,  snap => {
     allDocs = [];
     snap.forEach(d => allDocs.push({ id: d.id, ...d.data() }));
     filteredDocs = [...allDocs];
@@ -733,7 +763,7 @@ window.deletePerson = async function(id) {
   if (!confirm(name + ' wirklich unwiderruflich löschen?')) return;
   try {
     
-    await db.collection('anmeldungen').doc(id).delete();
+    await await deleteDoc(doc(db, 'anmeldungen', id));
     closeDrawer();
   } catch(e) { alert('Fehler: ' + e.message); }
 };
@@ -995,7 +1025,7 @@ window.saveManual = async function() {
   };
 
   try {
-    await db.collection('anmeldungen').add(data);
+    await addDoc(collection(db, 'anmeldungen'), data);
     document.getElementById('m-success').style.display = 'block';
     setTimeout(() => {
       closeManualModal();
@@ -1288,7 +1318,7 @@ window.saveEditPerson = async function() {
   };
 
   try {
-    await db.collection('anmeldungen').doc(id).update(updates);
+    await await updateDoc(doc(db, 'anmeldungen', id), updates);
     document.getElementById('edit-modal').style.display = 'none';
     window.openDrawer(id);
   } catch(e) { alert('Fehler: ' + e.message); }
@@ -1313,21 +1343,7 @@ window.saveEditPerson = async function() {
 
 
 <script>
-async function doLogin() {
-  const email = document.getElementById('login-email').value;
-  const pw = document.getElementById('login-password').value;
-  const err = document.getElementById('login-error');
-  err.style.display = 'none';
-  try {
-    await firebase.auth().signInWithEmailAndPassword(email, pw);
-  } catch(e) {
-    err.textContent = 'Falsche E-Mail oder falsches Passwort.';
-    err.style.display = 'block';
-  }
-}
-async function doLogout() {
-  await firebase.auth().signOut();
-}
+
 function showPanel(id) {
   document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
   document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
