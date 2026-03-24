@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="de">
 <head>
 
@@ -11,35 +12,35 @@
 :root { color-scheme: light; }
 
 html, body {
-  background-color: #f4f1e8 !important;
-  color: #1c1b18 !important;
-  -webkit-color-scheme: light;
-  color-scheme: light;
+background-color: #f4f1e8 !important;
+color: #1c1b18 !important;
+-webkit-color-scheme: light;
+color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  html, body {
-    background-color: #f4f1e8 !important;
-    color: #1c1b18 !important;
-  }
-  input, select, textarea, button {
-    background-color: white !important;
-    color: #1c1b18 !important;
-    border-color: #d6d0c4 !important;
-  }
-  * {
-    color-scheme: light !important;
-  }
+html, body {
+background-color: #f4f1e8 !important;
+color: #1c1b18 !important;
 }
+input, select, textarea, button {
+background-color: white !important;
+color: #1c1b18 !important;
+border-color: #d6d0c4 !important;
+}
+
+* {
+  color-scheme: light !important;
+  }
+  }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --ink: #1c1b18; --paper: #f4f1e8; --cream: #ece8dc; --surface: #ffffff;
-  --accent: #b85c2a; --accent-light: #f0d9cc;
-  --muted: #79776e; --border: #d6d0c4; --radius: 5px;
-  --success: #3a7a52; --warning: #92610a; --danger: #991b1b;
+--ink: #1c1b18; --paper: #f4f1e8; --cream: #ece8dc; --surface: #ffffff;
+--accent: #b85c2a; --accent-light: #f0d9cc;
+--muted: #79776e; --border: #d6d0c4; --radius: 5px;
+--success: #3a7a52; --warning: #92610a; --danger: #991b1b;
 }
 body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.6; }
-
 
 /* ── MODAL ── */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
@@ -79,11 +80,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 
 /* ── LOGIN ── */
 #login-screen {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+min-height: 100vh; display: flex; align-items: center; justify-content: center;
 }
 .login-card {
-  background: white; border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 40px 36px; width: 100%; max-width: 380px;
+background: white; border: 1px solid var(--border); border-radius: var(--radius);
+padding: 40px 36px; width: 100%; max-width: 380px;
 }
 .login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; }
 .login-logo-mark { width: 28px; height: 28px; background: var(--accent); border-radius: 5px; display: flex; align-items: center; justify-content: center; }
@@ -227,9 +228,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .loading { text-align: center; padding: 48px; color: var(--muted); font-size: 13px; }
 
 @media (max-width: 900px) {
-  .shell { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
-  .stats-row { grid-template-columns: 1fr 1fr; }
+.shell { grid-template-columns: 1fr; }
+.sidebar { display: none; }
+.stats-row { grid-template-columns: 1fr 1fr; }
 }
 
 /* MOBILE */
@@ -238,20 +239,22 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 19; }
 .sidebar-overlay.open { display: block; }
 @media (max-width: 768px) {
-  .shell { grid-template-columns: 1fr; }
-  .sidebar { display: flex; position: fixed; left: -240px; top: 0; height: 100vh; width: 240px; z-index: 20; transition: left 0.25s ease; }
-  .sidebar.open { left: 0; }
-  .hamburger { display: flex; }
-  .topbar { padding: 12px 16px; flex-wrap: wrap; }
-  .content { padding: 16px; }
-  table { font-size: 12px; }
-  th, td { padding: 8px 10px; }
+.shell { grid-template-columns: 1fr; }
+.sidebar { display: flex; position: fixed; left: -240px; top: 0; height: 100vh; width: 240px; z-index: 20; transition: left 0.25s ease; }
+.sidebar.open { left: 0; }
+.hamburger { display: flex; }
+.topbar { padding: 12px 16px; flex-wrap: wrap; }
+.content { padding: 16px; }
+table { font-size: 12px; }
+th, td { padding: 8px 10px; }
 }
 </style>
+
 </head>
 <body>
 
 <!-- LOGIN -->
+
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">
@@ -267,136 +270,138 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 </div>
 
 <!-- APP -->
+
 <div id="app">
-  
+
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
 <div class="shell">
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-text">Gemeindehaus Achim</div>
-      <div class="sidebar-logo-sub">Admin-Dashboard</div>
+<!-- SIDEBAR -->
+<div class="sidebar">
+<div class="sidebar-logo">
+  <div class="sidebar-logo-text">Gemeindehaus Achim</div>
+  <div class="sidebar-logo-sub">Admin-Dashboard</div>
+</div>
+<nav class="sidebar-nav">
+  <div class="nav-label">Übersicht</div>
+  <button class="nav-item active" onclick="showPanel('anmeldungen')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    Anmeldungen
+  </button>
+  <button class="nav-item" onclick="window.location.href='team.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    Teams
+  </button>
+  <button class="nav-item" onclick="showPanel('schichtplan')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Schichtplan
+  </button>
+  <button class="nav-item" onclick="showPanel('abwesenheiten')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Abwesenheiten
+  </button>
+  <div class="nav-label" style="margin-top:8px">Planung</div>
+  <button class="nav-item" onclick="window.location.href='gewerke.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+    Gewerke
+  </button>
+  <button class="nav-item" onclick="window.location.href='gantt.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Gewerk-Planung
+  </button>
+  <div class="nav-label" style="margin-top:8px">Einladung</div>
+  <button class="nav-item" onclick="window.location.href='einladung.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+    QR-Code & Einladung
+  </button>
+  <button class="nav-item" onclick="window.open('anmeldung.html','_blank')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    Anmeldeformular ↗
+  </button>
+</nav>
+</div>
+
+  <div class="main">
+
+    <!-- ANMELDUNGEN -->
+    <div id="panel-anmeldungen" class="panel active">
+      <div class="topbar" style="gap:12px">
+    <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div><div class="topbar-title">Anmeldungen</div><div class="topbar-sub" id="anmeldungen-count">Wird geladen…</div></div>
+        <div class="topbar-actions">
+          <button class="btn btn-accent" onclick="openManualModal()">+ Person eintragen</button>
+          <button class="btn btn-outline" onclick="exportCSV()">CSV exportieren</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="stats-row">
+          <div class="stat-card"><div class="num" id="s-total">–</div><div class="lbl">Angemeldet</div></div>
+          <div class="stat-card"><div class="num" id="s-gewerke">–</div><div class="lbl">Gewerke vertreten</div></div>
+          <div class="stat-card"><div class="num" id="s-schicht">–</div><div class="lbl">im Schichtdienst</div></div>
+          <div class="stat-card"><div class="num" id="s-teams">–</div><div class="lbl">Teams gebildet</div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <input class="search-input" type="text" placeholder="Name, Gewerk, Schicht suchen…" oninput="filterTable(this.value)">
+            <select class="filter-select" onchange="filterGewerk(this.value)" id="gewerk-filter">
+              <option value="">Alle Gewerke</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Gewerk(e)</th>
+                  <th>Schicht</th>
+                  <th>Wochentage</th>
+                  <th>Team</th>
+                  <th>Angemeldet</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="anmeldungen-tbody">
+                <tr><td colspan="7" class="loading">Daten werden geladen…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
-    <nav class="sidebar-nav">
-      <div class="nav-label">Übersicht</div>
-      <button class="nav-item active" onclick="showPanel('anmeldungen')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-        Anmeldungen
-      </button>
-      <button class="nav-item" onclick="window.location.href='team.html'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-        Teams
-      </button>
-      <button class="nav-item" onclick="showPanel('schichtplan')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Schichtplan
-      </button>
-      <button class="nav-item" onclick="showPanel('abwesenheiten')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Abwesenheiten
-      </button>
-      <div class="nav-label" style="margin-top:8px">Planung</div>
-      <button class="nav-item" onclick="window.location.href='gewerke.html'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-        Gewerke
-      </button>
-      <button class="nav-item" onclick="window.location.href='gantt.html'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Gewerk-Planung
-      </button>
-      <div class="nav-label" style="margin-top:8px">Einladung</div>
-      <button class="nav-item" onclick="window.location.href='einladung.html'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        QR-Code & Einladung
-      </button>
-      <button class="nav-item" onclick="window.open('anmeldung.html','_blank')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Anmeldeformular ↗
-      </button>
-    </nav>
-  </div>
-    <div class="main">
 
-      <!-- ANMELDUNGEN -->
-      <div id="panel-anmeldungen" class="panel active">
-        <div class="topbar" style="gap:12px">
-      <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-          <div><div class="topbar-title">Anmeldungen</div><div class="topbar-sub" id="anmeldungen-count">Wird geladen…</div></div>
-          <div class="topbar-actions">
-            <button class="btn btn-accent" onclick="openManualModal()">+ Person eintragen</button>
-            <button class="btn btn-outline" onclick="exportCSV()">CSV exportieren</button>
-          </div>
-        </div>
-        <div class="content">
-          <div class="stats-row">
-            <div class="stat-card"><div class="num" id="s-total">–</div><div class="lbl">Angemeldet</div></div>
-            <div class="stat-card"><div class="num" id="s-gewerke">–</div><div class="lbl">Gewerke vertreten</div></div>
-            <div class="stat-card"><div class="num" id="s-schicht">–</div><div class="lbl">im Schichtdienst</div></div>
-            <div class="stat-card"><div class="num" id="s-teams">–</div><div class="lbl">Teams gebildet</div></div>
-          </div>
-          <div class="table-card">
-            <div class="table-toolbar">
-              <input class="search-input" type="text" placeholder="Name, Gewerk, Schicht suchen…" oninput="filterTable(this.value)">
-              <select class="filter-select" onchange="filterGewerk(this.value)" id="gewerk-filter">
-                <option value="">Alle Gewerke</option>
-              </select>
-            </div>
-            <div style="overflow-x:auto">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Gewerk(e)</th>
-                    <th>Schicht</th>
-                    <th>Wochentage</th>
-                    <th>Team</th>
-                    <th>Angemeldet</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody id="anmeldungen-tbody">
-                  <tr><td colspan="7" class="loading">Daten werden geladen…</td></tr>
-                </tbody>
-              </table>
-            </div>
+    <div id="panel-schichtplan" class="panel">
+      <div class="topbar">
+        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div><div class="topbar-title">Schichtplan</div><div class="topbar-sub">Wochentage & Verfügbarkeiten</div></div>
+      </div>
+      <div class="content">
+        <div class="table-card" style="overflow-x:auto">
+          <div class="schicht-grid" id="schicht-grid">
+            <div class="loading" style="grid-column:1/-1;padding:32px">Wird geladen…</div>
           </div>
         </div>
       </div>
-
-      <div id="panel-schichtplan" class="panel">
-        <div class="topbar">
-          <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-          <div><div class="topbar-title">Schichtplan</div><div class="topbar-sub">Wochentage & Verfügbarkeiten</div></div>
-        </div>
-        <div class="content">
-          <div class="table-card" style="overflow-x:auto">
-            <div class="schicht-grid" id="schicht-grid">
-              <div class="loading" style="grid-column:1/-1;padding:32px">Wird geladen…</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ABWESENHEITEN -->
-      <div id="panel-abwesenheiten" class="panel">
-        <div class="topbar">
-          <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-          <div><div class="topbar-title">Abwesenheiten</div><div class="topbar-sub">Alle gemeldeten Abwesenheiten</div></div>
-        </div>
-        <div class="content">
-          <div class="abw-timeline" id="abw-list">
-            <div class="loading">Wird geladen…</div>
-          </div>
-        </div>
-      </div>
-
     </div>
+
+    <!-- ABWESENHEITEN -->
+    <div id="panel-abwesenheiten" class="panel">
+      <div class="topbar">
+        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div><div class="topbar-title">Abwesenheiten</div><div class="topbar-sub">Alle gemeldeten Abwesenheiten</div></div>
+      </div>
+      <div class="content">
+        <div class="abw-timeline" id="abw-list">
+          <div class="loading">Wird geladen…</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <!-- PERSON DRAWER -->
+
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-header">
@@ -425,12 +430,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Expose auth functions globally so regular scripts can call them
-
-
-
-
-// Expose login/logout globally
 window.doLogin = async function() {
   const email = document.getElementById('login-email').value;
   const pw = document.getElementById('login-password').value;
@@ -461,21 +460,16 @@ function getGewerkLabel(id) {
   return GEWERK_LABELS[id] || id;
 }
 
-
 let allDocs = [];
 let teams = [];
 let filteredDocs = []; window.filteredDocs = filteredDocs;
 let currentFilter = '';
 let currentGewerk = '';
 
-// ── AUTH ──
-window.
-
 document.getElementById('login-password').addEventListener('keydown', e => {
   if (e.key === 'Enter') window.doLogin();
 });
 
-// Login button event listeners
 document.getElementById('login-btn').addEventListener('click', async () => {
   const email = document.getElementById('login-email').value;
   const pw = document.getElementById('login-password').value;
@@ -492,7 +486,7 @@ document.getElementById('login-password').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('login-btn').click();
 });
 
-onAuthStateChanged(auth,  user => {
+onAuthStateChanged(auth, user => {
   if (user) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
@@ -503,14 +497,11 @@ onAuthStateChanged(auth,  user => {
   }
 });
 
-// ── DATA ──
 window.loadGantt = async function() {
   try {
     const snap = await getDoc(doc(db, 'planung', 'gantt'));
     window._ganttGewerke = snap.exists() ? (snap.data().gewerke || []) : [];
   } catch(e) { window._ganttGewerke = []; }
-
-  // Load gewerkeList (defined in gewerke.html)
   try {
     const snap2 = await getDoc(doc(db, 'planung', 'gewerkeList'));
     window._gewerkeList = snap2.exists() ? (snap2.data().gewerke || []) : [];
@@ -520,7 +511,7 @@ window.loadGantt = async function() {
 window.loadData = function() {
   loadGantt();
   const q = query(collection(db, 'anmeldungen'), orderBy('angemeldet_am', 'desc'));
-  onSnapshot(q,  snap => {
+  onSnapshot(q, snap => {
     allDocs = [];
     snap.forEach(d => allDocs.push({ id: d.id, ...d.data() }));
     filteredDocs = [...allDocs];
@@ -538,7 +529,6 @@ window.renderAll = function() {
   buildGewerkFilter();
 }
 
-// ── STATS ──
 window.renderStats = function() {
   const total = allDocs.length;
   const gewerkSet = new Set();
@@ -566,7 +556,6 @@ window.renderStats = function() {
   document.getElementById('anmeldungen-count').textContent = total + ' Personen angemeldet';
 }
 
-// ── TABLE ──
 window.renderTable = function(docs) {
   const tbody = document.getElementById('anmeldungen-tbody');
   if (docs.length === 0) {
@@ -601,12 +590,12 @@ window.renderTable = function(docs) {
   }).join('');
 }
 
-window.window.filterTable = function(val) {
+window.filterTable = function(val) {
   currentFilter = val.toLowerCase();
   applyFilters();
 };
 
-window.window.filterGewerk = function(val) {
+window.filterGewerk = function(val) {
   currentGewerk = val;
   applyFilters();
 };
@@ -632,7 +621,6 @@ window.buildGewerkFilter = function() {
     [...gewerkSet].sort().map(g => `<option value="${g}" ${g===cur?'selected':''}>${GEWERK_LABELS[g]||g}</option>`).join('');
 }
 
-// ── DRAWER ──
 window.openDrawer = function(id) {
   window._currentDrawerId = id;
   const d = allDocs.find(x => x.id === id);
@@ -659,16 +647,14 @@ window.openDrawer = function(id) {
     d.woche_ungerade ? 'Ungerade KW: ' + d.woche_ungerade : '',
   ].filter(Boolean).join(' · ') : '–';
 
-  // Build gewerk assignment from gewerkeList (defined in gewerke.html)
   const assignedGewerk = d.gewerk || '';
   const activeGewerke = (window._gewerkeList && window._gewerkeList.length > 0)
     ? window._gewerkeList
-    : GEWERK_LIST.map(g => ({id: g.id, name: g.label, color: '#888'}));
+    : Object.entries(GEWERK_LABELS).map(([id, name]) => ({id, name}));
   const gewerkOptions = activeGewerke.map(g =>
     '<option value="' + g.id + '"' + (assignedGewerk === g.id ? ' selected' : '') + '>' + g.name + '</option>'
   ).join('');
 
-  // Get gantt dates for this gewerk if available
   const ganttEntry = (window._ganttGewerke || []).find(g => g.gewerkId === assignedGewerk);
   const ganttInfo = ganttEntry
     ? '<div style="font-size:12px;color:var(--muted);margin-top:4px">📅 ' + ganttEntry.start + ' – ' + ganttEntry.end + ' (aus Gantt-Planung)</div>'
@@ -726,10 +712,8 @@ window.closeDrawer = function() {
 };
 
 window.assignGewerk = async function(id, gewerkId) {
-  const d = allDocs.find(x => x.id === id);
-  if (!d) return;
   try {
-    await db.doc( 'anmeldungen/' + id).update({ gewerk: gewerkId || null });
+    await updateDoc(doc(db, 'anmeldungen', id), { gewerk: gewerkId || null });
   } catch(e) { alert('Fehler: ' + e.message); }
 };
 
@@ -743,7 +727,7 @@ window.addTeamEntry = async function(id) {
   const existing = [...(d.teams || (d.team ? [{team: d.team, von: null, bis: null}] : []))];
   existing.push({ team: teamName, von: von || null, bis: bis || null });
   existing.sort((a,b) => (a.von||'') < (b.von||'') ? -1 : 1);
-  await db.doc( 'anmeldungen/' + id).update({ teams: existing, team: existing[0]?.team || null });
+  await updateDoc(doc(db, 'anmeldungen', id), { teams: existing, team: existing[0]?.team || null });
   window.openDrawer(id);
 };
 
@@ -751,24 +735,21 @@ window.removeTeamEntry = async function(id, idx) {
   const d = allDocs.find(x => x.id === id); if (!d) return;
   const existing = [...(d.teams || (d.team ? [{team: d.team, von: null, bis: null}] : []))];
   existing.splice(idx, 1);
-  await db.doc( 'anmeldungen/' + id).update({ teams: existing, team: existing[0]?.team || null });
+  await updateDoc(doc(db, 'anmeldungen', id), { teams: existing, team: existing[0]?.team || null });
   window.openDrawer(id);
 };
 
-// ── DELETE PERSON ──
 window.deletePerson = async function(id) {
   if (!id) return;
   const d = allDocs.find(x => x.id === id);
   const name = d ? (d.vorname||'') + ' ' + (d.nachname||'') : 'diese Person';
   if (!confirm(name + ' wirklich unwiderruflich löschen?')) return;
   try {
-    
-    await await deleteDoc(doc(db, 'anmeldungen', id));
+    await deleteDoc(doc(db, 'anmeldungen', id));
     closeDrawer();
   } catch(e) { alert('Fehler: ' + e.message); }
 };
 
-// ── TEAMS ──
 window.renderTeams = function() {
   const now = new Date(); now.setHours(0,0,0,0);
   const teamMap = {};
@@ -779,6 +760,7 @@ window.renderTeams = function() {
   });
 
   const grid = document.getElementById('teams-grid');
+  if (!grid) return;
   let html = '';
 
   Object.entries(teamMap).filter(([t]) => t !== '__unassigned__').forEach(([team, members]) => {
@@ -819,7 +801,6 @@ window.addTeam = function() {
   if (name) alert('Team "' + name + '" kann jetzt Personen zugewiesen werden. Öffne dazu eine Person in der Anmeldungsliste.');
 };
 
-// ── SCHICHTPLAN ──
 window.renderSchichtplan = function() {
   const grid = document.getElementById('schicht-grid');
   if (allDocs.length === 0) {
@@ -863,7 +844,6 @@ window.renderSchichtplan = function() {
   grid.innerHTML = html;
 }
 
-// ── ABWESENHEITEN ──
 window.renderAbwesenheiten = function() {
   const list = document.getElementById('abw-list');
   const today = new Date(); today.setHours(0,0,0,0);
@@ -897,7 +877,6 @@ window.renderAbwesenheiten = function() {
   }).join('');
 }
 
-// ── EXPORT ──
 window.exportCSV = function() {
   const headers = ['Vorname','Nachname','E-Mail','Telefon','Gewerke','Erfahrung','Schichtart','Wochentage','Team','Anmerkungen'];
   const rows = allDocs.map(d => [
@@ -916,10 +895,6 @@ window.exportCSV = function() {
   a.click();
 };
 
-// ── NAV ──
-window.// showPanel moved to regular script
-
-// ── MANUAL ENTRY ──
 var M_GEWERKE = ['maurer','zimmerer','betonbauer','stahlbau','elektriker','sanitaer','trockenbau','maler','fliesen','schreiner','bodenbelag','dachdecker','geruestbau','garten','helfer'];
 var M_LEVELS = [{val:'profi',label:'Beruflich ausgebildet'},{val:'erfahren',label:'Hobbymäßig erfahren'},{val:'grundkenntnisse',label:'Grundkenntnisse'},{val:'anfaenger',label:'Anfänger'}];
 var mErfahrung = {};
@@ -941,7 +916,6 @@ function initModalPills() {
       c.appendChild(s);
     });
   });
-  // Wechsel pills
   document.querySelectorAll('#m-gerade-pills .mpill').forEach(function(p) {
     p.addEventListener('click', function() {
       document.querySelectorAll('#m-gerade-pills .mpill').forEach(function(x){x.classList.remove('sel');});
@@ -1035,11 +1009,10 @@ window.saveManual = async function() {
   }
 };
 
-
-
 </script>
 
 <!-- MANUAL ENTRY MODAL -->
+
 <div class="modal-overlay" id="manual-modal">
   <div class="modal">
     <div class="modal-header">
@@ -1156,7 +1129,6 @@ window.saveManual = async function() {
   </div>
 </div>
 
-
 <script>
 function toggleSidebar() {
   var s = document.querySelector('.sidebar');
@@ -1204,7 +1176,6 @@ window.openEditPerson = function(id) {
 
   const row2 = (a, b) => `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${a}${b}</div>`;
 
-  // Gewerke checkboxes with level pills
   const gewerkeHtml = `<div style="margin-bottom:12px">
     <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Gewerk(e) & Erfahrung</div>
     <div style="display:flex;flex-direction:column;gap:6px" id="edit-gewerk-list">
@@ -1228,7 +1199,6 @@ window.openEditPerson = function(id) {
     </div>
   </div>`;
 
-  // Wochentage
   const tageHtml = `<div style="margin-bottom:12px">
     <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Verfügbare Wochentage</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px">
@@ -1241,7 +1211,6 @@ window.openEditPerson = function(id) {
     </div>
   </div>`;
 
-  // Schicht
   const schichtHtml = `<div style="margin-bottom:12px">
     <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Schichtmodell</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px" id="edit-schicht-pills">
@@ -1318,7 +1287,7 @@ window.saveEditPerson = async function() {
   };
 
   try {
-    await await updateDoc(doc(db, 'anmeldungen', id), updates);
+    await updateDoc(doc(db, 'anmeldungen', id), updates);
     document.getElementById('edit-modal').style.display = 'none';
     window.openDrawer(id);
   } catch(e) { alert('Fehler: ' + e.message); }
@@ -1327,6 +1296,7 @@ window.saveEditPerson = async function() {
 </script>
 
 <!-- EDIT PERSON MODAL -->
+
 <div class="modal-overlay" id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:60;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px">
   <div style="background:white;border-radius:var(--radius);width:100%;max-width:560px;padding:28px;margin:auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
@@ -1341,9 +1311,7 @@ window.saveEditPerson = async function() {
   </div>
 </div>
 
-
 <script>
-
 function showPanel(id) {
   document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
   document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
@@ -1355,7 +1323,6 @@ function showPanel(id) {
       n.classList.add('active');
     }
   });
-  // Re-render content
   setTimeout(function() {
     if (id === 'schichtplan' && window.renderSchichtplan) window.renderSchichtplan();
     if (id === 'abwesenheiten' && window.renderAbwesenheiten) window.renderAbwesenheiten();
@@ -1363,5 +1330,6 @@ function showPanel(id) {
   }, 50);
 }
 </script>
+
 </body>
 </html>
