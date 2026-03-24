@@ -1,3 +1,206 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gewerke – Gemeindehaus Achim</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root { color-scheme: light; }
+html, body { background: #f4f1e8 !important; color: #1c1b18 !important; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink: #1c1b18; --paper: #f4f1e8; --cream: #ece8dc;
+  --accent: #b85c2a; --accent-light: #f0d9cc;
+  --muted: #79776e; --border: #d6d0c4; --radius: 5px;
+  --success: #3a7a52; --danger: #991b1b;
+}
+body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
+.shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+.sidebar { background: var(--ink); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.sidebar-logo-text { font-size: 13px; font-weight: 500; color: white; }
+.sidebar-logo-sub { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 300; margin-top: 1px; }
+.sidebar-nav { padding: 16px 12px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.25); padding: 10px 12px 4px; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius); color: rgba(255,255,255,0.55); font-size: 13px; cursor: pointer; border: none; background: none; font-family: 'DM Sans', sans-serif; width: 100%; text-align: left; transition: all 0.15s; -webkit-tap-highlight-color: transparent; }
+.nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.85); }
+.nav-item.active { background: var(--accent); color: white; font-weight: 500; }
+.nav-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+.main { display: flex; flex-direction: column; min-height: 100vh; }
+.topbar { padding: 18px 28px; border-bottom: 1px solid var(--border); background: white; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.topbar-info { flex: 1; }
+.topbar h1 { font-family: 'DM Serif Display', serif; font-size: 22px; font-weight: 400; }
+.topbar p { font-size: 12px; color: var(--muted); font-weight: 300; margin-top: 2px; }
+.content { padding: 28px; flex: 1; display: flex; flex-direction: column; gap: 24px; max-width: 860px; }
+.btn { padding: 8px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; border-radius: var(--radius); cursor: pointer; transition: all 0.15s; font-weight: 400; border: none; display: inline-flex; align-items: center; gap: 6px; }
+.btn-accent { background: var(--accent); color: white; }
+.btn-accent:hover { opacity: 0.88; }
+.btn-outline { background: white; border: 1px solid var(--border); color: var(--ink); }
+.btn-outline:hover { border-color: var(--ink); }
+.btn-danger { background: none; border: 1px solid #fca5a5; color: var(--danger); }
+.btn-danger:hover { background: #fef2f2; }
+.btn-sm { padding: 5px 10px; font-size: 11px; }
+.btn-icon { width: 30px; height: 30px; padding: 0; justify-content: center; background: none; border: 1px solid var(--border); color: var(--muted); border-radius: var(--radius); font-size: 13px; }
+.btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+.btn-icon.del:hover { border-color: var(--danger); color: var(--danger); }
+.section { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.section-header { padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--paper); display: flex; align-items: center; justify-content: space-between; }
+.section-title { font-size: 11px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+.gewerk-row { display: flex; align-items: center; gap: 12px; padding: 13px 20px; border-bottom: 1px solid var(--border); transition: background 0.1s; }
+.gewerk-row:last-child { border-bottom: none; }
+.gewerk-row:hover { background: var(--paper); }
+.toggle { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 100%; height: 100%; position: absolute; cursor: pointer; margin: 0; z-index: 1; }
+.toggle-track { width: 38px; height: 22px; background: var(--border); border-radius: 11px; transition: background 0.2s; pointer-events: none; }
+.toggle input:checked + .toggle-track { background: var(--success); }
+.toggle-thumb { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.2s; pointer-events: none; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+.toggle input:checked ~ .toggle-thumb { transform: translateX(16px); }
+.gewerk-color-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.gewerk-name { font-size: 14px; font-weight: 400; }
+.gewerk-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.level-pills { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.level-pill { font-size: 10px; padding: 2px 7px; border-radius: 8px; border: 1px solid; white-space: nowrap; }
+.add-row { padding: 14px 20px; background: var(--paper); border-top: 2px dashed var(--border); display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.add-field { display: flex; flex-direction: column; gap: 4px; }
+.add-field label { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.add-field input { font-family: 'DM Sans', sans-serif; font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; outline: none; background: white; }
+.add-field input:focus { border-color: var(--accent); }
+.level-row { display: flex; align-items: center; gap: 12px; padding: 11px 20px; border-bottom: 1px solid var(--border); }
+.level-row:last-child { border-bottom: none; }
+.level-row:hover { background: var(--paper); }
+.level-color-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.level-name-input { flex: 1; font-family: 'DM Sans', sans-serif; font-size: 13px; border: 1px solid transparent; border-radius: var(--radius); padding: 5px 8px; outline: none; background: transparent; }
+.level-name-input:focus { border-color: var(--accent); background: white; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 50; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: white; border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 420px; padding: 28px; max-height: 90vh; overflow-y: auto; }
+.modal h3 { font-family: 'DM Serif Display', serif; font-size: 20px; font-weight: 400; margin-bottom: 20px; }
+.mfield { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.mfield label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.mfield input[type=text], .mfield input[type=number] { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 300; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; outline: none; width: 100%; background: var(--paper); }
+.mfield input:focus { border-color: var(--accent); }
+.color-grid { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 4px; }
+.cpick { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.12s; }
+.cpick.sel { border-color: var(--ink); transform: scale(1.15); }
+.lv-check { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; margin-bottom: 6px; transition: border-color 0.12s; }
+.lv-check:hover { border-color: var(--accent); }
+.lv-check input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+.lv-check-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: white; padding: 12px 20px; border-radius: var(--radius); font-size: 13px; display: none; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.toast.show { display: block; }
+.hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; flex-direction: column; gap: 5px; }
+.hamburger span { display: block; width: 22px; height: 2px; background: var(--ink); border-radius: 2px; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 19; }
+.sidebar-overlay.open { display: block; }
+@media (max-width: 768px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { display: flex; position: fixed; left: -240px; top: 0; height: 100vh; width: 240px; z-index: 20; transition: left 0.25s ease; }
+  .sidebar.open { left: 0; }
+  .hamburger { display: flex; }
+  .topbar { padding: 12px 16px; }
+  .content { padding: 16px; }
+}
+</style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+<div class="shell">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-text">Gemeindehaus Achim</div>
+      <div class="sidebar-logo-sub">Gewerk-Verwaltung</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Übersicht</div>
+      <button class="nav-item" onclick="location.href='dashboard.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Anmeldungen
+      </button>
+      <button class="nav-item" onclick="location.href='team.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Teams
+      </button>
+      <div class="nav-label" style="margin-top:8px">Planung</div>
+      <button class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        Gewerke
+      </button>
+      <button class="nav-item" onclick="location.href='gantt.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Gewerk-Planung
+      </button>
+      <div class="nav-label" style="margin-top:8px">Einladung</div>
+      <button class="nav-item" onclick="location.href='einladung.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        QR-Code & Einladung
+      </button>
+      <button class="nav-item" onclick="window.open('anmeldung.html','_blank')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Anmeldeformular ↗
+      </button>
+    </nav>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <div class="topbar-info">
+        <h1>Gewerke verwalten</h1>
+        <p>Toggle = in Anmeldung aktiv · Stift = bearbeiten (Farbe, Level, Mindestpersonen)</p>
+      </div>
+      <button class="btn btn-accent" onclick="saveAll()">Speichern</button>
+    </div>
+    <div class="content" id="content">
+      <div style="padding:48px;text-align:center;color:var(--muted)">Wird geladen…</div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">Gewerk bearbeiten</h3>
+    <div class="mfield">
+      <label>Bezeichnung *</label>
+      <input type="text" id="m-name">
+    </div>
+    <div class="mfield">
+      <label>Mindestpersonen</label>
+      <input type="number" id="m-min" min="1" value="1" style="width:100px">
+    </div>
+    <div class="mfield">
+      <label>Farbe</label>
+      <div class="color-grid" id="m-colors"></div>
+    </div>
+    <div class="mfield">
+      <label>Erfahrungslevel abfragen</label>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Welche Level sollen für dieses Gewerk in der Anmeldung erscheinen?</div>
+      <div id="m-levels"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="m-del" onclick="deleteGewerk()" style="margin-right:auto;display:none">Löschen</button>
+      <button class="btn btn-outline" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-accent" onclick="saveGewerk()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ Gespeichert</div>
+
+<script>
+function toggleSidebar() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+</script>
+
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
@@ -17,6 +220,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const COLORS = ['#7a3a12','#2d6a4f','#185fa5','#633806','#534AB7','#993C1D','#854F0B','#3B6D11','#0F6E56','#993556','#5F5E5A','#A32D2D'];
+
 const BASIS = [
   'Maurer / -in','Zimmerer / -in','Betonbauer / -in','Stahlbau',
   'Elektriker / -in','Sanitär / HZG','Trockenbau',
@@ -74,6 +278,7 @@ async function load() {
 }
 
 async function saveToDb() {
+  // Collect any edited level names from inputs
   levels.forEach(lv => {
     const el = document.getElementById('lv-inp-' + lv.id);
     if (el) lv.name = el.value.trim() || lv.name;
@@ -92,93 +297,70 @@ window.saveAll = async function() {
 
 // ── RENDER ──
 function render() {
-  const content = document.getElementById('content');
   const activeCount = gewerke.filter(g => g.active).length;
-
-  content.innerHTML = '';
-
-  // Gewerke-Sektion
-  const gewerkeSection = document.createElement('div');
-  gewerkeSection.className = 'section';
-
-  let gewerkeHTML = `<div class="section-header">
-    <span class="section-title">Gewerke (${gewerke.length})</span>
-    <span style="font-size:12px;color:var(--muted)">${activeCount} aktiv in Anmeldung</span>
-  </div>`;
-
-  gewerke.forEach(g => {
-    const gLevels = (g.levels || []).map(lid => levels.find(l => l.id === lid)).filter(Boolean);
-    const levelHTML = gLevels.length > 0
-      ? gLevels.map(lv => `<span class="level-pill" style="color:${lv.color};border-color:${lv.color}40;background:${lv.color}15">${lv.name}</span>`).join('')
-      : '<span style="font-size:11px;color:var(--border);font-style:italic">Kein Erfahrungslevel</span>';
-
-    const safeName = g.name.replace(/`/g,"'");
-
-    gewerkeHTML += `<div class="gewerk-row">
-      <label class="toggle">
-        <input type="checkbox" ${g.active ? 'checked' : ''} onchange="toggleGewerk('${g.id}',this.checked)">
-        <div class="toggle-track"></div><div class="toggle-thumb"></div>
-      </label>
-      <div class="gewerk-color-dot" style="background:${g.color}"></div>
-      <div style="flex:1;min-width:0">
-        <div class="gewerk-name" style="${g.active ? '' : 'color:var(--muted)'}">${safeName}</div>
-        <div class="gewerk-sub">Min. ${g.minPersons} Person${g.minPersons!==1?'en':''}</div>
-        <div class="level-pills">${levelHTML}</div>
+  document.getElementById('content').innerHTML = `
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">Gewerke (${gewerke.length})</span>
+        <span style="font-size:12px;color:var(--muted)">${activeCount} aktiv in Anmeldung</span>
       </div>
-      <div style="display:flex;gap:5px;flex-shrink:0">
-        <button class="btn btn-icon btn-sm" onclick="editGewerk('${g.id}')">✎</button>
-        <button class="btn btn-icon del btn-sm" onclick="removeGewerk('${g.id}')">✕</button>
+      ${gewerke.map(g => {
+        const gLevels = (g.levels || []).map(lid => levels.find(l => l.id === lid)).filter(Boolean);
+        return `<div class="gewerk-row">
+          <label class="toggle">
+            <input type="checkbox" ${g.active ? 'checked' : ''} onchange="toggleGewerk('${g.id}',this.checked)">
+            <div class="toggle-track"></div><div class="toggle-thumb"></div>
+          </label>
+          <div class="gewerk-color-dot" style="background:${g.color}"></div>
+          <div style="flex:1;min-width:0">
+            <div class="gewerk-name" style="${g.active ? '' : 'color:var(--muted)'}">${g.name}</div>
+            <div class="gewerk-sub">Min. ${g.minPersons} Person${g.minPersons!==1?'en':''}</div>
+            <div class="level-pills">
+              ${gLevels.length > 0
+                ? gLevels.map(lv => `<span class="level-pill" style="color:${lv.color};border-color:${lv.color}40;background:${lv.color}15">${lv.name}</span>`).join('')
+                : '<span style="font-size:11px;color:var(--border);font-style:italic">Kein Erfahrungslevel</span>'}
+            </div>
+          </div>
+          <div style="display:flex;gap:5px;flex-shrink:0">
+            <button class="btn btn-icon btn-sm" onclick="editGewerk('${g.id}')">✎</button>
+            <button class="btn btn-icon del btn-sm" onclick="removeGewerk('${g.id}')">✕</button>
+          </div>
+        </div>`;
+      }).join('')}
+      <div class="add-row">
+        <div class="add-field">
+          <label>Neues Gewerk</label>
+          <input type="text" id="new-gw" placeholder="Bezeichnung …" style="width:220px">
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="addGewerk()" style="align-self:flex-end">+ Hinzufügen</button>
       </div>
-    </div>`;
-  });
-
-  gewerkeHTML += `<div class="add-row">
-    <div class="add-field">
-      <label>Neues Gewerk</label>
-      <input type="text" id="new-gw" placeholder="Bezeichnung …" style="width:220px">
     </div>
-    <button class="btn btn-outline btn-sm" onclick="addGewerk()" style="align-self:flex-end">+ Hinzufügen</button>
-  </div>`;
 
-  gewerkeSection.innerHTML = gewerkeHTML;
-  content.appendChild(gewerkeSection);
-
-  // Levels-Sektion
-  const levelsSection = document.createElement('div');
-  levelsSection.className = 'section';
-
-  let levelsHTML = `<div class="section-header">
-    <span class="section-title">Erfahrungslevel (${levels.length})</span>
-    <span style="font-size:12px;color:var(--muted)">Namen direkt editierbar</span>
-  </div>`;
-
-  levels.forEach(lv => {
-    const safeLvName = lv.name.replace(/`/g,"'");
-    levelsHTML += `<div class="level-row">
-      <div class="level-color-dot" style="background:${lv.color}"></div>
-      <input class="level-name-input" id="lv-inp-${lv.id}" value="${safeLvName}" placeholder="Level-Name">
-      <button class="btn btn-icon del btn-sm" onclick="deleteLevel('${lv.id}')">✕</button>
-    </div>`;
-  });
-
-  levelsHTML += `<div class="add-row">
-    <div class="add-field">
-      <label>Neues Level</label>
-      <input type="text" id="new-lv" placeholder="Bezeichnung …" style="width:200px">
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">Erfahrungslevel (${levels.length})</span>
+        <span style="font-size:12px;color:var(--muted)">Namen direkt editierbar</span>
+      </div>
+      ${levels.map(lv => `
+        <div class="level-row">
+          <div class="level-color-dot" style="background:${lv.color}"></div>
+          <input class="level-name-input" id="lv-inp-${lv.id}" value="${lv.name}" placeholder="Level-Name">
+          <button class="btn btn-icon del btn-sm" onclick="deleteLevel('${lv.id}')">✕</button>
+        </div>
+      `).join('')}
+      <div class="add-row">
+        <div class="add-field">
+          <label>Neues Level</label>
+          <input type="text" id="new-lv" placeholder="Bezeichnung …" style="width:200px">
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="addLevel()" style="align-self:flex-end">+ Hinzufügen</button>
+      </div>
     </div>
-    <button class="btn btn-outline btn-sm" onclick="addLevel()" style="align-self:flex-end">+ Hinzufügen</button>
-  </div>`;
 
-  levelsSection.innerHTML = levelsHTML;
-  content.appendChild(levelsSection);
-
-  // Hinweis
-  const p = document.createElement('p');
-  p.style.fontSize = '12px';
-  p.style.color = 'var(--muted)';
-  p.style.textAlign = 'center';
-  p.textContent = 'Änderungen oben rechts speichern – erst dann werden sie in der Anmeldung übernommen.';
-  content.appendChild(p);
+    <p style="font-size:12px;color:var(--muted);text-align:center">
+      Änderungen oben rechts speichern – erst dann werden sie in der Anmeldung übernommen.
+    </p>
+  `;
 }
 
 // ── GEWERK ACTIONS ──
@@ -272,3 +454,5 @@ window.deleteLevel = function(id) {
   render();
 };
 </script>
+</body>
+</html>
