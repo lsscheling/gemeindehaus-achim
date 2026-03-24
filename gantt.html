@@ -722,86 +722,54 @@ rebuildGantt();
 </script>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, getDocs, collection, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
+// ── FIREBASE CONFIG ──
 const firebaseConfig = {
-  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
+  apiKey: "...",
   authDomain: "gemeindehaus-achim.firebaseapp.com",
   projectId: "gemeindehaus-achim",
-  storageBucket: "gemeindehaus-achim.firebasestorage.app",
-  messagingSenderId: "272798328583",
-  appId: "1:272798328583:web:388aa8db19886e9be507a2"
+  storageBucket: "gemeindehaus-achim.appspot.com",
+  messagingSenderId: "...",
+  appId: "..."
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
 
-onAuthStateChanged(auth, async user => {
-  if (!user) return; // show demo data if not logged in
-
-  // Load gewerkeList (master list from gewerke.html)
+// ── FIRESTORE LADE-FUNKTION ──
+async function loadGewerke() {
   try {
-    const snapGW = await getDoc(doc(db, 'planung', 'gewerkeList'));
-    if (snapGW.exists() && snapGW.data().gewerke?.length > 0) {
-      window._gewerkeList = snapGW.data().gewerke;
-    }
-  } catch(e) { window._gewerkeList = []; }
+    const gewerkeCol = collection(db, "gewerke");
+    const gewerkeSnap = await getDocs(gewerkeCol);
 
-  // Load gantt plan
-  try {
-    const snap = await getDoc(doc(db, 'planung', 'gantt'));
-    if (snap.exists()) {
-      const data = snap.data();
-      if (data.gewerke && data.gewerke.length > 0) {
-        _gewerke = data.gewerke;
-      }
-      if (data.projStart) document.getElementById('proj-start').value = data.projStart;
-      if (data.projEnd) document.getElementById('proj-end').value = data.projEnd;
-    }
-  } catch(e) { console.log('No saved gantt:', e.message); }
-
-  // Load persons
-  try {
-    const q = query(collection(db, 'anmeldungen'), orderBy('nachname'));
-    const snap2 = await getDocs(q);
-    const persons = [];
-    snap2.forEach(d => persons.push({id: d.id, ...d.data()}));
-    // expose to regular script scope via global
-    window.__ganttPersons = persons;
-    // Update _persons in regular script
-    if (typeof _persons !== 'undefined') {
-      while (_persons.length) _persons.pop();
-      persons.forEach(function(p) { _persons.push(p); });
-    }
-  } catch(e) { console.log('Could not load persons:', e.message); }
-
-  // Reload gantt with Firebase data
-  if (typeof _gewerke !== 'undefined' && window.__ganttGewerke) {
-    _gewerke.length = 0;
-    window.__ganttGewerke.forEach(function(g) { _gewerke.push(g); });
-  }
-  rebuildGantt();
-});
-
-window.saveToFirebase = async function() {
-  const user = auth.currentUser;
-  if (!user) { alert('Bitte zuerst im Dashboard einloggen.'); return; }
-  try {
-    await setDoc(doc(db, 'planung', 'gantt'), {
-      gewerke: _gewerke,
-      projStart: document.getElementById('proj-start').value,
-      projEnd: document.getElementById('proj-end').value,
-      savedAt: new Date().toISOString()
+    _gewerke = gewerkeSnap.docs.map(doc => {
+      const data = doc.data();
+      // Datum auf ISO-String prüfen
+      const start = typeof data.start === "string" ? data.start : data.start.toDate().toISOString().split('T')[0];
+      const end = typeof data.end === "string" ? data.end : data.end.toDate().toISOString().split('T')[0];
+      return {
+        id: doc.id,
+        gewerkId: data.gewerkId,
+        name: data.name,
+        start: start,
+        end: end,
+        color: data.color || COLORS[0],
+        note: data.note || "",
+        done: data.done || false
+      };
     });
-    const btn = document.getElementById('save-btn');
-    btn.textContent = '✓ Gespeichert';
-    setTimeout(() => btn.textContent = 'Speichern', 2000);
-  } catch(e) { alert('Fehler: ' + e.message); }
-};
 
+    rebuildGantt();
+  } catch (err) {
+    console.error("Fehler beim Laden der Gewerke:", err);
+    document.getElementById('progress-section').textContent = "Fehler beim Laden der Gewerke.";
+  }
+}
+
+// ── beim Laden der Seite aufrufen ──
+loadGewerke();
 </script>
 
 <script>
