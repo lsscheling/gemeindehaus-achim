@@ -621,65 +621,45 @@ initCal();
 </script>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+// Firestore import
+import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
-  authDomain: "gemeindehaus-achim.firebaseapp.com",
-  projectId: "gemeindehaus-achim",
-  storageBucket: "gemeindehaus-achim.firebasestorage.app",
-  messagingSenderId: "272798328583",
-  appId: "1:272798328583:web:388aa8db19886e9be507a2"
-};
+// Firestore-Instanz
+const db = getFirestore(app);
 
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
-
-// ── Gewerke aus Firestore laden ──
+// Gewerke laden
 async function loadGewerke() {
+  const grid = document.getElementById('gewerk-grid');
+  grid.innerHTML = '<div class="gewerk-loading">Gewerke werden geladen …</div>';
+
   try {
-    const snap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
-    if (!snap.exists()) throw new Error('Keine Konfiguration gefunden');
+    // Nur Gewerke, die für Anmeldung freigegeben sind
+    const q = query(collection(db, "gewerke"), where("anmeldungAktiv", "==", true));
+    const snapshot = await getDocs(q);
 
-    const data    = snap.data();
-    const allLevels  = data.levels  || [];
-    const allGewerke = data.gewerke || [];
+    const gewerke = [];
+    const allLevels = [];
 
-    // Nur aktive + in Anmeldung sichtbare Gewerke
-    const visible = allGewerke.filter(g => g.active && g.visibleInForm);
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      gewerke.push({
+        id: doc.id,
+        name: data.name,
+        levels: data.levels || []
+      });
+      if (data.levels) allLevels.push(...data.levels.map(lv => ({...lv, id: lv.id})));
+    });
 
-    // Level-Objekte pro Gewerk auflösen
-    const resolved = visible.map(g => ({
-      id:     g.id,
-      name:   g.name,
-      color:  g.color,
-      levels: (g.levels || [])
-        .map(lid => allLevels.find(l => l.id === lid))
-        .filter(Boolean)
-    }));
+    buildGewerkGrid(gewerke, allLevels);
 
-    buildGewerkGrid(resolved, allLevels);
   } catch (err) {
-    console.error('Gewerke laden fehlgeschlagen:', err);
-    document.getElementById('gewerk-grid').innerHTML =
-      '<div class="gewerk-error">Gewerke konnten nicht geladen werden. Bitte Seite neu laden.</div>';
+    console.error(err);
+    grid.innerHTML = '<div class="gewerk-error">Fehler beim Laden der Gewerke.</div>';
   }
 }
 
-loadGewerke();
-
-// ── Anmeldung speichern ──
-window.saveAnmeldung = async function(payload) {
-  try {
-    payload.angemeldet_am = serverTimestamp();
-    await addDoc(collection(db, 'anmeldungen'), payload);
-    return { success: true };
-  } catch(e) {
-    return { success: false, error: e.message };
-  }
-};
+// Wenn Seite geladen → Gewerke laden
+window.addEventListener('DOMContentLoaded', loadGewerke);
 </script>
 
 </body>
