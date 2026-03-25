@@ -220,6 +220,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const COLORS = ['#7a3a12','#2d6a4f','#185fa5','#633806','#534AB7','#993C1D','#854F0B','#3B6D11','#0F6E56','#993556','#5F5E5A','#A32D2D'];
+
 const BASIS = [
   'Maurer / -in','Zimmerer / -in','Betonbauer / -in','Stahlbau',
   'Elektriker / -in','Sanitär / HZG','Trockenbau',
@@ -277,6 +278,7 @@ async function load() {
 }
 
 async function saveToDb() {
+  // Collect any edited level names from inputs
   levels.forEach(lv => {
     const el = document.getElementById('lv-inp-' + lv.id);
     if (el) lv.name = el.value.trim() || lv.name;
@@ -295,93 +297,70 @@ window.saveAll = async function() {
 
 // ── RENDER ──
 function render() {
-  const content = document.getElementById('content');
   const activeCount = gewerke.filter(g => g.active).length;
-
-  content.innerHTML = '';
-
-  // Gewerke-Sektion
-  const gewerkeSection = document.createElement('div');
-  gewerkeSection.className = 'section';
-
-  let gewerkeHTML = `<div class="section-header">
-    <span class="section-title">Gewerke (${gewerke.length})</span>
-    <span style="font-size:12px;color:var(--muted)">${activeCount} aktiv in Anmeldung</span>
-  </div>`;
-
-  gewerke.forEach(g => {
-    const gLevels = (g.levels || []).map(lid => levels.find(l => l.id === lid)).filter(Boolean);
-    const levelHTML = gLevels.length > 0
-      ? gLevels.map(lv => `<span class="level-pill" style="color:${lv.color};border-color:${lv.color}40;background:${lv.color}15">${lv.name}</span>`).join('')
-      : '<span style="font-size:11px;color:var(--border);font-style:italic">Kein Erfahrungslevel</span>';
-
-    const safeName = g.name.replace(/`/g,"'");
-
-    gewerkeHTML += `<div class="gewerk-row">
-      <label class="toggle">
-        <input type="checkbox" ${g.active ? 'checked' : ''} onchange="toggleGewerk('${g.id}',this.checked)">
-        <div class="toggle-track"></div><div class="toggle-thumb"></div>
-      </label>
-      <div class="gewerk-color-dot" style="background:${g.color}"></div>
-      <div style="flex:1;min-width:0">
-        <div class="gewerk-name" style="${g.active ? '' : 'color:var(--muted)'}">${safeName}</div>
-        <div class="gewerk-sub">Min. ${g.minPersons} Person${g.minPersons!==1?'en':''}</div>
-        <div class="level-pills">${levelHTML}</div>
+  document.getElementById('content').innerHTML = `
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">Gewerke (${gewerke.length})</span>
+        <span style="font-size:12px;color:var(--muted)">${activeCount} aktiv in Anmeldung</span>
       </div>
-      <div style="display:flex;gap:5px;flex-shrink:0">
-        <button class="btn btn-icon btn-sm" onclick="editGewerk('${g.id}')">✎</button>
-        <button class="btn btn-icon del btn-sm" onclick="removeGewerk('${g.id}')">✕</button>
+      ${gewerke.map(g => {
+        const gLevels = (g.levels || []).map(lid => levels.find(l => l.id === lid)).filter(Boolean);
+        return `<div class="gewerk-row">
+          <label class="toggle">
+            <input type="checkbox" ${g.active ? 'checked' : ''} onchange="toggleGewerk('${g.id}',this.checked)">
+            <div class="toggle-track"></div><div class="toggle-thumb"></div>
+          </label>
+          <div class="gewerk-color-dot" style="background:${g.color}"></div>
+          <div style="flex:1;min-width:0">
+            <div class="gewerk-name" style="${g.active ? '' : 'color:var(--muted)'}">${g.name}</div>
+            <div class="gewerk-sub">Min. ${g.minPersons} Person${g.minPersons!==1?'en':''}</div>
+            <div class="level-pills">
+              ${gLevels.length > 0
+                ? gLevels.map(lv => `<span class="level-pill" style="color:${lv.color};border-color:${lv.color}40;background:${lv.color}15">${lv.name}</span>`).join('')
+                : '<span style="font-size:11px;color:var(--border);font-style:italic">Kein Erfahrungslevel</span>'}
+            </div>
+          </div>
+          <div style="display:flex;gap:5px;flex-shrink:0">
+            <button class="btn btn-icon btn-sm" onclick="editGewerk('${g.id}')">✎</button>
+            <button class="btn btn-icon del btn-sm" onclick="removeGewerk('${g.id}')">✕</button>
+          </div>
+        </div>`;
+      }).join('')}
+      <div class="add-row">
+        <div class="add-field">
+          <label>Neues Gewerk</label>
+          <input type="text" id="new-gw" placeholder="Bezeichnung …" style="width:220px">
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="addGewerk()" style="align-self:flex-end">+ Hinzufügen</button>
       </div>
-    </div>`;
-  });
-
-  gewerkeHTML += `<div class="add-row">
-    <div class="add-field">
-      <label>Neues Gewerk</label>
-      <input type="text" id="new-gw" placeholder="Bezeichnung …" style="width:220px">
     </div>
-    <button class="btn btn-outline btn-sm" onclick="addGewerk()" style="align-self:flex-end">+ Hinzufügen</button>
-  </div>`;
 
-  gewerkeSection.innerHTML = gewerkeHTML;
-  content.appendChild(gewerkeSection);
-
-  // Levels-Sektion
-  const levelsSection = document.createElement('div');
-  levelsSection.className = 'section';
-
-  let levelsHTML = `<div class="section-header">
-    <span class="section-title">Erfahrungslevel (${levels.length})</span>
-    <span style="font-size:12px;color:var(--muted)">Namen direkt editierbar</span>
-  </div>`;
-
-  levels.forEach(lv => {
-    const safeLvName = lv.name.replace(/`/g,"'");
-    levelsHTML += `<div class="level-row">
-      <div class="level-color-dot" style="background:${lv.color}"></div>
-      <input class="level-name-input" id="lv-inp-${lv.id}" value="${safeLvName}" placeholder="Level-Name">
-      <button class="btn btn-icon del btn-sm" onclick="deleteLevel('${lv.id}')">✕</button>
-    </div>`;
-  });
-
-  levelsHTML += `<div class="add-row">
-    <div class="add-field">
-      <label>Neues Level</label>
-      <input type="text" id="new-lv" placeholder="Bezeichnung …" style="width:200px">
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">Erfahrungslevel (${levels.length})</span>
+        <span style="font-size:12px;color:var(--muted)">Namen direkt editierbar</span>
+      </div>
+      ${levels.map(lv => `
+        <div class="level-row">
+          <div class="level-color-dot" style="background:${lv.color}"></div>
+          <input class="level-name-input" id="lv-inp-${lv.id}" value="${lv.name}" placeholder="Level-Name">
+          <button class="btn btn-icon del btn-sm" onclick="deleteLevel('${lv.id}')">✕</button>
+        </div>
+      `).join('')}
+      <div class="add-row">
+        <div class="add-field">
+          <label>Neues Level</label>
+          <input type="text" id="new-lv" placeholder="Bezeichnung …" style="width:200px">
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="addLevel()" style="align-self:flex-end">+ Hinzufügen</button>
+      </div>
     </div>
-    <button class="btn btn-outline btn-sm" onclick="addLevel()" style="align-self:flex-end">+ Hinzufügen</button>
-  </div>`;
 
-  levelsSection.innerHTML = levelsHTML;
-  content.appendChild(levelsSection);
-
-  // Hinweis
-  const p = document.createElement('p');
-  p.style.fontSize = '12px';
-  p.style.color = 'var(--muted)';
-  p.style.textAlign = 'center';
-  p.textContent = 'Änderungen oben rechts speichern – erst dann werden sie in der Anmeldung übernommen.';
-  content.appendChild(p);
+    <p style="font-size:12px;color:var(--muted);text-align:center">
+      Änderungen oben rechts speichern – erst dann werden sie in der Anmeldung übernommen.
+    </p>
+  `;
 }
 
 // ── GEWERK ACTIONS ──
