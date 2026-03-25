@@ -741,7 +741,7 @@ async function loadGewerkeList() {
 async function loadGanttDaten() {
   const snap = await getDoc(doc(db, "planung", "ganttDaten"));
   if (snap.exists() && snap.data().gewerke && snap.data().gewerke.length > 0) {
-    _gewerke = snap.data().gewerke;
+    _gewerke = snap.data().gewerke.map(g => {   const def = GEWERK_LIST.find(x => x.id === g.gewerkId);   if (def) g.name = def.label;   return g; });
   } else {
     _gewerke = getDefaultGewerke();
   }
