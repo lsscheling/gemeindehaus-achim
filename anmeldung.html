@@ -638,28 +638,30 @@ const db = getFirestore(app);
 
 async function loadGewerke() {
   const container = document.getElementById('gewerk-grid');
-  container.innerHTML = '<div class="gewerk-loading">Gewerke werden geladen …</div>';
+  container.innerHTML = 'Gewerke werden geladen …';
 
   try {
     const snap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
+
     if (!snap.exists()) {
-      container.innerHTML = '<div class="gewerk-error">Keine Gewerke verfügbar. Bitte später versuchen.</div>';
+      container.innerHTML = 'Keine Daten gefunden';
       return;
     }
 
     const data = snap.data();
-    const gewerke = (data.gewerke || []).filter(g => g.active && g.visibleInForm);
+
+    const gewerke = (data.gewerke || [])
+      .filter(g => g.active && g.visibleInForm);
+
     const levels = data.levels || [];
 
     buildGewerkGrid(gewerke, levels);
-  } catch(e) {
-    console.error('Fehler beim Laden der Gewerke:', e);
-    container.innerHTML = '<div class="gewerk-error">Fehler beim Laden der Gewerke. Bitte später versuchen.</div>';
+
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = 'Fehler beim Laden';
   }
 }
-
-window.addEventListener('DOMContentLoaded', loadGewerke);
-</script>
 
 </body>
 </html>
