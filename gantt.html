@@ -723,68 +723,176 @@ rebuildGantt();
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// ── FIREBASE CONFIG ──
+
+// ------------------ FIREBASE INIT ------------------
+
 const firebaseConfig = {
-  apiKey: "...",
-  authDomain: "gemeindehaus-achim.firebaseapp.com",
-  projectId: "gemeindehaus-achim",
-  storageBucket: "gemeindehaus-achim.appspot.com",
-  messagingSenderId: "...",
-  appId: "..."
+  /* DEINE CONFIG */
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db  = getFirestore(app);
 
-// ── FIRESTORE LADE-FUNKTION ──
+
+// ------------------ DATENHALTER ------------------
+
+let _gewerkeList = [];   // Stammdaten
+let _planung     = [];   // Gantt-Daten
+
+window._gewerkeList = _gewerkeList;
+window._planung     = _planung;
+
+
+// ==================================================
+// 1) GEWERKE-STAMMDATEN LADEN (NEU)
+// ==================================================
+
+async function loadGewerkeList() {
+
+  const snap = await getDocs(collection(db, "gewerkeliste"));
+
+  _gewerkeList = snap.docs.map(doc => {
+    const d = doc.data();
+
+    return {
+      id: doc.id,
+      label: d.name,                 // ggf. Feldname anpassen
+      gruppe: d.gruppe || "Gewerke"
+    };
+  });
+
+  window._gewerkeList = _gewerkeList;
+
+  buildGewerkSelect();
+}
+
+
+// ==================================================
+// 2) PLANUNG LADEN (BESTEHEND)
+// ==================================================
+
 async function loadGewerke() {
-  try {
-    const gewerkeCol = collection(db, "gewerke");
-    const gewerkeSnap = await getDocs(gewerkeCol);
 
-    _gewerke = gewerkeSnap.docs.map(doc => {
-      const data = doc.data();
-      // Datum auf ISO-String prüfen
-      const start = typeof data.start === "string" ? data.start : data.start.toDate().toISOString().split('T')[0];
-      const end = typeof data.end === "string" ? data.end : data.end.toDate().toISOString().split('T')[0];
-      return {
-        id: doc.id,
-        gewerkId: data.gewerkId,
-        name: data.name,
-        start: start,
-        end: end,
-        color: data.color || COLORS[0],
-        note: data.note || "",
-        done: data.done || false
-      };
-    });
+  const snap = await getDocs(collection(db, "gewerke"));
 
-    rebuildGantt();
-  } catch (err) {
-    console.error("Fehler beim Laden der Gewerke:", err);
-    document.getElementById('progress-section').textContent = "Fehler beim Laden der Gewerke.";
+  _planung = snap.docs.map(doc => {
+
+    const data = doc.data();
+
+    // Namen aus Stammliste bestimmen
+    const def = _gewerkeList.find(g => g.id === data.gewerkId);
+
+    return {
+      id: doc.id,
+      gewerkId: data.gewerkId,
+      name: def ? def.label : data.name || data.gewerkId,
+      gruppe: def ? def.gruppe : "Gewerke",
+      start: data.start,
+      end: data.end,
+      color: data.color || "#888",
+      done: data.done || false
+    };
+  });
+
+  window._planung = _planung;
+
+  buildRows();
+}
+
+
+// ==================================================
+// 3) DROPDOWN AUFBAUEN
+// ==================================================
+
+function buildGewerkSelect() {
+
+  const sel = document.getElementById("gewerkSelect");
+  if (!sel) return;
+
+  sel.innerHTML = "";
+
+  _gewerkeList.forEach(g => {
+
+    const opt = document.createElement("option");
+    opt.value = g.id;
+    opt.textContent = `${g.gruppe} — ${g.label}`;
+
+    sel.appendChild(opt);
+  });
+}
+
+
+// ==================================================
+// 4) GANTT ZEILEN AUFBAUEN (VEREINFACHT)
+// ==================================================
+
+function buildRows() {
+
+  const container = document.getElementById("rows");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  _planung.forEach(g => {
+
+    const row = document.createElement("div");
+    row.className = "row";
+
+    row.textContent =
+      `${g.gruppe} | ${g.name} | ${g.start} → ${g.end}`;
+
+    container.appendChild(row);
+  });
+}
+
+
+// ==================================================
+// 5) NEUES GEWERK IN PLANUNG SPEICHERN
+// ==================================================
+
+window.saveGewerk = async function() {
+
+  const gewerkId = document.getElementById("gewerkSelect").value;
+  const start    = document.getElementById("start").value;
+  const end      = document.getElementById("end").value;
+
+  if (!gewerkId || !start || !end) {
+    alert("Bitte alle Felder ausfüllen");
+    return;
   }
+
+  await addDoc(collection(db, "gewerke"), {
+
+    gewerkId: gewerkId,  // NUR ID speichern
+    start: start,
+    end: end,
+    color: "#2d6a4f",
+    done: false
+  });
+
+  await loadGewerke(); // neu laden
+};
+
+
+// ==================================================
+// INIT
+// ==================================================
+
+async function init() {
+
+  await loadGewerkeList(); // zuerst Stammdaten
+  await loadGewerke();     // dann Planung
 }
 
-// ── beim Laden der Seite aufrufen ──
-loadGewerke();
-</script>
+init();
 
-<script>
-function toggleSidebar() {
-  var s = document.querySelector('.sidebar');
-  var o = document.getElementById('sidebar-overlay');
-  if (s) s.classList.toggle('open');
-  if (o) o.classList.toggle('open');
-}
-function closeSidebar() {
-  var s = document.querySelector('.sidebar');
-  var o = document.getElementById('sidebar-overlay');
-  if (s) s.classList.remove('open');
-  if (o) o.classList.remove('open');
-}
 </script>
 </body>
 </html>
