@@ -82,6 +82,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .level-pill:hover { border-color: var(--accent); color: var(--accent); }
 .level-pill.selected { background: var(--accent); border-color: var(--accent); color: white; }
 
+/* Gewerk loading state */
+.gewerk-loading { grid-column: 1/-1; padding: 24px; text-align: center; color: var(--muted); font-size: 13px; font-weight: 300; }
+.gewerk-error { grid-column: 1/-1; padding: 14px; background: #fdf5ee; border: 1px solid var(--accent-light); border-radius: var(--radius); color: #7a3a12; font-size: 13px; }
+
 /* SCHICHT */
 .schicht-box { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .schicht-header { padding: 11px 16px; background: var(--cream); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
@@ -183,52 +187,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
         <div class="btn-row"><span></span><button type="button" class="submit-btn" style="background:var(--accent)" onclick="switchTab('gewerk',1)">Weiter →</button></div>
       </div>
 
-      <!-- TAB 2 -->
+      <!-- TAB 2 – Gewerk (dynamisch aus Firestore) -->
       <div class="tab-panel" id="tab-gewerk">
         <div class="section-title">Gewerk & Fähigkeiten</div>
         <p class="notice" style="font-size:13px;color:var(--ink)">Du kannst mehrere Gewerke auswählen. Bei jedem Gewerk bitte das Erfahrungslevel angeben.</p>
         <div class="field">
           <label>Gewerk(e) *</label>
           <div class="gewerk-grid" id="gewerk-grid">
-            <div class="gewerk-group-label">Rohbau & Konstruktion</div>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="maurer" id="cb-maurer" onchange="toggleLevel('maurer')"><span class="check-box"></span><span class="check-label">Maurer / -in</span></label>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="zimmerer" id="cb-zimmerer" onchange="toggleLevel('zimmerer')"><span class="check-box"></span><span class="check-label">Zimmerer / -in</span></label>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="betonbauer" id="cb-betonbauer" onchange="toggleLevel('betonbauer')"><span class="check-box"></span><span class="check-label">Betonbauer / -in</span></label>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="stahlbau" id="cb-stahlbau" onchange="toggleLevel('stahlbau')"><span class="check-box"></span><span class="check-label">Stahlbau</span></label>
-            <div class="gewerk-level" id="level-maurer"><span class="gewerk-level-name">Maurer:</span><div class="level-pills" id="pills-maurer"></div><input type="hidden" name="level_maurer" id="level-val-maurer"></div>
-            <div class="gewerk-level" id="level-zimmerer"><span class="gewerk-level-name">Zimmerer:</span><div class="level-pills" id="pills-zimmerer"></div><input type="hidden" name="level_zimmerer" id="level-val-zimmerer"></div>
-            <div class="gewerk-level" id="level-betonbauer"><span class="gewerk-level-name">Betonbauer:</span><div class="level-pills" id="pills-betonbauer"></div><input type="hidden" name="level_betonbauer" id="level-val-betonbauer"></div>
-            <div class="gewerk-level" id="level-stahlbau"><span class="gewerk-level-name">Stahlbau:</span><div class="level-pills" id="pills-stahlbau"></div><input type="hidden" name="level_stahlbau" id="level-val-stahlbau"></div>
-
-            <div class="gewerk-group-label">Technischer Ausbau</div>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="elektriker" id="cb-elektriker" onchange="toggleLevel('elektriker')"><span class="check-box"></span><span class="check-label">Elektriker / -in</span></label>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="sanitaer" id="cb-sanitaer" onchange="toggleLevel('sanitaer')"><span class="check-box"></span><span class="check-label">Sanitär / HZG</span></label>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="trockenbau" id="cb-trockenbau" onchange="toggleLevel('trockenbau')"><span class="check-box"></span><span class="check-label">Trockenbau</span></label>
-            <div class="gewerk-level" id="level-elektriker"><span class="gewerk-level-name">Elektriker:</span><div class="level-pills" id="pills-elektriker"></div><input type="hidden" name="level_elektriker" id="level-val-elektriker"></div>
-            <div class="gewerk-level" id="level-sanitaer"><span class="gewerk-level-name">Sanitär:</span><div class="level-pills" id="pills-sanitaer"></div><input type="hidden" name="level_sanitaer" id="level-val-sanitaer"></div>
-            <div class="gewerk-level" id="level-trockenbau"><span class="gewerk-level-name">Trockenbau:</span><div class="level-pills" id="pills-trockenbau"></div><input type="hidden" name="level_trockenbau" id="level-val-trockenbau"></div>
-
-            <div class="gewerk-group-label">Innenausbau</div>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="maler" id="cb-maler" onchange="toggleLevel('maler')"><span class="check-box"></span><span class="check-label">Maler / -in</span></label>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="fliesen" id="cb-fliesen" onchange="toggleLevel('fliesen')"><span class="check-box"></span><span class="check-label">Fliesen / Estrich</span></label>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="schreiner" id="cb-schreiner" onchange="toggleLevel('schreiner')"><span class="check-box"></span><span class="check-label">Schreiner / Tischler</span></label>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="bodenbelag" id="cb-bodenbelag" onchange="toggleLevel('bodenbelag')"><span class="check-box"></span><span class="check-label">Bodenbelag</span></label>
-            <div class="gewerk-level" id="level-maler"><span class="gewerk-level-name">Maler:</span><div class="level-pills" id="pills-maler"></div><input type="hidden" name="level_maler" id="level-val-maler"></div>
-            <div class="gewerk-level" id="level-fliesen"><span class="gewerk-level-name">Fliesen:</span><div class="level-pills" id="pills-fliesen"></div><input type="hidden" name="level_fliesen" id="level-val-fliesen"></div>
-            <div class="gewerk-level" id="level-schreiner"><span class="gewerk-level-name">Schreiner:</span><div class="level-pills" id="pills-schreiner"></div><input type="hidden" name="level_schreiner" id="level-val-schreiner"></div>
-            <div class="gewerk-level" id="level-bodenbelag"><span class="gewerk-level-name">Bodenbelag:</span><div class="level-pills" id="pills-bodenbelag"></div><input type="hidden" name="level_bodenbelag" id="level-val-bodenbelag"></div>
-
-            <div class="gewerk-group-label">Außenarbeiten</div>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="dachdecker" id="cb-dachdecker" onchange="toggleLevel('dachdecker')"><span class="check-box"></span><span class="check-label">Dachdecker / -in</span></label>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="geruestbau" id="cb-geruestbau" onchange="toggleLevel('geruestbau')"><span class="check-box"></span><span class="check-label">Gerüstbau</span></label>
-            <label class="gewerk-item checkbox-item"><input type="checkbox" name="gewerk" value="garten" id="cb-garten" onchange="toggleLevel('garten')"><span class="check-box"></span><span class="check-label">Garten / Außen</span></label>
-            <div class="gewerk-level" id="level-dachdecker"><span class="gewerk-level-name">Dachdecker:</span><div class="level-pills" id="pills-dachdecker"></div><input type="hidden" name="level_dachdecker" id="level-val-dachdecker"></div>
-            <div class="gewerk-level" id="level-geruestbau"><span class="gewerk-level-name">Gerüstbau:</span><div class="level-pills" id="pills-geruestbau"></div><input type="hidden" name="level_geruestbau" id="level-val-geruestbau"></div>
-            <div class="gewerk-level" id="level-garten"><span class="gewerk-level-name">Garten:</span><div class="level-pills" id="pills-garten"></div><input type="hidden" name="level_garten" id="level-val-garten"></div>
-
-            <div class="gewerk-group-label">Unterstützung</div>
-            <label class="gewerk-item checkbox-item" style="grid-column:1/-1"><input type="checkbox" name="gewerk" value="helfer" id="cb-helfer" onchange="toggleLevel('helfer')"><span class="check-box"></span><span class="check-label">Allgemeiner Helfer / -in</span></label>
-            <div class="gewerk-level" id="level-helfer" style="grid-column:1/-1;display:none!important"></div>
+            <div class="gewerk-loading">Gewerke werden geladen …</div>
           </div>
         </div>
         <div class="field"><label>Qualifikationen (optional)</label><input type="text" name="qualifikationen" placeholder="z.B. Staplerschein, Schweißerpass …"></div>
@@ -359,45 +325,102 @@ function switchTab(id, idx) {
   window.scrollTo(0, 0);
 }
 
-// ── GEWERK LEVEL PILLS ──
-var LEVELS = [
-  {val:'profi',label:'Beruflich ausgebildet'},
-  {val:'erfahren',label:'Hobbymäßig erfahren'},
-  {val:'grundkenntnisse',label:'Grundkenntnisse'},
-  {val:'anfaenger',label:'Anfänger'}
-];
-var ALL_GEWERKE = ['maurer','zimmerer','betonbauer','stahlbau','elektriker','sanitaer','trockenbau','maler','fliesen','schreiner','bodenbelag','dachdecker','geruestbau','garten','helfer'];
+// ── GEWERK STATE ──
+// Holds gewerke loaded from Firestore; keys are gewerk IDs
+var loadedGewerke = [];   // [{id, name, color, levels:[{id,name,color}]}]
 
-ALL_GEWERKE.forEach(function(g) {
-  var container = document.getElementById('pills-' + g);
-  if (!container) return;
-  LEVELS.forEach(function(lv) {
-    var span = document.createElement('span');
-    span.className = 'level-pill';
-    span.textContent = lv.label;
-    span.setAttribute('data-gewerk', g);
-    span.setAttribute('data-level', lv.val);
-    span.addEventListener('click', function(e) {
-      e.stopPropagation();
-      document.querySelectorAll('.level-pill[data-gewerk="' + g + '"]').forEach(function(p) { p.classList.remove('selected'); });
-      span.classList.add('selected');
-      document.getElementById('level-val-' + g).value = lv.val;
+// ── GEWERK GRID BUILDER ──
+function buildGewerkGrid(gewerke, levels) {
+  // levels: full levels array from Firestore for lookup
+  var grid = document.getElementById('gewerk-grid');
+  grid.innerHTML = '';
+
+  if (!gewerke || gewerke.length === 0) {
+    grid.innerHTML = '<div class="gewerk-error">Keine Gewerke verfügbar. Bitte später versuchen.</div>';
+    return;
+  }
+
+  loadedGewerke = gewerke;
+
+  gewerke.forEach(function(g) {
+    var safeId = g.id;
+
+    // Gewerk checkbox item
+    var label = document.createElement('label');
+    label.className = 'gewerk-item checkbox-item';
+    label.innerHTML =
+      '<input type="checkbox" name="gewerk" value="' + safeId + '" id="cb-' + safeId + '">' +
+      '<span class="check-box"></span>' +
+      '<span class="check-label">' + g.name + '</span>';
+    label.querySelector('input').addEventListener('change', function() {
+      toggleLevel(safeId, this.checked);
     });
-    container.appendChild(span);
-  });
-});
+    grid.appendChild(label);
 
-function toggleLevel(value) {
-  var cb = document.getElementById('cb-' + value);
-  var level = document.getElementById('level-' + value);
-  if (!level) return;
-  if (value === 'helfer') return; // no experience level for general helper
-  if (cb.checked) {
-    level.classList.add('visible');
+    // Level row (hidden until gewerk is checked)
+    var levelRow = document.createElement('div');
+    levelRow.className = 'gewerk-level';
+    levelRow.id = 'level-' + safeId;
+    levelRow.style.gridColumn = '1 / -1';
+
+    // Resolve level objects for this gewerk
+    var gwLevels = (g.levels || [])
+      .map(function(lid) { return levels.find(function(l) { return l.id === lid; }); })
+      .filter(Boolean);
+
+    if (gwLevels.length > 0) {
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'gewerk-level-name';
+      nameSpan.textContent = g.name.split('/')[0].trim() + ':';
+      levelRow.appendChild(nameSpan);
+
+      var pillsWrap = document.createElement('div');
+      pillsWrap.className = 'level-pills';
+      pillsWrap.id = 'pills-' + safeId;
+
+      gwLevels.forEach(function(lv) {
+        var pill = document.createElement('span');
+        pill.className = 'level-pill';
+        pill.textContent = lv.name;
+        pill.addEventListener('click', function(e) {
+          e.stopPropagation();
+          pillsWrap.querySelectorAll('.level-pill').forEach(function(p) { p.classList.remove('selected'); });
+          pill.classList.add('selected');
+          document.getElementById('level-val-' + safeId).value = lv.id;
+        });
+        pillsWrap.appendChild(pill);
+      });
+
+      levelRow.appendChild(pillsWrap);
+
+      var hiddenInput = document.createElement('input');
+      hiddenInput.type = 'hidden';
+      hiddenInput.name = 'level_' + safeId;
+      hiddenInput.id = 'level-val-' + safeId;
+      levelRow.appendChild(hiddenInput);
+    } else {
+      // No levels for this gewerk – hide permanently
+      levelRow.style.display = 'none';
+    }
+
+    grid.appendChild(levelRow);
+  });
+}
+
+function toggleLevel(id, checked) {
+  var levelRow = document.getElementById('level-' + id);
+  if (!levelRow) return;
+  if (levelRow.style.display === 'none') return; // no levels configured
+
+  if (checked) {
+    levelRow.classList.add('visible');
   } else {
-    level.classList.remove('visible');
-    document.querySelectorAll('.level-pill[data-gewerk="' + value + '"]').forEach(function(p) { p.classList.remove('selected'); });
-    document.getElementById('level-val-' + value).value = '';
+    levelRow.classList.remove('visible');
+    if (levelRow.querySelector('.level-pills')) {
+      levelRow.querySelectorAll('.level-pill').forEach(function(p) { p.classList.remove('selected'); });
+    }
+    var valInput = document.getElementById('level-val-' + id);
+    if (valInput) valInput.value = '';
   }
 }
 
@@ -434,12 +457,10 @@ function renderCal() {
   var thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   var curMonth = new Date(calYear, calMonth, 1);
   if (prevBtn) { prevBtn.disabled = curMonth <= thisMonth; prevBtn.style.opacity = curMonth <= thisMonth ? '0.3' : '1'; }
-
   var grid = document.getElementById('cal-grid');
   var headers = Array.prototype.slice.call(grid.children, 0, 7);
   grid.innerHTML = '';
   headers.forEach(function(h) { grid.appendChild(h); });
-
   var first = new Date(calYear, calMonth, 1);
   var startDow = (first.getDay() + 6) % 7;
   for (var i = 0; i < startDow; i++) grid.appendChild(makeDay(new Date(calYear, calMonth, 1-(startDow-i)), true));
@@ -511,7 +532,6 @@ function removeAbsence(idx) { absences.splice(idx,1); renderChips(); renderCal()
 function calPrev() { var p=new Date(calYear,calMonth-1,1); if(p<new Date(today.getFullYear(),today.getMonth(),1))return; calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCal(); }
 function calNext() { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCal(); }
 
-// ── CALENDAR TOUCH – delegated listener on grid ──
 function initCal() {
   renderCal();
   var grid = document.getElementById('cal-grid');
@@ -578,10 +598,15 @@ function handleSubmit(e) {
     msg.style.display = 'block';
   }
 
+  // Reset form
   document.getElementById('anmeldeform').reset();
-  ALL_GEWERKE.forEach(function(g) {
-    var l = document.getElementById('level-' + g); if (l) l.classList.remove('visible');
-    document.querySelectorAll('.level-pill[data-gewerk="' + g + '"]').forEach(function(p) { p.classList.remove('selected'); });
+  loadedGewerke.forEach(function(g) {
+    var l = document.getElementById('level-' + g.id);
+    if (l) l.classList.remove('visible');
+    var pills = document.getElementById('pills-' + g.id);
+    if (pills) pills.querySelectorAll('.level-pill').forEach(function(p) { p.classList.remove('selected'); });
+    var valInput = document.getElementById('level-val-' + g.id);
+    if (valInput) valInput.value = '';
   });
   document.querySelectorAll('.schicht-pill').forEach(function(p) { p.classList.remove('selected'); });
   document.getElementById('konti-info').classList.remove('visible');
@@ -597,7 +622,8 @@ initCal();
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
@@ -609,8 +635,42 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db  = getFirestore(app);
 
+// ── Gewerke aus Firestore laden ──
+async function loadGewerke() {
+  try {
+    const snap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
+    if (!snap.exists()) throw new Error('Keine Konfiguration gefunden');
+
+    const data    = snap.data();
+    const allLevels  = data.levels  || [];
+    const allGewerke = data.gewerke || [];
+
+    // Nur aktive + in Anmeldung sichtbare Gewerke
+    const visible = allGewerke.filter(g => g.active && g.visibleInForm);
+
+    // Level-Objekte pro Gewerk auflösen
+    const resolved = visible.map(g => ({
+      id:     g.id,
+      name:   g.name,
+      color:  g.color,
+      levels: (g.levels || [])
+        .map(lid => allLevels.find(l => l.id === lid))
+        .filter(Boolean)
+    }));
+
+    buildGewerkGrid(resolved, allLevels);
+  } catch (err) {
+    console.error('Gewerke laden fehlgeschlagen:', err);
+    document.getElementById('gewerk-grid').innerHTML =
+      '<div class="gewerk-error">Gewerke konnten nicht geladen werden. Bitte Seite neu laden.</div>';
+  }
+}
+
+loadGewerke();
+
+// ── Anmeldung speichern ──
 window.saveAnmeldung = async function(payload) {
   try {
     payload.angemeldet_am = serverTimestamp();
