@@ -637,35 +637,24 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 async function loadGewerke() {
-  const container = document.getElementById('gewerk-grid'); // oder id deiner Liste
-  container.innerHTML = 'Lädt…';
+  const container = document.getElementById('gewerk-grid');
+  container.innerHTML = '<div class="gewerk-loading">Gewerke werden geladen …</div>';
 
   try {
     const snap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
-    if (!snap.exists()) return;
+    if (!snap.exists()) {
+      container.innerHTML = '<div class="gewerk-error">Keine Gewerke verfügbar. Bitte später versuchen.</div>';
+      return;
+    }
 
     const data = snap.data();
     const gewerke = (data.gewerke || []).filter(g => g.active && g.visibleInForm);
-    const levels  = data.levels || [];
+    const levels = data.levels || [];
 
-    container.innerHTML = '';
-
-    gewerke.forEach(g => {
-      const gLevels = (g.levels || []).map(lid => levels.find(l => l.id === lid)).filter(Boolean);
-      const levelHTML = gLevels.length > 0
-        ? gLevels.map(lv => `<span style="color:${lv.color};border:1px solid ${lv.color};padding:2px 6px;border-radius:6px;font-size:12px">${lv.name}</span>`).join(' ')
-        : '<span style="color:#aaa;font-size:12px">Kein Level</span>';
-
-      const div = document.createElement('div');
-      div.innerHTML = `
-        <strong>${g.name}</strong><br>
-        ${levelHTML}
-      `;
-      container.appendChild(div);
-    });
+    buildGewerkGrid(gewerke, levels);
   } catch(e) {
-    console.error(e);
-    container.innerHTML = 'Fehler beim Laden';
+    console.error('Fehler beim Laden der Gewerke:', e);
+    container.innerHTML = '<div class="gewerk-error">Fehler beim Laden der Gewerke. Bitte später versuchen.</div>';
   }
 }
 
