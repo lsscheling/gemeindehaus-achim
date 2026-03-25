@@ -280,23 +280,7 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 
 <script>
 // ── CONSTANTS ──
-var GEWERK_LIST = [
-  {id:'maurer',     label:'Maurer / -in',           gruppe:'Rohbau & Konstruktion'},
-  {id:'zimmerer',   label:'Zimmerer / -in',          gruppe:'Rohbau & Konstruktion'},
-  {id:'betonbauer', label:'Betonbauer / -in',        gruppe:'Rohbau & Konstruktion'},
-  {id:'stahlbau',   label:'Stahlbau',                gruppe:'Rohbau & Konstruktion'},
-  {id:'elektriker', label:'Elektriker / -in',        gruppe:'Technischer Ausbau'},
-  {id:'sanitaer',   label:'Sanitär / HZG',           gruppe:'Technischer Ausbau'},
-  {id:'trockenbau', label:'Trockenbau',              gruppe:'Technischer Ausbau'},
-  {id:'maler',      label:'Maler / -in',             gruppe:'Innenausbau'},
-  {id:'fliesen',    label:'Fliesen / Estrich',       gruppe:'Innenausbau'},
-  {id:'schreiner',  label:'Schreiner / Tischler',    gruppe:'Innenausbau'},
-  {id:'bodenbelag', label:'Bodenbelag',              gruppe:'Innenausbau'},
-  {id:'dachdecker', label:'Dachdecker / -in',        gruppe:'Außenarbeiten'},
-  {id:'geruestbau', label:'Gerüstbau',               gruppe:'Außenarbeiten'},
-  {id:'garten',     label:'Garten / Außen',          gruppe:'Außenarbeiten'},
-  {id:'helfer',     label:'Allgemeiner Helfer / -in',gruppe:'Unterstützung'}
-];
+var GEWERK_LIST = [];
 
 var COLORS = ['#7a3a12','#2d6a4f','#185fa5','#633806','#534AB7','#993C1D','#854F0B','#3B6D11','#0F6E56','#993556','#5F5E5A','#A32D2D'];
 
@@ -717,182 +701,70 @@ function deleteGewerk() {
 // ── INIT ──
 document.getElementById('proj-start').value = offsetDate(today, -7);
 document.getElementById('proj-end').value = offsetDate(today, 130);
-_gewerke = getDefaultGewerke();
-rebuildGantt();
 </script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  getDocs,
-  addDoc
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-
-// ------------------ FIREBASE INIT ------------------
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  /* DEINE CONFIG */
+  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
+  authDomain: "gemeindehaus-achim.firebaseapp.com",
+  projectId: "gemeindehaus-achim",
+  storageBucket: "gemeindehaus-achim.firebasestorage.app",
+  messagingSenderId: "272798328583",
+  appId: "1:272798328583:web:388aa8db19886e9be507a2"
 };
 
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-
-// ------------------ DATENHALTER ------------------
-
-let _gewerkeList = [];   // Stammdaten
-let _planung     = [];   // Gantt-Daten
-
-window._gewerkeList = _gewerkeList;
-window._planung     = _planung;
-
-
-// ==================================================
-// 1) GEWERKE-STAMMDATEN LADEN (NEU)
-// ==================================================
-
+// Gewerke-Stammdaten laden (aus planung/gewerkeKonfig)
 async function loadGewerkeList() {
-
-  const snap = await getDocs(collection(db, "gewerkeliste"));
-
-  _gewerkeList = snap.docs.map(doc => {
-    const d = doc.data();
-
-    return {
-      id: doc.id,
-      label: d.name,                 // ggf. Feldname anpassen
-      gruppe: d.gruppe || "Gewerke"
-    };
-  });
-
-  window._gewerkeList = _gewerkeList;
-
-  buildGewerkSelect();
-}
-
-
-// ==================================================
-// 2) PLANUNG LADEN (BESTEHEND)
-// ==================================================
-
-async function loadGewerke() {
-
-  const snap = await getDocs(collection(db, "gewerke"));
-
-  _planung = snap.docs.map(doc => {
-
-    const data = doc.data();
-
-    // Namen aus Stammliste bestimmen
-    const def = _gewerkeList.find(g => g.id === data.gewerkId);
-
-    return {
-      id: doc.id,
-      gewerkId: data.gewerkId,
-      name: def ? def.label : data.name || data.gewerkId,
-      gruppe: def ? def.gruppe : "Gewerke",
-      start: data.start,
-      end: data.end,
-      color: data.color || "#888",
-      done: data.done || false
-    };
-  });
-
-  window._planung = _planung;
-
-  buildRows();
-}
-
-
-// ==================================================
-// 3) DROPDOWN AUFBAUEN
-// ==================================================
-
-function buildGewerkSelect() {
-
-  const sel = document.getElementById("gewerkSelect");
-  if (!sel) return;
-
-  sel.innerHTML = "";
-
-  _gewerkeList.forEach(g => {
-
-    const opt = document.createElement("option");
-    opt.value = g.id;
-    opt.textContent = `${g.gruppe} — ${g.label}`;
-
-    sel.appendChild(opt);
-  });
-}
-
-
-// ==================================================
-// 4) GANTT ZEILEN AUFBAUEN (VEREINFACHT)
-// ==================================================
-
-function buildRows() {
-
-  const container = document.getElementById("rows");
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  _planung.forEach(g => {
-
-    const row = document.createElement("div");
-    row.className = "row";
-
-    row.textContent =
-      `${g.gruppe} | ${g.name} | ${g.start} → ${g.end}`;
-
-    container.appendChild(row);
-  });
-}
-
-
-// ==================================================
-// 5) NEUES GEWERK IN PLANUNG SPEICHERN
-// ==================================================
-
-window.saveGewerk = async function() {
-
-  const gewerkId = document.getElementById("gewerkSelect").value;
-  const start    = document.getElementById("start").value;
-  const end      = document.getElementById("end").value;
-
-  if (!gewerkId || !start || !end) {
-    alert("Bitte alle Felder ausfüllen");
-    return;
+  const snap = await getDoc(doc(db, "planung", "gewerkeKonfig"));
+  if (snap.exists()) {
+    const data = snap.data();
+    GEWERK_LIST = (data.gewerke || []).filter(g => g.active).map(g => ({
+      id: g.id,
+      label: g.name,
+      gruppe: 'Gewerke'
+    }));
   }
+}
 
-  await addDoc(collection(db, "gewerke"), {
+// Gantt-Planung laden (aus planung/ganttDaten)
+async function loadGanttDaten() {
+  const snap = await getDoc(doc(db, "planung", "ganttDaten"));
+  if (snap.exists() && snap.data().gewerke && snap.data().gewerke.length > 0) {
+    _gewerke = snap.data().gewerke;
+  } else {
+    _gewerke = getDefaultGewerke();
+  }
+}
 
-    gewerkId: gewerkId,  // NUR ID speichern
-    start: start,
-    end: end,
-    color: "#2d6a4f",
-    done: false
-  });
-
-  await loadGewerke(); // neu laden
+// Gantt-Planung speichern
+window.saveToFirebase = async function() {
+  const btn = document.getElementById('save-btn');
+  btn.textContent = 'Speichern…';
+  btn.disabled = true;
+  try {
+    await setDoc(doc(db, "planung", "ganttDaten"), { gewerke: _gewerke });
+    btn.textContent = 'Gespeichert ✓';
+    setTimeout(() => { btn.textContent = 'Speichern'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    alert('Fehler beim Speichern: ' + e.message);
+    btn.textContent = 'Speichern';
+    btn.disabled = false;
+  }
 };
 
-
-// ==================================================
-// INIT
-// ==================================================
-
 async function init() {
-
-  await loadGewerkeList(); // zuerst Stammdaten
-  await loadGewerke();     // dann Planung
+  await loadGewerkeList();
+  await loadGanttDaten();
+  rebuildGantt();
 }
 
 init();
-
 </script>
 </body>
 </html>
