@@ -704,8 +704,9 @@ document.getElementById('proj-end').value = offsetDate(today, 130);
 </script>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
@@ -717,22 +718,26 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-// Gewerke-Stammdaten laden (aus planung/gewerkeKonfig)
+onAuthStateChanged(auth, user => {
+  if (user) {
+    init();
+  } else {
+    window.location.href = 'dashboard.html';
+  }
+});
+
 async function loadGewerkeList() {
   const snap = await getDoc(doc(db, "planung", "gewerkeKonfig"));
   if (snap.exists()) {
-    const data = snap.data();
-    GEWERK_LIST = (data.gewerke || []).filter(g => g.active).map(g => ({
-      id: g.id,
-      label: g.name,
-      gruppe: 'Gewerke'
+    GEWERK_LIST = (snap.data().gewerke || []).filter(g => g.active).map(g => ({
+      id: g.id, label: g.name, gruppe: 'Gewerke'
     }));
   }
 }
 
-// Gantt-Planung laden (aus planung/ganttDaten)
 async function loadGanttDaten() {
   const snap = await getDoc(doc(db, "planung", "ganttDaten"));
   if (snap.exists() && snap.data().gewerke && snap.data().gewerke.length > 0) {
@@ -742,7 +747,6 @@ async function loadGanttDaten() {
   }
 }
 
-// Gantt-Planung speichern
 window.saveToFirebase = async function() {
   const btn = document.getElementById('save-btn');
   btn.textContent = 'Speichern…';
@@ -752,7 +756,7 @@ window.saveToFirebase = async function() {
     btn.textContent = 'Gespeichert ✓';
     setTimeout(() => { btn.textContent = 'Speichern'; btn.disabled = false; }, 2000);
   } catch(e) {
-    alert('Fehler beim Speichern: ' + e.message);
+    alert('Fehler: ' + e.message);
     btn.textContent = 'Speichern';
     btn.disabled = false;
   }
@@ -763,8 +767,6 @@ async function init() {
   await loadGanttDaten();
   rebuildGantt();
 }
-
-init();
 </script>
 </body>
 </html>
