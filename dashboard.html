@@ -582,8 +582,8 @@ const GEWERK_LABELS = {
 
 // ── Gewerk-Label aus DB-Liste, Fallback auf statisches Objekt ──
 function getGewerkLabel(id) {
-  if (window._gewerkeList && window._gewerkeList.length > 0) {
-    const gw = window._gewerkeList.find(g => g.id === id);
+  if (window._gewerkeKonfig && window._gewerkeKonfig.length > 0) {
+    const gw = window._gewerkeKonfig.find(g => g.id === id);
     if (gw) return gw.name;
   }
   return GEWERK_LABELS[id] || id;
@@ -667,8 +667,8 @@ window.createUser = async function() {
 
 // ── GEWERKE AUS DB LADEN ──
 // Gibt eine normalisierte Liste zurück: [{id, name, kategorie?}, ...]
-function getGewerkeList() {
-  if (window._gewerkeList && window._gewerkeList.length > 0) return window._gewerkeList;
+function getgewerkeKonfig() {
+  if (window._gewerkeKonfig && window._gewerkeKonfig.length > 0) return window._gewerkeKonfig;
   // Fallback: statische Liste
   return Object.entries(GEWERK_LABELS).map(([id, name]) => ({ id, name }));
 }
@@ -679,9 +679,9 @@ window.loadGantt = async function() {
     window._ganttGewerke = snap.exists() ? (snap.data().gewerke || []) : [];
   } catch(e) { window._ganttGewerke = []; }
   try {
-    const snap2 = await getDoc(doc(db, 'planung', 'gewerkeList'));
-    window._gewerkeList = snap2.exists() ? (snap2.data().gewerke || []) : [];
-  } catch(e) { window._gewerkeList = []; }
+    const snap2 = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
+    window._gewerkeKonfig = snap2.exists() ? (snap2.data().gewerke || []) : [];
+  } catch(e) { window._gewerkeKonfig = []; }
 
   // Nach dem Laden der Gewerke: Filter und Modals neu aufbauen
   buildGewerkFilter();
@@ -695,7 +695,7 @@ window.buildGewerkFilter = function() {
 
   const sel = document.getElementById('gewerk-filter');
   const cur = sel.value;
-  const list = getGewerkeList();
+  const list = getgewerkeKonfig();
 
   // Nur Gewerke anzeigen, die auch tatsächlich in Anmeldungen vorkommen
   const relevantGewerke = list.filter(g => gewerkSet.has(g.id));
@@ -709,7 +709,7 @@ window.buildGewerkFilter = function() {
 
 // ── DYNAMISCHE MODALS (Manuell eintragen + Bearbeiten) aus DB-Gewerken ──
 window.buildDynamicModals = function() {
-  const list = getGewerkeList();
+  const list = getgewerkeKonfig();
   if (list.length === 0) return;
 
   // Gewerke nach Kategorie gruppieren (falls vorhanden)
@@ -884,7 +884,7 @@ window.openDrawer = function(id) {
   ].filter(Boolean).join(' · ') : '–';
 
   const assignedGewerk = d.gewerk || '';
-  const activeGewerke = getGewerkeList();
+  const activeGewerke = getgewerkeKonfig();
   const gewerkOptions = activeGewerke.map(g =>
     '<option value="' + g.id + '"' + (assignedGewerk === g.id ? ' selected' : '') + '>' + g.name + '</option>'
   ).join('');
@@ -1184,7 +1184,7 @@ window.openManualModal = function() {
   document.getElementById('m-success').style.display = 'none';
   mErfahrung = {}; mGerade = ''; mUngerade = '';
   // Falls Gewerke noch nicht geladen: nochmal aufbauen
-  if (window._gewerkeList && window._gewerkeList.length > 0) buildDynamicModals();
+  if (window._gewerkeKonfig && window._gewerkeKonfig.length > 0) buildDynamicModals();
   initModalPills();
 };
 
@@ -1355,15 +1355,15 @@ const LEVEL_LIST = [
 const WOCHENTAGE_EDIT = [{k:'mo',l:'Montag'},{k:'di',l:'Dienstag'},{k:'mi',l:'Mittwoch'},{k:'do',l:'Donnerstag'},{k:'fr',l:'Freitag'},{k:'sa',l:'Samstag'}];
 const SCHICHT_EDIT = [{v:'frueh',l:'Frühschicht'},{v:'spaet',l:'Spätschicht'},{v:'nacht',l:'Nachtschicht'},{v:'wechsel',l:'Wechselschicht'},{v:'konti',l:'Kontischicht'},{v:'sonstiges',l:'Sonstiges'}];
 
-// ── openEditPerson: GEWERK_LIST_EDIT dynamisch aus _gewerkeList ──
+// ── openEditPerson: GEWERK_LIST_EDIT dynamisch aus _gewerkeKonfig ──
 window.openEditPerson = function(id) {
   const d = allDocs.find(x => x.id === id);
   if (!d) return;
   window._editingPersonId = id;
 
   // Gewerke-Liste dynamisch aus DB, Fallback auf statische
-  const GEWERK_LIST_EDIT = (window._gewerkeList && window._gewerkeList.length > 0)
-    ? window._gewerkeList.map(g => ({ id: g.id, label: g.name }))
+  const GEWERK_LIST_EDIT = (window._gewerkeKonfig && window._gewerkeKonfig.length > 0)
+    ? window._gewerkeKonfig.map(g => ({ id: g.id, label: g.name }))
     : [
         {id:'maurer',label:'Maurer / -in'},{id:'zimmerer',label:'Zimmerer / -in'},
         {id:'betonbauer',label:'Betonbauer / -in'},{id:'stahlbau',label:'Stahlbau'},
@@ -1473,8 +1473,8 @@ window.saveEditPerson = async function() {
   const id = window._editingPersonId;
   if (!id) return;
 
-  const GEWERK_LIST_SAVE = (window._gewerkeList && window._gewerkeList.length > 0)
-    ? window._gewerkeList.map(g => g.id)
+  const GEWERK_LIST_SAVE = (window._gewerkeKonfig && window._gewerkeKonfig.length > 0)
+    ? window._gewerkeKonfig.map(g => g.id)
     : Object.keys({ maurer:1,zimmerer:1,betonbauer:1,stahlbau:1,elektriker:1,sanitaer:1,trockenbau:1,maler:1,fliesen:1,schreiner:1,bodenbelag:1,dachdecker:1,geruestbau:1,garten:1,helfer:1 });
 
   const gewerke = GEWERK_LIST_SAVE.filter(gid => document.getElementById('edit-gw-' + gid)?.checked);
