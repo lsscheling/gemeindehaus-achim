@@ -350,6 +350,7 @@ async function saveToDb() {
 }
 
 window.saveAll = async function() {
+  gewerke.sort((a, b) => a.name.localeCompare(b.name, 'de'));
   await saveToDb();
   const t = document.getElementById('toast');
   t.classList.add('show');
