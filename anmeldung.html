@@ -86,7 +86,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .gewerk-loading { grid-column: 1/-1; padding: 24px; text-align: center; color: var(--muted); font-size: 13px; font-weight: 300; }
 .gewerk-error { grid-column: 1/-1; padding: 14px; background: #fdf5ee; border: 1px solid var(--accent-light); border-radius: var(--radius); color: #7a3a12; font-size: 13px; }
 
-/* SCHICHT */
+/* ── SCHICHT ── */
 .schicht-box { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 .schicht-header { padding: 11px 16px; background: var(--cream); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
 .schicht-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
@@ -99,12 +99,32 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .schicht-divider { height: 1px; background: var(--border); }
 .schicht-freitext label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; display: block; margin-bottom: 5px; }
 .schicht-freitext textarea { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 300; background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; color: var(--ink); resize: vertical; min-height: 60px; width: 100%; outline: none; }
-.konti-info { background: #fdf5ee; border: 1px solid var(--accent-light); border-radius: var(--radius); padding: 10px 13px; font-size: 12px; color: #7a3a12; font-weight: 300; line-height: 1.6; display: none; }
+
+/* ── ZEITSLOT TABLE ── */
+.zeitslot-section { display: none; flex-direction: column; gap: 12px; }
+.zeitslot-section.visible { display: flex; }
+.zeitslot-box { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.zeitslot-header { padding: 9px 14px; background: var(--cream); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.zeitslot-table { width: 100%; border-collapse: collapse; }
+.zeitslot-table th { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; text-align: center; border-bottom: 1px solid var(--border); }
+.zeitslot-table th:first-child { text-align: left; width: 40px; }
+.zeitslot-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: center; }
+.zeitslot-table td:first-child { font-size: 11px; font-weight: 500; color: var(--muted); text-align: left; letter-spacing: 0.05em; text-transform: uppercase; }
+.zeitslot-table tr:last-child td { border-bottom: none; }
+.slot-toggle { width: 32px; height: 32px; border: 1.5px solid var(--border); border-radius: 4px; background: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.12s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; font-size: 13px; color: var(--muted); }
+.slot-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.slot-toggle.active { background: var(--accent); border-color: var(--accent); color: white; }
+.slot-toggle.disabled { opacity: 0.22; cursor: not-allowed; pointer-events: none; }
+
+/* KW label */
+.kw-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+.kw-badge.gerade { background: #e8f0fb; color: #2a4a7a; border: 1px solid #b8ccef; }
+.kw-badge.ungerade { background: #f0e8fb; color: #4a2a7a; border: 1px solid #ccb8ef; }
+
+/* Konti info */
+.konti-info { background: #fdf5ee; border: 1px solid var(--accent-light); border-radius: var(--radius); padding: 14px 16px; font-size: 13px; color: #7a3a12; font-weight: 300; line-height: 1.65; display: none; }
 .konti-info.visible { display: block; }
 .konti-info strong { font-weight: 500; }
-.wechsel-detail { display: none; background: var(--cream); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; flex-direction: column; gap: 12px; }
-.wechsel-detail.visible { display: flex; }
-.wechsel-title { font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
 
 /* CALENDAR */
 .cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
@@ -137,11 +157,15 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .btn-row { display: flex; gap: 10px; justify-content: space-between; margin-top: 8px; }
 .success-msg { display: none; padding: 14px 18px; background: #edf7f0; border: 1px solid #aad4b8; border-radius: var(--radius); color: var(--success); font-size: 13px; line-height: 1.6; }
 
+/* select-all row */
+.slot-select-all { font-size: 11px; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; -webkit-tap-highlight-color: transparent; align-self: flex-end; }
+
 @media (max-width: 600px) {
   .form-side { padding: 24px 16px 48px; }
   .row { grid-template-columns: 1fr; }
   .checkbox-grid { grid-template-columns: 1fr; }
   .gewerk-grid { grid-template-columns: 1fr; }
+  .zeitslot-table th, .zeitslot-table td { padding: 6px 6px; }
 }
 </style>
 </head>
@@ -187,7 +211,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
         <div class="btn-row"><span></span><button type="button" class="submit-btn" style="background:var(--accent)" onclick="switchTab('gewerk',1)">Weiter →</button></div>
       </div>
 
-      <!-- TAB 2 – Gewerk (dynamisch aus Firestore) -->
+      <!-- TAB 2 – Gewerk -->
       <div class="tab-panel" id="tab-gewerk">
         <div class="section-title">Gewerk & Fähigkeiten</div>
         <p class="notice" style="font-size:13px;color:var(--ink)">Du kannst mehrere Gewerke auswählen. Bei jedem Gewerk bitte das Erfahrungslevel angeben.</p>
@@ -205,79 +229,107 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
         </div>
       </div>
 
-      <!-- TAB 3 -->
+      <!-- TAB 3 – Verfügbarkeit (NEU: Zeitslots) -->
       <div class="tab-panel" id="tab-verfueg">
-        <div class="section-title">Schichtmodell</div>
-        <p style="font-size:13px;line-height:1.7;color:var(--ink)">Arbeitest du im Schichtsystem? Wähle dein Muster – wir planen dich nur für deine freien Zeiten ein.</p>
+        <div class="section-title">Schichtmodell im Job</div>
+        <p style="font-size:13px;line-height:1.7;color:var(--ink)">
+          Wähle dein Schichtmodell – wir zeigen dir dann automatisch die passenden Projektzeitslots.
+        </p>
+
+        <!-- Schichtart-Auswahl -->
         <div class="schicht-box">
-          <div class="schicht-header">Schichtmodell (optional)</div>
+          <div class="schicht-header">Mein Schichtmodell (optional)</div>
           <div class="schicht-body">
             <div class="schicht-row">
               <div class="schicht-label">Schichtart</div>
               <div class="schicht-pills">
                 <span class="schicht-pill" data-group="schichtart" data-val="frueh">Frühschicht</span>
                 <span class="schicht-pill" data-group="schichtart" data-val="spaet">Spätschicht</span>
-                <span class="schicht-pill" data-group="schichtart" data-val="nacht">Nachtschicht</span>
                 <span class="schicht-pill" data-group="schichtart" data-val="wechsel">Wechselschicht</span>
                 <span class="schicht-pill" data-group="schichtart" data-val="konti">Kontischicht</span>
-                <span class="schicht-pill" data-group="schichtart" data-val="sonstiges">Sonstiges</span>
+                <span class="schicht-pill" data-group="schichtart" data-val="sonstiges">Sonstiges / kein Schichtsystem</span>
               </div>
-            </div>
-            <div class="konti-info" id="konti-info"><strong>Kontischicht:</strong> Mo+Di → Mi+Do → Fr+Sa+So, Früh → Spät → Nacht → Frei. Bitte Startpunkt im Freitextfeld angeben.</div>
-            <div class="wechsel-detail" id="wechsel-detail">
-              <div class="wechsel-title">Wechselschicht-Muster</div>
-              <div class="schicht-row">
-                <div class="schicht-label">Gerade Kalenderwochen</div>
-                <div class="schicht-pills">
-                  <span class="schicht-pill" data-group="gerade" data-val="frueh">Frühschicht</span>
-                  <span class="schicht-pill" data-group="gerade" data-val="spaet">Spätschicht</span>
-                  <span class="schicht-pill" data-group="gerade" data-val="nacht">Nachtschicht</span>
-                  <span class="schicht-pill" data-group="gerade" data-val="frei">Frei</span>
-                </div>
-              </div>
-              <div class="schicht-row">
-                <div class="schicht-label">Ungerade Kalenderwochen</div>
-                <div class="schicht-pills">
-                  <span class="schicht-pill" data-group="ungerade" data-val="frueh">Frühschicht</span>
-                  <span class="schicht-pill" data-group="ungerade" data-val="spaet">Spätschicht</span>
-                  <span class="schicht-pill" data-group="ungerade" data-val="nacht">Nachtschicht</span>
-                  <span class="schicht-pill" data-group="ungerade" data-val="frei">Frei</span>
-                </div>
-              </div>
-            </div>
-            <div class="schicht-divider"></div>
-            <div class="schicht-freitext">
-              <label>Sonderfälle / Ergänzungen (optional)</label>
-              <textarea name="schicht_freitext" placeholder="z.B. jede 3. Woche Nachtschicht …"></textarea>
             </div>
           </div>
         </div>
-        <input type="hidden" name="schichtart" id="hidden-schichtart">
-        <input type="hidden" name="wochenmuster_gerade" id="hidden-gerade">
-        <input type="hidden" name="wochenmuster_ungerade" id="hidden-ungerade">
 
-        <div class="divider"></div>
-        <div class="section-title">Verfügbare Wochentage</div>
-        <p style="font-size:13px;line-height:1.7;color:var(--ink)">An welchen Tagen kannst du grundsätzlich eingeplant werden?</p>
-        <div class="checkbox-grid">
-          <label class="checkbox-item"><input type="checkbox" name="wochentag" value="mo"><span class="check-box"></span><span class="check-label">Montag</span></label>
-          <label class="checkbox-item"><input type="checkbox" name="wochentag" value="di"><span class="check-box"></span><span class="check-label">Dienstag</span></label>
-          <label class="checkbox-item"><input type="checkbox" name="wochentag" value="mi"><span class="check-box"></span><span class="check-label">Mittwoch</span></label>
-          <label class="checkbox-item"><input type="checkbox" name="wochentag" value="do"><span class="check-box"></span><span class="check-label">Donnerstag</span></label>
-          <label class="checkbox-item"><input type="checkbox" name="wochentag" value="fr"><span class="check-box"></span><span class="check-label">Freitag</span></label>
-          <label class="checkbox-item"><input type="checkbox" name="wochentag" value="sa"><span class="check-box"></span><span class="check-label">Samstag</span></label>
+        <!-- Konti-Hinweis -->
+        <div class="konti-info" id="konti-info">
+          <strong>Kontischicht:</strong> Wegen der wechselnden Blöcke (Mo+Di → Mi+Do → Fr+Sa+So, Früh → Spät → Nacht → Frei) ist eine automatische Vorauswahl nicht möglich. Bitte trage deine freien Zeiten im Kommentarfeld unten ein – wir übertragen sie manuell.
         </div>
-        <div class="field">
-          <label>Anmerkungen zur Verfügbarkeit (optional)</label>
-          <textarea name="verfueg_kommentar" placeholder="z.B. mittwochs nur bis 12 Uhr …"></textarea>
+
+        <!-- ZEITSLOT-BEREICH: Frühschicht -->
+        <div class="zeitslot-section" id="zs-frueh">
+          <div style="font-size:13px;line-height:1.7;color:var(--ink)">
+            Bei Frühschicht bist du <strong>nachmittags</strong> für das Projekt verfügbar.
+            Am Samstag sind beide Zeitfenster möglich – wähle, was passt.
+          </div>
+          <div class="zeitslot-box">
+            <div class="zeitslot-header">Verfügbare Projektzeitslots — Frühschicht</div>
+            <table class="zeitslot-table" id="zt-frueh"></table>
+          </div>
         </div>
+
+        <!-- ZEITSLOT-BEREICH: Spätschicht -->
+        <div class="zeitslot-section" id="zs-spaet">
+          <div style="font-size:13px;line-height:1.7;color:var(--ink)">
+            Bei Spätschicht bist du <strong>vormittags</strong> für das Projekt verfügbar.
+            Am Samstag sind beide Zeitfenster möglich – wähle, was passt.
+          </div>
+          <div class="zeitslot-box">
+            <div class="zeitslot-header">Verfügbare Projektzeitslots — Spätschicht</div>
+            <table class="zeitslot-table" id="zt-spaet"></table>
+          </div>
+        </div>
+
+        <!-- ZEITSLOT-BEREICH: Wechselschicht -->
+        <div class="zeitslot-section" id="zs-wechsel">
+          <div style="font-size:13px;line-height:1.7;color:var(--ink)">
+            Bei Wechselschicht variiert deine Verfügbarkeit je nach Kalenderwoche.
+            Bitte für beide Muster angeben, welche Slots passen.
+          </div>
+          <div class="zeitslot-box">
+            <div class="zeitslot-header">
+              <span class="kw-badge gerade">Gerade KW</span> &nbsp;Projektzeitslots in geraden Kalenderwochen
+            </div>
+            <table class="zeitslot-table" id="zt-gerade"></table>
+          </div>
+          <div class="zeitslot-box">
+            <div class="zeitslot-header">
+              <span class="kw-badge ungerade">Ungerade KW</span> &nbsp;Projektzeitslots in ungeraden Kalenderwochen
+            </div>
+            <table class="zeitslot-table" id="zt-ungerade"></table>
+          </div>
+        </div>
+
+        <!-- ZEITSLOT-BEREICH: Sonstiges -->
+        <div class="zeitslot-section" id="zs-sonstiges">
+          <div style="font-size:13px;line-height:1.7;color:var(--ink)">
+            Wähle alle Zeitfenster, an denen du grundsätzlich für das Projekt eingeplant werden kannst.
+          </div>
+          <div class="zeitslot-box">
+            <div class="zeitslot-header">Verfügbare Projektzeitslots</div>
+            <table class="zeitslot-table" id="zt-sonstiges"></table>
+          </div>
+        </div>
+
+        <!-- Kommentarfeld (immer sichtbar, sobald Schichtart gewählt) -->
+        <div class="zeitslot-section" id="zs-kommentar">
+          <div class="field">
+            <label>Sonderfälle / Ergänzungen (optional)</label>
+            <textarea name="schicht_freitext" placeholder="z.B. mittwochs nur bis 12 Uhr, jede 3. Woche Nachtschicht …"></textarea>
+          </div>
+        </div>
+
+        <input type="hidden" name="schichtart" id="hidden-schichtart">
+
         <div class="btn-row">
           <button type="button" class="btn-back" onclick="switchTab('gewerk',1)">← Zurück</button>
           <button type="button" class="submit-btn" style="background:var(--accent)" onclick="switchTab('abwesen',3)">Weiter →</button>
         </div>
       </div>
 
-      <!-- TAB 4 -->
+      <!-- TAB 4 – Abwesenheiten -->
       <div class="tab-panel" id="tab-abwesen">
         <div class="section-title">Abwesenheiten</div>
         <p style="font-size:13px;line-height:1.7;color:var(--ink)">
@@ -316,7 +368,158 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 </div>
 
 <script>
-// ── TABS ──
+// ─────────────────────────────────────────────
+// KONFIGURATION DER 12 ZEITSLOTS
+// ─────────────────────────────────────────────
+var TAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+var TAGE_FULL = ['mo','di','mi','do','fr','sa'];
+var SLOTS = ['vm','nm']; // Vormittag, Nachmittag
+var SLOT_LABELS = { vm: 'Vormittag', nm: 'Nachmittag' };
+
+// Alle 12 Slot-Keys: mo_vm, mo_nm, di_vm, ... sa_nm
+var ALL_SLOTS = [];
+TAGE_FULL.forEach(function(t) { SLOTS.forEach(function(s) { ALL_SLOTS.push(t + '_' + s); }); });
+
+// ─────────────────────────────────────────────
+// SLOT STATE: { tableId: { slotKey: true/false } }
+// ─────────────────────────────────────────────
+var slotState = {
+  'zt-frueh':    {},
+  'zt-spaet':    {},
+  'zt-gerade':   {},
+  'zt-ungerade': {},
+  'zt-sonstiges':{}
+};
+ALL_SLOTS.forEach(function(k) {
+  Object.keys(slotState).forEach(function(tid) { slotState[tid][k] = false; });
+});
+
+// ─────────────────────────────────────────────
+// WELCHE SLOTS sind in welcher Tabelle klickbar?
+// ─────────────────────────────────────────────
+// true = enabled/clickable, false = greyed-out
+function getEnabledSlots(tableId) {
+  var enabled = {};
+  ALL_SLOTS.forEach(function(k) { enabled[k] = false; });
+
+  if (tableId === 'zt-frueh') {
+    // Frühschicht: Mo-Fr Nachmittag + Sa beide
+    TAGE_FULL.forEach(function(t, i) {
+      if (i < 5) { enabled[t + '_nm'] = true; }          // Mo-Fr: nur Nachmittag
+      else { enabled[t + '_vm'] = true; enabled[t + '_nm'] = true; } // Sa: beide
+    });
+  } else if (tableId === 'zt-spaet') {
+    // Spätschicht: Mo-Fr Vormittag + Sa beide
+    TAGE_FULL.forEach(function(t, i) {
+      if (i < 5) { enabled[t + '_vm'] = true; }          // Mo-Fr: nur Vormittag
+      else { enabled[t + '_vm'] = true; enabled[t + '_nm'] = true; } // Sa: beide
+    });
+  } else {
+    // Wechsel (gerade/ungerade) + Sonstiges: alle 12
+    ALL_SLOTS.forEach(function(k) { enabled[k] = true; });
+  }
+  return enabled;
+}
+
+// ─────────────────────────────────────────────
+// TABELLE AUFBAUEN
+// ─────────────────────────────────────────────
+function buildZeitslotTable(tableId) {
+  var table = document.getElementById(tableId);
+  if (!table) return;
+  table.innerHTML = '';
+  var enabled = getEnabledSlots(tableId);
+
+  // Header-Zeile
+  var thead = document.createElement('thead');
+  var headerRow = document.createElement('tr');
+  var thEmpty = document.createElement('th');
+  headerRow.appendChild(thEmpty);
+  TAGE.forEach(function(t) {
+    var th = document.createElement('th'); th.textContent = t; headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // Body: je eine Zeile für Vormittag und Nachmittag
+  var tbody = document.createElement('tbody');
+  SLOTS.forEach(function(slot) {
+    var tr = document.createElement('tr');
+    var td0 = document.createElement('td'); td0.textContent = SLOT_LABELS[slot]; tr.appendChild(td0);
+    TAGE_FULL.forEach(function(tag) {
+      var key = tag + '_' + slot;
+      var td = document.createElement('td');
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'slot-toggle' + (enabled[key] ? '' : ' disabled');
+      btn.setAttribute('data-table', tableId);
+      btn.setAttribute('data-key', key);
+      btn.setAttribute('aria-label', TAGE[TAGE_FULL.indexOf(tag)] + ' ' + SLOT_LABELS[slot]);
+      btn.innerHTML = enabled[key] ? '○' : '—';
+      if (enabled[key]) {
+        btn.addEventListener('click', function() { toggleSlot(tableId, key, btn); });
+      }
+      td.appendChild(btn);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+}
+
+function toggleSlot(tableId, key, btn) {
+  slotState[tableId][key] = !slotState[tableId][key];
+  if (slotState[tableId][key]) {
+    btn.classList.add('active'); btn.innerHTML = '✓';
+  } else {
+    btn.classList.remove('active'); btn.innerHTML = '○';
+  }
+}
+
+// Alle Tabellen einmal bauen
+['zt-frueh','zt-spaet','zt-gerade','zt-ungerade','zt-sonstiges'].forEach(buildZeitslotTable);
+
+// ─────────────────────────────────────────────
+// SCHICHTART UMSCHALTEN → passende Zeitslot-Sektionen zeigen
+// ─────────────────────────────────────────────
+function applySchichtart(val) {
+  // Alle Sektionen ausblenden
+  ['frueh','spaet','wechsel','sonstiges','kommentar'].forEach(function(id) {
+    document.getElementById('zs-' + id).classList.remove('visible');
+  });
+  document.getElementById('konti-info').classList.remove('visible');
+
+  if (val === 'frueh') {
+    document.getElementById('zs-frueh').classList.add('visible');
+    document.getElementById('zs-kommentar').classList.add('visible');
+  } else if (val === 'spaet') {
+    document.getElementById('zs-spaet').classList.add('visible');
+    document.getElementById('zs-kommentar').classList.add('visible');
+  } else if (val === 'wechsel') {
+    document.getElementById('zs-wechsel').classList.add('visible');
+    document.getElementById('zs-kommentar').classList.add('visible');
+  } else if (val === 'konti') {
+    document.getElementById('konti-info').classList.add('visible');
+    document.getElementById('zs-kommentar').classList.add('visible');
+  } else if (val === 'sonstiges') {
+    document.getElementById('zs-sonstiges').classList.add('visible');
+    document.getElementById('zs-kommentar').classList.add('visible');
+  }
+}
+
+document.querySelectorAll('.schicht-pill[data-group="schichtart"]').forEach(function(pill) {
+  pill.addEventListener('click', function() {
+    document.querySelectorAll('.schicht-pill[data-group="schichtart"]').forEach(function(p) { p.classList.remove('selected'); });
+    pill.classList.add('selected');
+    var val = pill.dataset.val;
+    document.getElementById('hidden-schichtart').value = val;
+    applySchichtart(val);
+  });
+});
+
+// ─────────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────────
 function switchTab(id, idx) {
   document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
   document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
@@ -325,45 +528,35 @@ function switchTab(id, idx) {
   window.scrollTo(0, 0);
 }
 
-// ── GEWERK STATE ──
-// Holds gewerke loaded from Firestore; keys are gewerk IDs
-var loadedGewerke = [];   // [{id, name, color, levels:[{id,name,color}]}]
+// ─────────────────────────────────────────────
+// GEWERK STATE
+// ─────────────────────────────────────────────
+var loadedGewerke = [];
 
-// ── GEWERK GRID BUILDER ──
 function buildGewerkGrid(gewerke, levels) {
-  // levels: full levels array from Firestore for lookup
   var grid = document.getElementById('gewerk-grid');
   grid.innerHTML = '';
-
   if (!gewerke || gewerke.length === 0) {
     grid.innerHTML = '<div class="gewerk-error">Keine Gewerke verfügbar. Bitte später versuchen.</div>';
     return;
   }
-
   loadedGewerke = gewerke;
-
   gewerke.forEach(function(g) {
     var safeId = g.id;
-
-    // Gewerk checkbox item
     var label = document.createElement('label');
     label.className = 'gewerk-item checkbox-item';
     label.innerHTML =
       '<input type="checkbox" name="gewerk" value="' + safeId + '" id="cb-' + safeId + '">' +
       '<span class="check-box"></span>' +
       '<span class="check-label">' + g.name + '</span>';
-    label.querySelector('input').addEventListener('change', function() {
-      toggleLevel(safeId, this.checked);
-    });
+    label.querySelector('input').addEventListener('change', function() { toggleLevel(safeId, this.checked); });
     grid.appendChild(label);
 
-    // Level row (hidden until gewerk is checked)
     var levelRow = document.createElement('div');
     levelRow.className = 'gewerk-level';
     levelRow.id = 'level-' + safeId;
     levelRow.style.gridColumn = '1 / -1';
 
-    // Resolve level objects for this gewerk
     var gwLevels = (g.levels || [])
       .map(function(lid) { return levels.find(function(l) { return l.id === lid; }); })
       .filter(Boolean);
@@ -390,7 +583,6 @@ function buildGewerkGrid(gewerke, levels) {
         });
         pillsWrap.appendChild(pill);
       });
-
       levelRow.appendChild(pillsWrap);
 
       var hiddenInput = document.createElement('input');
@@ -399,22 +591,17 @@ function buildGewerkGrid(gewerke, levels) {
       hiddenInput.id = 'level-val-' + safeId;
       levelRow.appendChild(hiddenInput);
     } else {
-      // No levels for this gewerk – hide permanently
       levelRow.style.display = 'none';
     }
-
     grid.appendChild(levelRow);
   });
 }
 
 function toggleLevel(id, checked) {
   var levelRow = document.getElementById('level-' + id);
-  if (!levelRow) return;
-  if (levelRow.style.display === 'none') return; // no levels configured
-
-  if (checked) {
-    levelRow.classList.add('visible');
-  } else {
+  if (!levelRow || levelRow.style.display === 'none') return;
+  if (checked) { levelRow.classList.add('visible'); }
+  else {
     levelRow.classList.remove('visible');
     if (levelRow.querySelector('.level-pills')) {
       levelRow.querySelectorAll('.level-pill').forEach(function(p) { p.classList.remove('selected'); });
@@ -424,26 +611,35 @@ function toggleLevel(id, checked) {
   }
 }
 
-// ── SCHICHT PILLS ──
-document.querySelectorAll('.schicht-pill').forEach(function(pill) {
-  pill.addEventListener('click', function() {
-    var group = pill.dataset.group;
-    document.querySelectorAll('.schicht-pill[data-group="' + group + '"]').forEach(function(p) { p.classList.remove('selected'); });
-    pill.classList.add('selected');
-    var val = pill.dataset.val;
-    if (group === 'schichtart') {
-      document.getElementById('hidden-schichtart').value = val;
-      document.getElementById('konti-info').classList.toggle('visible', val === 'konti');
-      document.getElementById('wechsel-detail').classList.toggle('visible', val === 'wechsel');
-    } else if (group === 'gerade') {
-      document.getElementById('hidden-gerade').value = val;
-    } else if (group === 'ungerade') {
-      document.getElementById('hidden-ungerade').value = val;
-    }
-  });
-});
+// ─────────────────────────────────────────────
+// ZEITSLOTS → normalisiertes Payload-Objekt
+// ─────────────────────────────────────────────
+/**
+ * Erstellt das normalisierte zeitslots-Objekt für die Datenbank.
+ * Immer 12 Felder: mo_vm, mo_nm, di_vm, ... sa_nm
+ * Bei Wechselschicht: { gerade: {...}, ungerade: {...} }
+ * Bei Konti: null (alles im Kommentarfeld)
+ */
+function buildZeitslotPayload(schichtart) {
+  if (schichtart === 'konti') return null;
 
-// ── CALENDAR ──
+  function extractSlots(tableId) {
+    var result = {};
+    ALL_SLOTS.forEach(function(k) { result[k] = slotState[tableId][k] === true; });
+    return result;
+  }
+
+  if (schichtart === 'frueh')    return { typ: 'frueh',    slots: extractSlots('zt-frueh') };
+  if (schichtart === 'spaet')    return { typ: 'spaet',    slots: extractSlots('zt-spaet') };
+  if (schichtart === 'wechsel')  return { typ: 'wechsel',  gerade: extractSlots('zt-gerade'), ungerade: extractSlots('zt-ungerade') };
+  if (schichtart === 'sonstiges') return { typ: 'sonstiges', slots: extractSlots('zt-sonstiges') };
+  // Kein Schichtmodell gewählt → alle Slots offen (werden manuell besprochen)
+  return null;
+}
+
+// ─────────────────────────────────────────────
+// KALENDER
+// ─────────────────────────────────────────────
 var today = new Date(); today.setHours(0,0,0,0);
 var calYear = today.getFullYear(), calMonth = today.getMonth();
 var selStart = null, picking = 'start', absences = [];
@@ -555,13 +751,18 @@ function initCal() {
   grid.addEventListener('touchend', handleTap, {passive: false});
 }
 
-// ── SUBMIT ──
+// ─────────────────────────────────────────────
+// SUBMIT
+// ─────────────────────────────────────────────
 function handleSubmit(e) {
   e.preventDefault();
   var data = new FormData(document.getElementById('anmeldeform'));
   var gewerke = data.getAll('gewerk');
   var erfahrung = {};
   gewerke.forEach(function(g) { erfahrung[g] = data.get('level_' + g) || ''; });
+
+  var schichtart = data.get('schichtart') || '';
+  var zeitslots = buildZeitslotPayload(schichtart);
 
   var payload = {
     vorname: data.get('vorname') || '',
@@ -572,11 +773,9 @@ function handleSubmit(e) {
     erfahrung: erfahrung,
     qualifikationen: data.get('qualifikationen') || '',
     teamwunsch: data.get('teamwunsch') || '',
-    schichtart: data.get('schichtart') || '',
-    woche_gerade: data.get('wochenmuster_gerade') || '',
-    woche_ungerade: data.get('wochenmuster_ungerade') || '',
+    schichtart: schichtart,
+    zeitslots: zeitslots,
     schicht_freitext: data.get('schicht_freitext') || '',
-    wochentage: data.getAll('wochentag'),
     verfueg_kommentar: data.get('verfueg_kommentar') || '',
     abwesenheiten: absences.map(function(a) { return {von: fmt(a.start), bis: fmt(a.end)}; })
   };
@@ -598,7 +797,7 @@ function handleSubmit(e) {
     msg.style.display = 'block';
   }
 
-  // Reset form
+  // Reset
   document.getElementById('anmeldeform').reset();
   loadedGewerke.forEach(function(g) {
     var l = document.getElementById('level-' + g.id);
@@ -609,14 +808,22 @@ function handleSubmit(e) {
     if (valInput) valInput.value = '';
   });
   document.querySelectorAll('.schicht-pill').forEach(function(p) { p.classList.remove('selected'); });
+  ['frueh','spaet','wechsel','sonstiges','kommentar'].forEach(function(id) {
+    var el = document.getElementById('zs-' + id); if (el) el.classList.remove('visible');
+  });
   document.getElementById('konti-info').classList.remove('visible');
-  document.getElementById('wechsel-detail').classList.remove('visible');
+  Object.keys(slotState).forEach(function(tid) {
+    ALL_SLOTS.forEach(function(k) { slotState[tid][k] = false; });
+  });
+  ['zt-frueh','zt-spaet','zt-gerade','zt-ungerade','zt-sonstiges'].forEach(buildZeitslotTable);
   absences = []; renderChips(); renderCal();
   switchTab('person', 0);
   setTimeout(function() { msg.style.display = 'none'; }, 7000);
 }
 
-// ── INIT ──
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
 initCal();
 </script>
 
@@ -638,30 +845,20 @@ const db = getFirestore(app);
 
 async function loadGewerke() {
   const container = document.getElementById('gewerk-grid');
-  container.innerHTML = 'Gewerke werden geladen …';
-
+  container.innerHTML = '<div class="gewerk-loading">Gewerke werden geladen …</div>';
   try {
     const snap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
-
-    if (!snap.exists()) {
-      container.innerHTML = 'Keine Daten gefunden';
-      return;
-    }
-
+    if (!snap.exists()) { container.innerHTML = '<div class="gewerk-error">Keine Daten gefunden.</div>'; return; }
     const data = snap.data();
-
-    const gewerke = (data.gewerke || [])
-      .filter(g => g.active && g.visibleInForm);
-
+    const gewerke = (data.gewerke || []).filter(g => g.active && g.visibleInForm);
     const levels = data.levels || [];
-
     buildGewerkGrid(gewerke, levels);
-
   } catch (e) {
     console.error(e);
-    container.innerHTML = 'Fehler beim Laden';
+    container.innerHTML = '<div class="gewerk-error">Fehler beim Laden der Gewerke.</div>';
   }
 }
+
 window.addEventListener('DOMContentLoaded', loadGewerke);
 </script>
 </body>
