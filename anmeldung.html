@@ -829,7 +829,7 @@ initCal();
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
@@ -843,6 +843,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// ── Gewerke laden ──
 async function loadGewerke() {
   const container = document.getElementById('gewerk-grid');
   container.innerHTML = '<div class="gewerk-loading">Gewerke werden geladen …</div>';
@@ -858,6 +859,20 @@ async function loadGewerke() {
     container.innerHTML = '<div class="gewerk-error">Fehler beim Laden der Gewerke.</div>';
   }
 }
+
+// ── Anmeldung speichern – wird von handleSubmit() aufgerufen ──
+window.saveAnmeldung = async function(payload) {
+  try {
+    await addDoc(collection(db, 'anmeldungen'), {
+      ...payload,
+      _erstellt: serverTimestamp()
+    });
+    return { success: true };
+  } catch (e) {
+    console.error('Firestore write error:', e);
+    return { success: false, error: e.message };
+  }
+};
 
 window.addEventListener('DOMContentLoaded', loadGewerke);
 </script>
