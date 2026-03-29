@@ -155,7 +155,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .btn-back { padding: 13px 24px; background: white; color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; transition: border-color 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .btn-back:hover { border-color: var(--ink); }
 .btn-row { display: flex; gap: 10px; justify-content: space-between; margin-top: 8px; }
-.success-msg { display: none; padding: 14px 18px; background: #edf7f0; border: 1px solid #aad4b8; border-radius: var(--radius); color: var(--success); font-size: 13px; line-height: 1.6; }
+.toast { position: fixed; top: 24px; left: 50%; transform: translateX(-50%) translateY(-80px); background: #1c1b18; color: white; padding: 13px 20px; border-radius: 8px; font-size: 13px; font-weight: 400; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.22); z-index: 9999; transition: transform 0.35s cubic-bezier(.22,1,.36,1), opacity 0.35s; opacity: 0; pointer-events: none; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.error { background: #b83232; }
+.toast-check { width: 18px; height: 18px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 10px; color: white; font-weight: 700; }
+.toast.error .toast-check { background: #922b21; }
+.submit-btn.loading { opacity: 0.65; pointer-events: none; cursor: default; }
+.submit-btn.loading::after { content: ''; display: inline-block; width: 11px; height: 11px; border: 2px solid rgba(255,255,255,0.35); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; margin-left: 8px; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* select-all row */
 .slot-select-all { font-size: 11px; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; -webkit-tap-highlight-color: transparent; align-self: flex-end; }
@@ -208,6 +215,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
           <div class="tg-icon"><svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/></svg></div>
           <p><strong>Kein Benutzername nötig.</strong> Nach der Anmeldung erhältst du per E-Mail einen Link. Öffnest du ihn auf dem Handy, verbindet sich Telegram automatisch.</p>
         </div>
+        <div class="success-msg" id="success-msg"></div>
         <div class="btn-row"><span></span><button type="button" class="submit-btn" style="background:var(--accent)" onclick="switchTab('gewerk',1)">Weiter →</button></div>
       </div>
 
@@ -356,7 +364,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
             <div style="font-size:13px;color:var(--muted);font-weight:300">Noch keine Abwesenheiten eingetragen.</div>
           </div>
         </div>
-        <div class="success-msg" id="success-msg">✓ <strong>Anmeldung eingegangen!</strong> Du erhältst in Kürze eine E-Mail mit deinem Telegram-Verknüpfungslink.</div>
         <div class="btn-row">
           <button type="button" class="btn-back" onclick="switchTab('verfueg',2)">← Zurück</button>
           <button type="submit" class="submit-btn">Jetzt anmelden →</button>
@@ -780,45 +787,65 @@ function handleSubmit(e) {
     abwesenheiten: absences.map(function(a) { return {von: fmt(a.start), bis: fmt(a.end)}; })
   };
 
-  var msg = document.getElementById('success-msg');
+  // Ladezustand am Button
+  var submitBtn = document.querySelector('#tab-abwesen .submit-btn');
+  var origLabel = submitBtn.textContent;
+  submitBtn.textContent = 'Wird gespeichert …';
+  submitBtn.disabled = true;
+  submitBtn.style.opacity = '0.6';
+
+  function doReset() {
+    document.getElementById('anmeldeform').reset();
+    loadedGewerke.forEach(function(g) {
+      var l = document.getElementById('level-' + g.id);
+      if (l) l.classList.remove('visible');
+      var pills = document.getElementById('pills-' + g.id);
+      if (pills) pills.querySelectorAll('.level-pill').forEach(function(p) { p.classList.remove('selected'); });
+      var valInput = document.getElementById('level-val-' + g.id);
+      if (valInput) valInput.value = '';
+    });
+    document.querySelectorAll('.schicht-pill').forEach(function(p) { p.classList.remove('selected'); });
+    ['frueh','spaet','wechsel','sonstiges','kommentar'].forEach(function(id) {
+      var el = document.getElementById('zs-' + id); if (el) el.classList.remove('visible');
+    });
+    document.getElementById('konti-info').classList.remove('visible');
+    Object.keys(slotState).forEach(function(tid) {
+      ALL_SLOTS.forEach(function(k) { slotState[tid][k] = false; });
+    });
+    ['zt-frueh','zt-spaet','zt-gerade','zt-ungerade','zt-sonstiges'].forEach(buildZeitslotTable);
+    absences = []; renderChips(); renderCal();
+    submitBtn.textContent = origLabel;
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = '1';
+  }
+
+  function showMsg(success) {
+    var msg = document.getElementById('success-msg');
+    if (success) {
+      msg.style.cssText = 'display:block;background:#edf7f0;border:1px solid #aad4b8;border-radius:5px;padding:14px 18px;color:#3a7a52;font-size:13px;line-height:1.6;margin-bottom:4px';
+      msg.innerHTML = '<strong style="font-size:15px">✓ Daten erfolgreich übertragen.</strong><br><span style="font-weight:300">Deine Anmeldung ist bei uns eingegangen – danke!</span>';
+    } else {
+      msg.style.cssText = 'display:block;background:#fdf0f0;border:1px solid #f0a0a0;border-radius:5px;padding:14px 18px;color:#c0392b;font-size:13px;line-height:1.6;margin-bottom:4px';
+      msg.innerHTML = '<strong>Fehler beim Speichern.</strong> Bitte nochmal versuchen oder die Seite neu laden.';
+    }
+    setTimeout(function() { msg.style.display = 'none'; }, 8000);
+  }
 
   if (window.saveAnmeldung) {
     window.saveAnmeldung(payload).then(function(result) {
-      if (result.success) {
-        msg.style.background = '#edf7f0'; msg.style.borderColor = '#aad4b8'; msg.style.color = '#3a7a52';
-        msg.innerHTML = '✓ <strong>Anmeldung eingegangen!</strong> Du erhältst in Kürze eine E-Mail mit deinem Telegram-Verknüpfungslink.';
-      } else {
-        msg.style.background = '#fdf0f0'; msg.style.borderColor = '#f0a0a0'; msg.style.color = '#c0392b';
-        msg.innerHTML = 'Fehler beim Speichern. Bitte nochmal versuchen.';
-      }
-      msg.style.display = 'block';
+      doReset();
+      switchTab('person', 0);
+      showMsg(result.success);
+    }).catch(function() {
+      doReset();
+      switchTab('person', 0);
+      showMsg(false);
     });
   } else {
-    msg.style.display = 'block';
+    doReset();
+    switchTab('person', 0);
+    showMsg(true);
   }
-
-  // Reset
-  document.getElementById('anmeldeform').reset();
-  loadedGewerke.forEach(function(g) {
-    var l = document.getElementById('level-' + g.id);
-    if (l) l.classList.remove('visible');
-    var pills = document.getElementById('pills-' + g.id);
-    if (pills) pills.querySelectorAll('.level-pill').forEach(function(p) { p.classList.remove('selected'); });
-    var valInput = document.getElementById('level-val-' + g.id);
-    if (valInput) valInput.value = '';
-  });
-  document.querySelectorAll('.schicht-pill').forEach(function(p) { p.classList.remove('selected'); });
-  ['frueh','spaet','wechsel','sonstiges','kommentar'].forEach(function(id) {
-    var el = document.getElementById('zs-' + id); if (el) el.classList.remove('visible');
-  });
-  document.getElementById('konti-info').classList.remove('visible');
-  Object.keys(slotState).forEach(function(tid) {
-    ALL_SLOTS.forEach(function(k) { slotState[tid][k] = false; });
-  });
-  ['zt-frueh','zt-spaet','zt-gerade','zt-ungerade','zt-sonstiges'].forEach(buildZeitslotTable);
-  absences = []; renderChips(); renderCal();
-  switchTab('person', 0);
-  setTimeout(function() { msg.style.display = 'none'; }, 7000);
 }
 
 // ─────────────────────────────────────────────
