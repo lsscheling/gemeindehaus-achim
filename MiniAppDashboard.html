@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Gemeindebau Dashboard</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --clay: #C4855A;
+    --clay-light: #E8C4A8;
+    --clay-pale: #F5EAE0;
+    --clay-dark: #8B5E3C;
+    --sand: #F7F0E8;
+    --text: #2C1F14;
+    --text-muted: #7A6555;
+    --white: #FFFFFF;
+    --green: #4A7C59;
+    --green-light: #E8F2EB;
+    --red: #C0392B;
+    --red-light: #FDECEA;
+    --radius: 16px;
+    --shadow: 0 4px 24px rgba(44,31,20,0.08);
+    --shadow-sm: 0 2px 8px rgba(44,31,20,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--sand);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  .nav {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--white);
+    border-bottom: 1px solid var(--clay-pale);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+  }
+  .nav-btn {
+    flex: 1;
+    padding: 9px 0;
+    border: 1.5px solid var(--clay-pale);
+    border-radius: 10px;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .nav-btn.active {
+    background: var(--clay);
+    border-color: var(--clay);
+    color: var(--white);
+    font-weight: 600;
+  }
+
+  /* ── VIEWS ── */
+  .view { display: none; padding: 16px; animation: fadeUp .3s ease; }
+  .view.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── NEWSTICKER ── */
+  .newsticker-hero {
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+    position: relative;
+    height: 160px;
+    background: linear-gradient(135deg, #8B5E3C 0%, #C4855A 60%, #E8C4A8 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 20px;
+  }
+  .newsticker-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .newsticker-title {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 26px;
+    color: var(--white);
+    opacity: .95;
+    position: relative;
+  }
+  .newsticker-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,.7);
+    margin-top: 4px;
+    position: relative;
+  }
+
+  .news-cards { display: flex; flex-direction: column; gap: 10px; }
+  .news-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--clay);
+    animation: fadeUp .4s ease both;
+  }
+  .news-card:nth-child(2) { animation-delay: .07s; border-left-color: var(--green); }
+  .news-card:nth-child(3) { animation-delay: .14s; border-left-color: var(--clay-dark); }
+  .news-date { font-size: 11px; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; letter-spacing: .4px; text-transform: uppercase; }
+  .news-text { font-size: 14px; line-height: 1.55; color: var(--text); }
+
+  /* ── USER HEADER ── */
+  .user-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px;
+  }
+  .user-avatar {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: var(--clay);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; color: var(--white);
+    flex-shrink: 0;
+  }
+  .user-name { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; color: var(--clay-dark); }
+  .user-role { font-size: 12px; color: var(--text-muted); }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 14px;
+  }
+  .card-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .card-header-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--clay-pale);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .card-title { font-weight: 600; font-size: 15px; flex: 1; }
+  .card-chevron { color: var(--text-muted); font-size: 12px; transition: transform .2s; }
+  .card.collapsed .card-chevron { transform: rotate(-90deg); }
+  .card.collapsed .card-body { display: none; }
+
+  /* ── TEAM ROWS ── */
+  .info-row {
+    display: flex; align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--clay-pale);
+    gap: 10px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { font-size: 13px; color: var(--text-muted); width: 92px; flex-shrink: 0; }
+  .info-value { font-size: 13px; font-weight: 500; flex: 1; }
+  .badge {
+    background: var(--clay-pale);
+    color: var(--clay-dark);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge.green { background: var(--green-light); color: var(--green); }
+
+  .call-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: var(--green-light);
+    color: var(--green);
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: transform .15s, background .15s;
+    flex-shrink: 0;
+  }
+  .call-btn:active { transform: scale(.9); background: var(--green); color: var(--white); }
+
+  /* ── EINSATZ ROWS ── */
+  .einsatz-row {
+    display: flex; align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--clay-pale);
+    gap: 8px;
+  }
+  .einsatz-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .einsatz-date { flex: 1; font-size: 13px; }
+  .einsatz-date strong { display: block; font-weight: 600; font-size: 14px; }
+  .einsatz-date small { font-size: 11px; color: var(--text-muted); }
+
+  .missing-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--red);
+    background: var(--red-light);
+    border-radius: 6px;
+    padding: 3px 8px;
+    flex-shrink: 0;
+  }
+  .missing-badge.ok { color: var(--green); background: var(--green-light); }
+
+  .action-btn {
+    border: 1.5px solid;
+    border-radius: 10px;
+    padding: 7px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .btn-join {
+    border-color: var(--green);
+    background: var(--green-light);
+    color: var(--green);
+  }
+  .btn-join:active, .btn-join.done {
+    background: var(--green);
+    color: var(--white);
+  }
+  .btn-leave {
+    border-color: var(--clay-light);
+    background: var(--clay-pale);
+    color: var(--clay-dark);
+  }
+  .btn-leave:active {
+    background: var(--red-light);
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* checkmark animation */
+  .btn-join.done::after { content: ' ✓'; }
+  @keyframes popIn {
+    0%   { transform: scale(.8); }
+    60%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+  .btn-join.done { animation: popIn .3s ease; }
+
+  /* ── BAUSTATUS ── */
+  .status-hero {
+    background: linear-gradient(135deg, var(--clay-dark), var(--clay));
+    border-radius: var(--radius);
+    padding: 20px;
+    color: var(--white);
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .status-hero::after {
+    content: '🏗️';
+    position: absolute;
+    right: 16px;
+    bottom: 12px;
+    font-size: 48px;
+    opacity: .25;
+  }
+  .status-percent { font-size: 48px; font-family: 'Playfair Display', serif; font-weight: 700; line-height: 1; }
+  .status-label { font-size: 13px; opacity: .8; margin-top: 4px; }
+
+  .progress-bar-wrap {
+    background: rgba(255,255,255,.2);
+    border-radius: 8px;
+    height: 10px;
+    margin-top: 14px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--white);
+    border-radius: 8px;
+    width: 0;
+    transition: width 1.2s cubic-bezier(.4,0,.2,1);
+  }
+
+  .milestones { display: flex; flex-direction: column; gap: 0; }
+  .milestone {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--clay-pale);
+    animation: fadeUp .4s ease both;
+  }
+  .milestone:last-child { border-bottom: none; }
+  .milestone:nth-child(2) { animation-delay: .08s; }
+  .milestone:nth-child(3) { animation-delay: .16s; }
+  .milestone:nth-child(4) { animation-delay: .24s; }
+  .milestone:nth-child(5) { animation-delay: .32s; }
+
+  .milestone-dot {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .milestone-dot.done { background: var(--green-light); }
+  .milestone-dot.active { background: var(--clay-pale); }
+  .milestone-dot.future { background: #F0EFED; }
+
+  .milestone-name { font-size: 14px; font-weight: 500; }
+  .milestone-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .milestone-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: .5px;
+    text-transform: uppercase;
+    border-radius: 6px;
+    padding: 2px 7px;
+    margin-top: 3px;
+    display: inline-block;
+  }
+  .tag-done { background: var(--green-light); color: var(--green); }
+  .tag-active { background: var(--clay-pale); color: var(--clay-dark); }
+  .tag-future { background: #F0EFED; color: #AAA; }
+
+  .section-kw {
+    font-size: 12px; font-weight: 700;
+    color: var(--clay);
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    margin: 4px 0 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .section-kw::after { content: ''; flex: 1; height: 1px; background: var(--clay-pale); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--clay-light); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showView('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="showView('team')">Team</button>
+  <button class="nav-btn" onclick="showView('baustatus')">Baustatus</button>
+</nav>
+
+<!-- ═══════════════ DASHBOARD ═══════════════ -->
+<div class="view active" id="view-dashboard">
+
+  <!-- Newsticker Hero -->
+  <div class="newsticker-hero">
+    <div class="newsticker-title">Newsticker</div>
+    <div class="newsticker-sub">Gemeindebau Projekt • Updates vom Orga-Team</div>
+  </div>
+
+  <!-- News Cards -->
+  <div class="news-cards">
+    <div class="news-card">
+      <div class="news-date">28. März 2026</div>
+      <div class="news-text">🎉 Richtfest geplant für KW18! Bitte alle verfügbaren Helfer bereits ab 7:00 Uhr auf der Baustelle einfinden.</div>
+    </div>
+    <div class="news-card">
+      <div class="news-date">25. März 2026</div>
+      <div class="news-text">📦 Materiallieferung (Dachziegel) kommt Dienstag, 31. März. Gruppe 3 bitte für Entladung einplanen.</div>
+    </div>
+    <div class="news-card">
+      <div class="news-date">20. März 2026</div>
+      <div class="news-text">✅ Rohbau Erdgeschoss fertiggestellt – großartiger Einsatz aller Teams in KW12!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TEAM ═══════════════ -->
+<div class="view" id="view-team">
+
+  <!-- User Header -->
+  <div class="user-header">
+    <div class="user-avatar">M</div>
+    <div>
+      <div class="user-name">Max Mustermann</div>
+      <div class="user-role">Aktiver Helfer seit Jan 2025</div>
+    </div>
+  </div>
+
+  <!-- Team Info -->
+  <div class="card" id="card-team">
+    <div class="card-header" onclick="toggleCard('card-team')">
+      <div class="card-header-icon">👥</div>
+      <div class="card-title">Mein Team</div>
+      <div class="card-chevron">▼</div>
+    </div>
+    <div class="card-body">
+      <div class="info-row">
+        <span class="info-label">Gruppe</span>
+        <span class="badge">Gruppe 1</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Gewerk</span>
+        <span class="info-value">Rohbau &amp; Mauerwerk</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Teamleiter</span>
+        <span class="info-value">Hans Berger</span>
+        <button class="call-btn" onclick="callPerson('Hans Berger', '+4917612345678')" title="Anrufen">📞</button>
+      </div>
+      <div class="info-row">
+        <span class="info-label"></span>
+        <span class="info-value">Maria Schulz</span>
+        <button class="call-btn" onclick="callPerson('Maria Schulz', '+4917687654321')" title="Anrufen">📞</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Helfer benötigt -->
+  <div class="card" id="card-helfer">
+    <div class="card-header" onclick="toggleCard('card-helfer')">
+      <div class="card-header-icon">🙋</div>
+      <div class="card-title">Helfer benötigt</div>
+      <div class="card-chevron">▼</div>
+    </div>
+    <div class="card-body" id="helfer-body">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- Nächste Einsätze -->
+  <div class="card" id="card-einsaetze">
+    <div class="card-header" onclick="toggleCard('card-einsaetze')">
+      <div class="card-header-icon">📅</div>
+      <div class="card-title">Meine Einsätze</div>
+      <div class="card-chevron">▼</div>
+    </div>
+    <div class="card-body" id="einsaetze-body">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ BAUSTATUS ═══════════════ -->
+<div class="view" id="view-baustatus">
+
+  <div class="status-hero">
+    <div class="status-percent" id="pct-display">0%</div>
+    <div class="status-label">Gesamtfortschritt Gemeindehaus</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="cursor:default">
+      <div class="card-header-icon">🏁</div>
+      <div class="card-title">Meilensteine</div>
+    </div>
+    <div class="card-body">
+      <div class="milestones" id="milestones">
+        <!-- filled by JS -->
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Telegram WebApp init ──
+if (window.Telegram && window.Telegram.WebApp) {
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+}
+
+// ── Navigation ──
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (id === 'baustatus') initProgress();
+}
+
+// ── Toggle card collapse ──
+function toggleCard(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+// ── Call handler ──
+function callPerson(name, number) {
+  if (window.Telegram && window.Telegram.WebApp) {
+    Telegram.WebApp.showPopup({
+      title: 'Anrufen',
+      message: name + '\n' + number,
+      buttons: [
+        { id: 'call', type: 'default', text: '📞 Anrufen' },
+        { id: 'cancel', type: 'cancel', text: 'Abbrechen' }
+      ]
+    }, (btnId) => {
+      if (btnId === 'call') window.location.href = 'tel:' + number;
+    });
+  } else {
+    window.location.href = 'tel:' + number;
+  }
+}
+
+// ── Data ──
+const helferDaten = [
+  { datum: 'Mo, 07.04.2026', kw: 'KW15', fehlend: 3, total: 8 },
+  { datum: 'Sa, 12.04.2026', kw: 'KW15', fehlend: 0, total: 6 },
+  { datum: 'Mo, 14.04.2026', kw: 'KW16', fehlend: 5, total: 10 },
+];
+
+const einsaetzeDaten = [
+  { datum: 'Mo, 07.04.2026', kw: 'KW15', zeit: '07:00 – 17:00', angemeldet: true },
+  { datum: 'Sa, 12.04.2026', kw: 'KW15', zeit: '08:00 – 14:00', angemeldet: true },
+  { datum: 'Mo, 28.04.2026', kw: 'KW18', zeit: '07:00 – 18:00 (Richtfest)', angemeldet: true },
+];
+
+const meilensteine = [
+  { name: 'Baugenehmigung', date: 'Sep 2024', status: 'done', icon: '📋' },
+  { name: 'Fundament & Bodenplatte', date: 'Nov 2024', status: 'done', icon: '🪨' },
+  { name: 'Rohbau Erdgeschoss', date: 'Mär 2025', status: 'done', icon: '🧱' },
+  { name: 'Rohbau Obergeschoss', date: 'Jun 2025', status: 'done', icon: '🏗️' },
+  { name: 'Dachstuhl & Eindeckung', date: 'Apr 2026 (laufend)', status: 'active', icon: '🏠' },
+  { name: 'Innenausbau', date: 'Okt 2026 (geplant)', status: 'future', icon: '🔨' },
+  { name: 'Elektrik & Sanitär', date: 'Jan 2027 (geplant)', status: 'future', icon: '⚡' },
+  { name: 'Fertigstellung & Einweihung', date: 'Apr 2027 (geplant)', status: 'future', icon: '🎊' },
+];
+
+// ── Render Helfer ──
+(function renderHelfer() {
+  const body = document.getElementById('helfer-body');
+  let lastKW = '';
+  let html = '';
+  helferDaten.forEach((h, i) => {
+    if (h.kw !== lastKW) {
+      html += `<div class="section-kw">${h.kw}</div>`;
+      lastKW = h.kw;
+    }
+    const missing = h.fehlend;
+    const cls = missing > 0 ? '' : ' ok';
+    const label = missing > 0 ? `${missing} fehlen` : 'Besetzt ✓';
+    html += `
+      <div class="einsatz-row">
+        <div class="einsatz-date">
+          <strong>${h.datum}</strong>
+          <small>${h.total} Helfer gesamt</small>
+        </div>
+        <span class="missing-badge${cls}">${label}</span>
+        <button class="action-btn btn-join" id="join-${i}" onclick="joinEinsatz(${i}, this)">
+          Ich kann!
+        </button>
+      </div>`;
+  });
+  body.innerHTML = html;
+})();
+
+function joinEinsatz(idx, btn) {
+  btn.classList.add('done');
+  btn.textContent = 'Angemeldet ✓';
+  btn.disabled = true;
+  btn.style.borderColor = 'var(--green)';
+  btn.style.background = 'var(--green)';
+  btn.style.color = 'var(--white)';
+  // update badge
+  if (helferDaten[idx].fehlend > 0) {
+    helferDaten[idx].fehlend--;
+    const badge = btn.previousElementSibling;
+    if (helferDaten[idx].fehlend === 0) {
+      badge.textContent = 'Besetzt ✓';
+      badge.classList.add('ok');
+    } else {
+      badge.textContent = helferDaten[idx].fehlend + ' fehlen';
+    }
+  }
+}
+
+// ── Render Einsätze ──
+(function renderEinsaetze() {
+  const body = document.getElementById('einsaetze-body');
+  let lastKW = '';
+  let html = '';
+  einsaetzeDaten.forEach((e, i) => {
+    const kw = e.kw;
+    if (kw !== lastKW) {
+      html += `<div class="section-kw">${kw}</div>`;
+      lastKW = kw;
+    }
+    html += `
+      <div class="einsatz-row">
+        <div class="einsatz-date">
+          <strong>${e.datum}</strong>
+          <small>${e.zeit}</small>
+        </div>
+        <button class="action-btn btn-leave" id="leave-${i}" onclick="leaveEinsatz(${i}, this)">
+          Abmelden
+        </button>
+      </div>`;
+  });
+  body.innerHTML = html;
+})();
+
+function leaveEinsatz(idx, btn) {
+  if (window.Telegram && window.Telegram.WebApp) {
+    Telegram.WebApp.showConfirm('Vom Einsatz am ' + einsaetzeDaten[idx].datum + ' abmelden?', (ok) => {
+      if (ok) doLeave(btn);
+    });
+  } else {
+    if (confirm('Vom Einsatz abmelden?')) doLeave(btn);
+  }
+}
+function doLeave(btn) {
+  btn.textContent = 'Abgemeldet';
+  btn.style.borderColor = 'var(--red)';
+  btn.style.background = 'var(--red-light)';
+  btn.style.color = 'var(--red)';
+  btn.disabled = true;
+}
+
+// ── Render Meilensteine ──
+(function renderMeilensteine() {
+  const el = document.getElementById('milestones');
+  el.innerHTML = meilensteine.map(m => {
+    const tagLabel = m.status === 'done' ? 'Abgeschlossen' : m.status === 'active' ? 'In Arbeit' : 'Geplant';
+    const tagCls = m.status === 'done' ? 'tag-done' : m.status === 'active' ? 'tag-active' : 'tag-future';
+    const dotCls = m.status === 'done' ? 'done' : m.status === 'active' ? 'active' : 'future';
+    return `
+      <div class="milestone">
+        <div class="milestone-dot ${dotCls}">${m.icon}</div>
+        <div>
+          <div class="milestone-name">${m.name}</div>
+          <div class="milestone-date">${m.date}</div>
+          <span class="milestone-tag ${tagCls}">${tagLabel}</span>
+        </div>
+      </div>`;
+  }).join('');
+})();
+
+// ── Progress animation ──
+let progressInited = false;
+function initProgress() {
+  if (progressInited) return;
+  progressInited = true;
+  const target = 52; // percent
+  const fill = document.getElementById('progress-fill');
+  const display = document.getElementById('pct-display');
+  fill.style.width = target + '%';
+  let cur = 0;
+  const step = () => {
+    cur = Math.min(cur + 1, target);
+    display.textContent = cur + '%';
+    if (cur < target) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+</script>
+</body>
+</html>
