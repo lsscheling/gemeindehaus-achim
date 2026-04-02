@@ -162,7 +162,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
     <div class="tabs">
       <button class="tab active" onclick="switchTab('person',0)">1 · Profil</button>
       <button class="tab" onclick="switchTab('gewerk',1)">2 · Gewerke</button>
-      <button class="tab" onclick="switchTab('infos',2)">3 · Infos</button>
+      <button class="tab" onclick="switchTab('infos',2)">3 · Informationen</button>
     </div>
 
     <form id="anmeldeform" onsubmit="handleSubmit(event)">
@@ -195,8 +195,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 
       <!-- TAB 2 – Gewerke -->
       <div class="tab-panel" id="tab-gewerk">
-        <div class="section-title">Gewerk & Fähigkeiten</div>
-        <p class="notice" style="font-size:13px;color:var(--ink)">Du kannst mehrere Gewerke auswählen. Bei jedem Gewerk bitte das Erfahrungslevel angeben.</p>
+        <p class="notice" style="font-size:13px;color:var(--ink)">Du kannst mehrere Gewerke auswählen. Bei jedem Gewerk bitte die Erfahrung angeben.</p>
         <div class="field">
           <label>Gewerk(e) </label>
           <div class="gewerk-grid" id="gewerk-grid">
