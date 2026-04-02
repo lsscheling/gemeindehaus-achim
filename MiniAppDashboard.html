@@ -39,13 +39,14 @@
   .nav {
     display: flex;
     gap: 8px;
-    padding: 12px 16px;
+    padding: 10px 16px;
     background: var(--white);
     border-bottom: 1px solid var(--clay-pale);
     position: sticky;
     top: 0;
     z-index: 100;
     box-shadow: var(--shadow-sm);
+    align-items: center;
   }
   .nav-btn {
     flex: 1;
@@ -66,6 +67,21 @@
     color: var(--white);
     font-weight: 600;
   }
+  .help-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1.5px solid var(--clay-pale);
+    background: var(--white);
+    color: var(--clay-dark);
+    font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-weight: 700;
+    font-family: 'Playfair Display', serif;
+    transition: all .2s;
+  }
+  .help-btn:active { background: var(--clay-pale); }
 
   /* ── VIEWS ── */
   .view { display: none; padding: 16px; animation: fadeUp .3s ease; }
@@ -75,53 +91,130 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── NEWSTICKER ── */
-  .newsticker-hero {
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-bottom: 16px;
-    position: relative;
-    height: 160px;
-    background: linear-gradient(135deg, #8B5E3C 0%, #C4855A 60%, #E8C4A8 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 20px;
+  /* ── NEWS OVERLAY ── */
+  .news-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background: rgba(44,31,20,0.55);
+    backdrop-filter: blur(2px);
+    animation: fadeIn .25s ease;
   }
-  .newsticker-hero::before {
+  .news-overlay.visible { display: flex; align-items: flex-end; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .news-sheet {
+    width: 100%;
+    background: var(--white);
+    border-radius: 20px 20px 0 0;
+    padding: 0 0 32px;
+    animation: slideUp .3s cubic-bezier(.2,.8,.3,1);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .news-sheet-header {
+    background: linear-gradient(135deg, #8B5E3C 0%, #C4855A 60%, #E8C4A8 100%);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .news-sheet-header::before {
     content: '';
     position: absolute;
     inset: 0;
     background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
-  .newsticker-title {
+  .news-sheet-title {
     font-family: 'Playfair Display', serif;
     font-style: italic;
-    font-size: 26px;
+    font-size: 24px;
     color: var(--white);
-    opacity: .95;
     position: relative;
   }
-  .newsticker-sub {
+  .news-sheet-sub {
     font-size: 12px;
-    color: rgba(255,255,255,.7);
+    color: rgba(255,255,255,.75);
     margin-top: 4px;
     position: relative;
   }
-
-  .news-cards { display: flex; flex-direction: column; gap: 10px; }
-  .news-card {
-    background: var(--white);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    box-shadow: var(--shadow-sm);
-    border-left: 4px solid var(--clay);
-    animation: fadeUp .4s ease both;
+  .news-close-btn {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    border: none;
+    color: var(--white);
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    z-index: 1;
   }
-  .news-card:nth-child(2) { animation-delay: .07s; border-left-color: var(--green); }
-  .news-card:nth-child(3) { animation-delay: .14s; border-left-color: var(--clay-dark); }
-  .news-date { font-size: 11px; color: var(--text-muted); margin-bottom: 5px; font-weight: 500; letter-spacing: .4px; text-transform: uppercase; }
+  .news-list { padding: 12px 16px 0; display: flex; flex-direction: column; gap: 10px; }
+  .news-card {
+    background: var(--sand);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border-left: 4px solid var(--clay);
+  }
+  .news-card:nth-child(2) { border-left-color: var(--green); }
+  .news-card:nth-child(3) { border-left-color: var(--clay-dark); }
+  .news-date { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; letter-spacing: .4px; text-transform: uppercase; }
   .news-text { font-size: 14px; line-height: 1.55; color: var(--text); }
+
+  /* ── NEWS TRIGGER PILL ── */
+  .news-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(90deg, var(--clay-dark), var(--clay));
+    color: var(--white);
+    border-radius: 30px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(139,94,60,0.25);
+    position: relative;
+    overflow: hidden;
+  }
+  .news-pill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+    animation: shimmer 2.5s infinite;
+  }
+  @keyframes shimmer { to { left: 160%; } }
+  .news-pill-dot {
+    width: 8px; height: 8px;
+    background: #FFD166;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(255,209,102,.6);
+    animation: pulse 1.8s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255,209,102,.6); }
+    70% { box-shadow: 0 0 0 6px rgba(255,209,102,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,209,102,0); }
+  }
+  .news-pill-text { font-size: 13px; font-weight: 600; flex: 1; }
+  .news-pill-count {
+    background: rgba(255,255,255,.25);
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .news-pill-arrow { font-size: 14px; opacity: .7; }
 
   /* ── USER HEADER ── */
   .user-header {
@@ -138,7 +231,6 @@
     flex-shrink: 0;
   }
   .user-name { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; color: var(--clay-dark); }
-  .user-role { font-size: 12px; color: var(--text-muted); }
 
   /* ── CARD ── */
   .card {
@@ -150,7 +242,6 @@
   }
   .card-header {
     display: flex; align-items: center; gap: 8px;
-    margin-bottom: 14px;
     cursor: pointer;
     user-select: none;
   }
@@ -163,10 +254,24 @@
   }
   .card-title { font-weight: 600; font-size: 15px; flex: 1; }
   .card-chevron { color: var(--text-muted); font-size: 12px; transition: transform .2s; }
+  .card-header-meta {
+    display: flex; align-items: center; gap: 6px;
+  }
   .card.collapsed .card-chevron { transform: rotate(-90deg); }
   .card.collapsed .card-body { display: none; }
+  .card-body { margin-top: 14px; }
 
-  /* ── TEAM ROWS ── */
+  /* team header badge visible when collapsed */
+  .team-header-badge {
+    background: var(--clay-pale);
+    color: var(--clay-dark);
+    border-radius: 8px;
+    padding: 3px 9px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* ── INFO ROWS ── */
   .info-row {
     display: flex; align-items: center;
     padding: 8px 0;
@@ -174,7 +279,7 @@
     gap: 10px;
   }
   .info-row:last-child { border-bottom: none; }
-  .info-label { font-size: 13px; color: var(--text-muted); width: 92px; flex-shrink: 0; }
+  .info-label { font-size: 13px; color: var(--text-muted); width: 110px; flex-shrink: 0; }
   .info-value { font-size: 13px; font-weight: 500; flex: 1; }
   .badge {
     background: var(--clay-pale);
@@ -185,6 +290,24 @@
     font-weight: 600;
   }
   .badge.green { background: var(--green-light); color: var(--green); }
+  .badge.highlight {
+    background: var(--clay);
+    color: var(--white);
+  }
+
+  .gewerk-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .gewerk-tag {
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--clay-pale);
+    color: var(--clay-dark);
+  }
+  .gewerk-tag.mine {
+    background: var(--clay);
+    color: var(--white);
+  }
 
   .call-btn {
     width: 34px; height: 34px;
@@ -200,16 +323,39 @@
   }
   .call-btn:active { transform: scale(.9); background: var(--green); color: var(--white); }
 
-  /* ── EINSATZ ROWS ── */
+  /* ── GEWERK SECTIONS IN HELFER ── */
+  .gewerk-section { margin-bottom: 16px; }
+  .gewerk-section:last-child { margin-bottom: 0; }
+  .gewerk-section-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1.5px solid var(--clay-pale);
+  }
+  .gewerk-section-name {
+    font-size: 13px; font-weight: 700;
+    color: var(--clay-dark);
+    flex: 1;
+  }
+  .gewerk-mine-label {
+    font-size: 10px; font-weight: 700;
+    background: var(--clay);
+    color: var(--white);
+    border-radius: 6px;
+    padding: 2px 7px;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+  }
+
   .einsatz-row {
     display: flex; align-items: center;
-    padding: 10px 0;
+    padding: 8px 0;
     border-bottom: 1px solid var(--clay-pale);
     gap: 8px;
   }
   .einsatz-row:last-child { border-bottom: none; padding-bottom: 0; }
   .einsatz-date { flex: 1; font-size: 13px; }
-  .einsatz-date strong { display: block; font-weight: 600; font-size: 14px; }
+  .einsatz-date strong { display: block; font-weight: 600; font-size: 13px; }
   .einsatz-date small { font-size: 11px; color: var(--text-muted); }
 
   .missing-badge {
@@ -218,21 +364,23 @@
     color: var(--red);
     background: var(--red-light);
     border-radius: 6px;
-    padding: 3px 8px;
+    padding: 3px 7px;
     flex-shrink: 0;
+    white-space: nowrap;
   }
   .missing-badge.ok { color: var(--green); background: var(--green-light); }
 
   .action-btn {
     border: 1.5px solid;
     border-radius: 10px;
-    padding: 7px 14px;
+    padding: 6px 12px;
     font-family: 'DM Sans', sans-serif;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: all .2s;
     flex-shrink: 0;
+    white-space: nowrap;
   }
   .btn-join {
     border-color: var(--green);
@@ -242,20 +390,8 @@
   .btn-join:active, .btn-join.done {
     background: var(--green);
     color: var(--white);
+    border-color: var(--green);
   }
-  .btn-leave {
-    border-color: var(--clay-light);
-    background: var(--clay-pale);
-    color: var(--clay-dark);
-  }
-  .btn-leave:active {
-    background: var(--red-light);
-    border-color: var(--red);
-    color: var(--red);
-  }
-
-  /* checkmark animation */
-  .btn-join.done::after { content: ' ✓'; }
   @keyframes popIn {
     0%   { transform: scale(.8); }
     60%  { transform: scale(1.15); }
@@ -263,92 +399,224 @@
   }
   .btn-join.done { animation: popIn .3s ease; }
 
-  /* ── BAUSTATUS ── */
-  .status-hero {
-    background: linear-gradient(135deg, var(--clay-dark), var(--clay));
-    border-radius: var(--radius);
-    padding: 20px;
-    color: var(--white);
-    margin-bottom: 14px;
-    position: relative;
-    overflow: hidden;
+  .section-kw {
+    font-size: 11px; font-weight: 700;
+    color: var(--clay);
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    margin: 10px 0 6px;
+    display: flex; align-items: center; gap: 6px;
   }
-  .status-hero::after {
-    content: '🏗️';
-    position: absolute;
-    right: 16px;
-    bottom: 12px;
-    font-size: 48px;
-    opacity: .25;
-  }
-  .status-percent { font-size: 48px; font-family: 'Playfair Display', serif; font-weight: 700; line-height: 1; }
-  .status-label { font-size: 13px; opacity: .8; margin-top: 4px; }
+  .section-kw:first-child { margin-top: 0; }
+  .section-kw::after { content: ''; flex: 1; height: 1px; background: var(--clay-pale); }
 
-  .progress-bar-wrap {
+  /* ── BAUSTATUS ── */
+  .bau-visual-wrap {
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 14px;
+    background: linear-gradient(160deg, var(--clay-dark), var(--clay));
+    padding: 20px 20px 16px;
+    position: relative;
+  }
+  .bau-pct-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1;
+  }
+  .bau-sub { font-size: 13px; color: rgba(255,255,255,.75); margin-top: 4px; }
+  .bau-bar-wrap {
     background: rgba(255,255,255,.2);
     border-radius: 8px;
-    height: 10px;
+    height: 8px;
     margin-top: 14px;
     overflow: hidden;
   }
-  .progress-bar-fill {
+  .bau-bar-fill {
     height: 100%;
     background: var(--white);
     border-radius: 8px;
     width: 0;
-    transition: width 1.2s cubic-bezier(.4,0,.2,1);
+    transition: width 1.4s cubic-bezier(.4,0,.2,1);
   }
 
-  .milestones { display: flex; flex-direction: column; gap: 0; }
-  .milestone {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--clay-pale);
+  /* Building SVG visual */
+  .building-stage {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .building-title {
+    font-size: 13px; font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 16px;
+  }
+  .building-svg-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height: 180px;
+    position: relative;
+  }
+  .building-svg-wrap svg {
+    width: 100%;
+    max-width: 320px;
+    height: 180px;
+  }
+
+  /* milestone timeline */
+  .milestone-timeline {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .timeline-title {
+    font-size: 13px; font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 16px;
+  }
+  .tl-items { position: relative; padding-left: 24px; }
+  .tl-items::before {
+    content: '';
+    position: absolute;
+    left: 9px; top: 6px; bottom: 6px;
+    width: 2px;
+    background: var(--clay-pale);
+  }
+  .tl-item {
+    display: flex; flex-direction: column;
+    margin-bottom: 14px;
+    position: relative;
     animation: fadeUp .4s ease both;
   }
-  .milestone:last-child { border-bottom: none; }
-  .milestone:nth-child(2) { animation-delay: .08s; }
-  .milestone:nth-child(3) { animation-delay: .16s; }
-  .milestone:nth-child(4) { animation-delay: .24s; }
-  .milestone:nth-child(5) { animation-delay: .32s; }
-
-  .milestone-dot {
-    width: 28px; height: 28px;
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-item:nth-child(2) { animation-delay: .06s; }
+  .tl-item:nth-child(3) { animation-delay: .12s; }
+  .tl-item:nth-child(4) { animation-delay: .18s; }
+  .tl-item:nth-child(5) { animation-delay: .24s; }
+  .tl-item:nth-child(6) { animation-delay: .30s; }
+  .tl-item:nth-child(7) { animation-delay: .36s; }
+  .tl-item:nth-child(8) { animation-delay: .42s; }
+  .tl-dot {
+    position: absolute;
+    left: -19px;
+    top: 3px;
+    width: 18px; height: 18px;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 13px;
-    flex-shrink: 0;
-    margin-top: 1px;
+    font-size: 10px;
+    border: 2px solid var(--white);
+    box-shadow: 0 0 0 1.5px currentColor;
   }
-  .milestone-dot.done { background: var(--green-light); }
-  .milestone-dot.active { background: var(--clay-pale); }
-  .milestone-dot.future { background: #F0EFED; }
-
-  .milestone-name { font-size: 14px; font-weight: 500; }
-  .milestone-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-  .milestone-tag {
-    font-size: 10px; font-weight: 700; letter-spacing: .5px;
+  .tl-dot.done { background: var(--green); color: var(--white); box-shadow: 0 0 0 1.5px var(--green); }
+  .tl-dot.active { background: var(--clay); color: var(--white); box-shadow: 0 0 0 1.5px var(--clay); }
+  .tl-dot.future { background: #F0EFED; color: #AAA; box-shadow: 0 0 0 1.5px #DDD; }
+  .tl-name { font-size: 13px; font-weight: 600; line-height: 1.3; }
+  .tl-date { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .tl-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: .4px;
     text-transform: uppercase;
-    border-radius: 6px;
-    padding: 2px 7px;
+    border-radius: 5px;
+    padding: 2px 6px;
     margin-top: 3px;
     display: inline-block;
+    align-self: flex-start;
   }
   .tag-done { background: var(--green-light); color: var(--green); }
   .tag-active { background: var(--clay-pale); color: var(--clay-dark); }
   .tag-future { background: #F0EFED; color: #AAA; }
 
-  .section-kw {
-    font-size: 12px; font-weight: 700;
-    color: var(--clay);
-    letter-spacing: .5px;
-    text-transform: uppercase;
-    margin: 4px 0 8px;
+  /* ── HELP MODAL ── */
+  .help-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    background: rgba(44,31,20,0.55);
+    backdrop-filter: blur(2px);
+    animation: fadeIn .25s ease;
+  }
+  .help-overlay.visible { display: flex; align-items: flex-end; }
+  .help-sheet {
+    width: 100%;
+    background: var(--white);
+    border-radius: 20px 20px 0 0;
+    padding: 0 0 36px;
+    animation: slideUp .3s cubic-bezier(.2,.8,.3,1);
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .help-sheet-header {
+    background: var(--clay-dark);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px 16px;
+    position: relative;
+  }
+  .help-sheet-title { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--white); }
+  .help-sheet-sub { font-size: 12px; color: rgba(255,255,255,.7); margin-top: 3px; }
+  .help-close-btn {
+    position: absolute; top: 16px; right: 16px;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    border: none; color: var(--white);
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .help-content { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .help-section {
+    background: var(--sand);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .help-section-title {
+    font-weight: 700; font-size: 13px;
+    color: var(--clay-dark);
+    margin-bottom: 6px;
     display: flex; align-items: center; gap: 6px;
   }
-  .section-kw::after { content: ''; flex: 1; height: 1px; background: var(--clay-pale); }
+  .help-section-text { font-size: 13px; line-height: 1.55; color: var(--text); }
+  .contact-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--clay);
+    color: var(--white);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background .2s;
+  }
+  .contact-btn:active { background: var(--clay-dark); }
+  .contact-icon { font-size: 20px; }
 
-  /* scrollbar */
+  /* ── RHYTHM TABLE ── */
+  .rhythm-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .rhythm-table th {
+    background: var(--clay-pale);
+    padding: 6px 8px;
+    text-align: left;
+    font-weight: 700;
+    color: var(--clay-dark);
+    border-radius: 4px;
+  }
+  .rhythm-table td { padding: 6px 8px; border-bottom: 1px solid var(--clay-pale); }
+  .rhythm-table tr:last-child td { border-bottom: none; }
+
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--clay-light); border-radius: 4px; }
 </style>
@@ -357,55 +625,40 @@
 
 <!-- NAV -->
 <nav class="nav">
-  <button class="nav-btn active" onclick="showView('dashboard')">Dashboard</button>
-  <button class="nav-btn" onclick="showView('team')">Team</button>
-  <button class="nav-btn" onclick="showView('baustatus')">Baustatus</button>
+  <button class="nav-btn active" onclick="showView('dashboard', this)">Dashboard</button>
+  <button class="nav-btn" onclick="showView('team', this)">Team</button>
+  <button class="nav-btn" onclick="showView('baustatus', this)">Baustatus</button>
+  <button class="help-btn" onclick="openHelp()" title="Hilfe & Support">?</button>
 </nav>
 
 <!-- ═══════════════ DASHBOARD ═══════════════ -->
 <div class="view active" id="view-dashboard">
 
-  <!-- Newsticker Hero -->
-  <div class="newsticker-hero">
-    <div class="newsticker-title">Newsticker</div>
-    <div class="newsticker-sub">Gemeindebau Projekt • Updates vom Orga-Team</div>
+  <!-- News Pill trigger -->
+  <div class="news-pill" onclick="openNews()">
+    <div class="news-pill-dot"></div>
+    <div class="news-pill-text">Neuigkeiten vom Orga-Team</div>
+    <div class="news-pill-count">3 neu</div>
+    <div class="news-pill-arrow">›</div>
   </div>
-
-  <!-- News Cards -->
-  <div class="news-cards">
-    <div class="news-card">
-      <div class="news-date">28. März 2026</div>
-      <div class="news-text">🎉 Richtfest geplant für KW18! Bitte alle verfügbaren Helfer bereits ab 7:00 Uhr auf der Baustelle einfinden.</div>
-    </div>
-    <div class="news-card">
-      <div class="news-date">25. März 2026</div>
-      <div class="news-text">📦 Materiallieferung (Dachziegel) kommt Dienstag, 31. März. Gruppe 3 bitte für Entladung einplanen.</div>
-    </div>
-    <div class="news-card">
-      <div class="news-date">20. März 2026</div>
-      <div class="news-text">✅ Rohbau Erdgeschoss fertiggestellt – großartiger Einsatz aller Teams in KW12!</div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════ TEAM ═══════════════ -->
-<div class="view" id="view-team">
 
   <!-- User Header -->
   <div class="user-header">
     <div class="user-avatar">M</div>
     <div>
       <div class="user-name">Max Mustermann</div>
-      <div class="user-role">Aktiver Helfer seit Jan 2025</div>
     </div>
   </div>
 
-  <!-- Team Info -->
-  <div class="card" id="card-team">
+  <!-- Team Info (collapsed by default, group badge always visible) -->
+  <div class="card collapsed" id="card-team">
     <div class="card-header" onclick="toggleCard('card-team')">
       <div class="card-header-icon">👥</div>
       <div class="card-title">Mein Team</div>
-      <div class="card-chevron">▼</div>
+      <div class="card-header-meta">
+        <span class="team-header-badge">Gruppe 1</span>
+        <span class="card-chevron">▼</span>
+      </div>
     </div>
     <div class="card-body">
       <div class="info-row">
@@ -413,11 +666,14 @@
         <span class="badge">Gruppe 1</span>
       </div>
       <div class="info-row">
-        <span class="info-label">Gewerk</span>
-        <span class="info-value">Rohbau &amp; Mauerwerk</span>
+        <span class="info-label">Gewerke</span>
+        <div class="gewerk-tags">
+          <span class="gewerk-tag mine">Rohbau</span>
+          <span class="gewerk-tag mine">Mauerwerk</span>
+        </div>
       </div>
       <div class="info-row">
-        <span class="info-label">Teamleiter</span>
+        <span class="info-label">Ansprechpartner</span>
         <span class="info-value">Hans Berger</span>
         <button class="call-btn" onclick="callPerson('Hans Berger', '+4917612345678')" title="Anrufen">📞</button>
       </div>
@@ -429,79 +685,339 @@
     </div>
   </div>
 
-  <!-- Helfer benötigt -->
-  <div class="card" id="card-helfer">
-    <div class="card-header" onclick="toggleCard('card-helfer')">
-      <div class="card-header-icon">🙋</div>
-      <div class="card-title">Helfer benötigt</div>
-      <div class="card-chevron">▼</div>
-    </div>
-    <div class="card-body" id="helfer-body">
-      <!-- filled by JS -->
-    </div>
-  </div>
-
-  <!-- Nächste Einsätze -->
+  <!-- Meine offenen Einsätze (Anmeldung) -->
   <div class="card" id="card-einsaetze">
     <div class="card-header" onclick="toggleCard('card-einsaetze')">
       <div class="card-header-icon">📅</div>
       <div class="card-title">Meine Einsätze</div>
-      <div class="card-chevron">▼</div>
+      <span class="card-chevron">▼</span>
     </div>
     <div class="card-body" id="einsaetze-body">
       <!-- filled by JS -->
     </div>
   </div>
 
+  <!-- Helfer benötigt – alle Gewerke -->
+  <div class="card" id="card-helfer">
+    <div class="card-header" onclick="toggleCard('card-helfer')">
+      <div class="card-header-icon">🙋</div>
+      <div class="card-title">Helfer benötigt</div>
+      <span class="card-chevron">▼</span>
+    </div>
+    <div class="card-body" id="helfer-body">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
 </div>
 
-<!-- ═══════════════ BAUSTATUS ═══════════════ -->
-<div class="view" id="view-baustatus">
+<!-- ═══════════════ TEAM ═══════════════ -->
+<div class="view" id="view-team">
+  <div class="user-header">
+    <div class="user-avatar">M</div>
+    <div><div class="user-name">Max Mustermann</div></div>
+  </div>
 
-  <div class="status-hero">
-    <div class="status-percent" id="pct-display">0%</div>
-    <div class="status-label">Gesamtfortschritt Gemeindehaus</div>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar-fill" id="progress-fill"></div>
+  <div class="card" id="card-team2">
+    <div class="card-header" onclick="toggleCard('card-team2')">
+      <div class="card-header-icon">👥</div>
+      <div class="card-title">Mein Team</div>
+      <div class="card-header-meta">
+        <span class="team-header-badge">Gruppe 1</span>
+        <span class="card-chevron">▼</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="info-row">
+        <span class="info-label">Gruppe</span>
+        <span class="badge">Gruppe 1</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Gewerke</span>
+        <div class="gewerk-tags">
+          <span class="gewerk-tag mine">Rohbau</span>
+          <span class="gewerk-tag mine">Mauerwerk</span>
+        </div>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Ansprechpartner</span>
+        <span class="info-value">Hans Berger</span>
+        <button class="call-btn" onclick="callPerson('Hans Berger', '+4917612345678')">📞</button>
+      </div>
+      <div class="info-row">
+        <span class="info-label"></span>
+        <span class="info-value">Maria Schulz</span>
+        <button class="call-btn" onclick="callPerson('Maria Schulz', '+4917687654321')">📞</button>
+      </div>
     </div>
   </div>
 
   <div class="card">
     <div class="card-header" style="cursor:default">
-      <div class="card-header-icon">🏁</div>
-      <div class="card-title">Meilensteine</div>
+      <div class="card-header-icon">👷</div>
+      <div class="card-title">Alle Gruppen &amp; Gewerke</div>
     </div>
     <div class="card-body">
-      <div class="milestones" id="milestones">
-        <!-- filled by JS -->
+      <div class="info-row">
+        <span class="info-label">Gruppe 1</span>
+        <div class="gewerk-tags">
+          <span class="gewerk-tag mine">Rohbau</span>
+          <span class="gewerk-tag mine">Mauerwerk</span>
+        </div>
       </div>
+      <div class="info-row">
+        <span class="info-label">Gruppe 2</span>
+        <div class="gewerk-tags">
+          <span class="gewerk-tag">Dach</span>
+          <span class="gewerk-tag">Zimmerei</span>
+        </div>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Gruppe 3</span>
+        <div class="gewerk-tags">
+          <span class="gewerk-tag">Innenausbau</span>
+          <span class="gewerk-tag">Elektrik</span>
+          <span class="gewerk-tag">Sanitär</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ BAUSTATUS ═══════════════ -->
+<div class="view" id="view-baustatus">
+
+  <div class="bau-visual-wrap">
+    <div class="bau-pct-label" id="pct-display">0%</div>
+    <div class="bau-sub">Gesamtfortschritt Gemeindehaus</div>
+    <div class="bau-bar-wrap">
+      <div class="bau-bar-fill" id="progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- Gebäude-Visualisierung -->
+  <div class="building-stage">
+    <div class="building-title">Baufortschritt Visualisierung</div>
+    <div class="building-svg-wrap">
+      <svg id="building-svg" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
+        <!-- Sky background -->
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#E8F2F5"/>
+            <stop offset="100%" stop-color="#F7F0E8"/>
+          </linearGradient>
+          <linearGradient id="wall-done" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#D4956A"/>
+            <stop offset="100%" stop-color="#C4855A"/>
+          </linearGradient>
+          <linearGradient id="wall-active" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#E8C4A8" stop-opacity="0.7"/>
+            <stop offset="100%" stop-color="#C4855A" stop-opacity="0.4"/>
+          </linearGradient>
+          <linearGradient id="roof-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#8B5E3C"/>
+            <stop offset="100%" stop-color="#C4855A"/>
+          </linearGradient>
+        </defs>
+        <rect width="300" height="180" fill="url(#sky)"/>
+        <!-- Ground -->
+        <rect x="0" y="162" width="300" height="18" fill="#D4C4B0" rx="2"/>
+        <!-- Trees left -->
+        <rect x="20" y="130" width="6" height="32" fill="#8B7355"/>
+        <ellipse cx="23" cy="125" rx="14" ry="17" fill="#4A7C59" opacity="0.7"/>
+        <!-- Trees right -->
+        <rect x="268" y="135" width="5" height="27" fill="#8B7355"/>
+        <ellipse cx="270" cy="130" rx="12" ry="15" fill="#4A7C59" opacity="0.6"/>
+        <!-- Foundation -->
+        <rect x="60" y="155" width="180" height="8" fill="#A08060" rx="2"/>
+        <!-- EG wall (done) -->
+        <rect id="bld-eg" x="65" y="115" width="170" height="42" fill="url(#wall-done)" rx="2" opacity="0"/>
+        <!-- EG windows -->
+        <rect id="bld-eg-w1" x="82" y="126" width="24" height="20" fill="#BDD9E8" rx="3" opacity="0"/>
+        <rect id="bld-eg-w2" x="138" y="126" width="24" height="20" fill="#BDD9E8" rx="3" opacity="0"/>
+        <rect id="bld-eg-w3" x="194" y="126" width="24" height="20" fill="#BDD9E8" rx="3" opacity="0"/>
+        <!-- EG door -->
+        <rect id="bld-eg-door" x="130" y="135" width="20" height="22" fill="#A06840" rx="2" opacity="0"/>
+        <!-- OG wall (done) -->
+        <rect id="bld-og" x="70" y="78" width="160" height="40" fill="url(#wall-done)" rx="2" opacity="0"/>
+        <!-- OG windows -->
+        <rect id="bld-og-w1" x="86" y="88" width="22" height="18" fill="#BDD9E8" rx="3" opacity="0"/>
+        <rect id="bld-og-w2" x="139" y="88" width="22" height="18" fill="#BDD9E8" rx="3" opacity="0"/>
+        <rect id="bld-og-w3" x="192" y="88" width="22" height="18" fill="#BDD9E8" rx="3" opacity="0"/>
+        <!-- Dachstuhl (active – partially drawn) -->
+        <polygon id="bld-roof-outline" points="55,80 150,30 245,80" fill="none" stroke="#C4855A" stroke-width="2" stroke-dasharray="6,4" opacity="0"/>
+        <polygon id="bld-roof-fill" points="55,80 150,30 245,80" fill="url(#roof-grad)" opacity="0"/>
+        <!-- Roof tiles hint -->
+        <g id="bld-tiles" opacity="0">
+          <line x1="102" y1="62" x2="108" y2="56" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+          <line x1="120" y1="50" x2="126" y2="44" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+          <line x1="150" y1="38" x2="156" y2="32" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+          <line x1="174" y1="50" x2="180" y2="44" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+          <line x1="194" y1="62" x2="200" y2="56" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+        </g>
+        <!-- Scaffold on right side (active work indicator) -->
+        <g id="bld-scaffold" opacity="0">
+          <rect x="243" y="60" width="3" height="22" fill="#B8A898"/>
+          <rect x="252" y="60" width="3" height="22" fill="#B8A898"/>
+          <rect x="243" y="63" width="12" height="2" fill="#B8A898"/>
+          <rect x="243" y="73" width="12" height="2" fill="#B8A898"/>
+        </g>
+        <!-- Progress label on building -->
+        <text id="bld-label" x="150" y="172" text-anchor="middle" font-size="10" fill="#7A6555" font-family="DM Sans, sans-serif" opacity="0"></text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="milestone-timeline">
+    <div class="timeline-title">Meilensteine</div>
+    <div class="tl-items" id="tl-items">
+      <!-- filled by JS -->
     </div>
   </div>
 
 </div>
 
+<!-- ═══════════════ NEWS OVERLAY ═══════════════ -->
+<div class="news-overlay" id="news-overlay" onclick="overlayClickClose(event, 'news-overlay')">
+  <div class="news-sheet">
+    <div class="news-sheet-header">
+      <div class="news-sheet-title">Newsticker</div>
+      <div class="news-sheet-sub">Gemeindebau Projekt · Updates vom Orga-Team</div>
+      <button class="news-close-btn" onclick="closeNews()">✕</button>
+    </div>
+    <div class="news-list">
+      <div class="news-card">
+        <div class="news-date">28. März 2026</div>
+        <div class="news-text">🎉 Richtfest geplant für KW18! Bitte alle verfügbaren Helfer bereits ab 7:00 Uhr auf der Baustelle einfinden.</div>
+      </div>
+      <div class="news-card">
+        <div class="news-date">25. März 2026</div>
+        <div class="news-text">📦 Materiallieferung (Dachziegel) kommt Dienstag, 31. März. Gruppe 3 bitte für Entladung einplanen.</div>
+      </div>
+      <div class="news-card">
+        <div class="news-date">20. März 2026</div>
+        <div class="news-text">✅ Rohbau Erdgeschoss fertiggestellt – großartiger Einsatz aller Teams in KW12!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ HELP OVERLAY ═══════════════ -->
+<div class="help-overlay" id="help-overlay" onclick="overlayClickClose(event, 'help-overlay')">
+  <div class="help-sheet">
+    <div class="help-sheet-header">
+      <div class="help-sheet-title">Hilfe &amp; Support</div>
+      <div class="help-sheet-sub">Infos &amp; Kontakt zum Orga-Team</div>
+      <button class="help-close-btn" onclick="closeHelp()">✕</button>
+    </div>
+    <div class="help-content">
+
+      <button class="contact-btn" onclick="callPerson('Orga-Team', '+4917600000000')">
+        <span class="contact-icon">📞</span>
+        Orga-Team anrufen
+      </button>
+
+      <button class="contact-btn" style="background: var(--green)" onclick="window.location.href='mailto:orga@gemeindebau.de'">
+        <span class="contact-icon">✉️</span>
+        E-Mail ans Orga-Team
+      </button>
+
+      <div class="help-section">
+        <div class="help-section-title">🔄 Gruppen-Rhythmus</div>
+        <div class="help-section-text" style="margin-bottom:10px">Die 3 Gruppen wechseln sich im 3-Wochen-Rhythmus ab. Jede Gruppe ist mindestens einmal pro Zyklus dran:</div>
+        <table class="rhythm-table">
+          <tr>
+            <th>Woche</th>
+            <th>Hauptgruppe</th>
+            <th>Unterstützung</th>
+          </tr>
+          <tr><td>Woche 1</td><td><strong>Gruppe 1</strong></td><td>Gruppe 3</td></tr>
+          <tr><td>Woche 2</td><td><strong>Gruppe 2</strong></td><td>Gruppe 1</td></tr>
+          <tr><td>Woche 3</td><td><strong>Gruppe 3</strong></td><td>Gruppe 2</td></tr>
+        </table>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">📋 Einsatzzeiten</div>
+        <div class="help-section-text">Reguläre Samstagseinsätze: <strong>7:00 – 14:00 Uhr</strong><br>Montageinsätze: <strong>7:00 – 17:00 Uhr</strong><br>Sondereinsätze (z.B. Richtfest): nach Ankündigung.</div>
+      </div>
+
+      <div class="help-section">
+        <div class="help-section-title">❓ Häufige Fragen</div>
+        <div class="help-section-text">
+          <strong>An- &amp; Abmelden:</strong> Anmeldung über die App, Abmeldungen bitte direkt beim Ansprechpartner melden.<br><br>
+          <strong>Material &amp; Werkzeug:</strong> Wird vom Orga-Team bereitgestellt. Eigenes Werkzeug willkommen.<br><br>
+          <strong>Verpflegung:</strong> Mittagessen wird an Samstagseinsätzen gestellt.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
-// ── Telegram WebApp init ──
 if (window.Telegram && window.Telegram.WebApp) {
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
 }
 
+// ── Data ──
+const MY_GEWERKE = ['Rohbau', 'Mauerwerk'];
+
+// Nächste 14 Tage: Bedarfe aller Gewerke
+const helferDaten = [
+  // Rohbau
+  { gewerk: 'Rohbau', datum: 'Mo, 07.04.2026', kw: 'KW15', fehlend: 3, total: 8 },
+  { gewerk: 'Rohbau', datum: 'Sa, 12.04.2026', kw: 'KW15', fehlend: 1, total: 6 },
+  { gewerk: 'Rohbau', datum: 'Mo, 14.04.2026', kw: 'KW16', fehlend: 0, total: 6 },
+  // Mauerwerk
+  { gewerk: 'Mauerwerk', datum: 'Sa, 05.04.2026', kw: 'KW14', fehlend: 2, total: 5 },
+  { gewerk: 'Mauerwerk', datum: 'Mo, 07.04.2026', kw: 'KW15', fehlend: 4, total: 7 },
+  // Dach
+  { gewerk: 'Dach', datum: 'Sa, 05.04.2026', kw: 'KW14', fehlend: 3, total: 6 },
+  { gewerk: 'Dach', datum: 'Sa, 12.04.2026', kw: 'KW15', fehlend: 5, total: 8 },
+  { gewerk: 'Dach', datum: 'Mo, 14.04.2026', kw: 'KW16', fehlend: 2, total: 6 },
+  // Zimmerei
+  { gewerk: 'Zimmerei', datum: 'Mo, 07.04.2026', kw: 'KW15', fehlend: 0, total: 4 },
+  { gewerk: 'Zimmerei', datum: 'Sa, 12.04.2026', kw: 'KW15', fehlend: 1, total: 4 },
+  // Innenausbau
+  { gewerk: 'Innenausbau', datum: 'Sa, 12.04.2026', kw: 'KW15', fehlend: 2, total: 5 },
+  { gewerk: 'Innenausbau', datum: 'Mo, 14.04.2026', kw: 'KW16', fehlend: 3, total: 6 },
+];
+
+// Offene Einsätze für meine Gewerke (noch nicht angemeldet)
+const einsaetzeDaten = [
+  { gewerk: 'Rohbau', datum: 'Mo, 07.04.2026', kw: 'KW15', zeit: '07:00 – 17:00', fehlend: 3, total: 8 },
+  { gewerk: 'Rohbau', datum: 'Sa, 12.04.2026', kw: 'KW15', zeit: '08:00 – 14:00', fehlend: 1, total: 6 },
+  { gewerk: 'Mauerwerk', datum: 'Sa, 05.04.2026', kw: 'KW14', zeit: '07:00 – 14:00', fehlend: 2, total: 5 },
+  { gewerk: 'Mauerwerk', datum: 'Mo, 07.04.2026', kw: 'KW15', zeit: '07:00 – 17:00', fehlend: 4, total: 7 },
+];
+
+const meilensteine = [
+  { name: 'Baugenehmigung', date: 'Sep 2024', status: 'done', icon: '✓' },
+  { name: 'Fundament & Bodenplatte', date: 'Nov 2024', status: 'done', icon: '✓' },
+  { name: 'Rohbau Erdgeschoss', date: 'Mär 2025', status: 'done', icon: '✓' },
+  { name: 'Rohbau Obergeschoss', date: 'Jun 2025', status: 'done', icon: '✓' },
+  { name: 'Dachstuhl & Eindeckung', date: 'Apr 2026 (laufend)', status: 'active', icon: '⚙' },
+  { name: 'Innenausbau', date: 'Okt 2026 (geplant)', status: 'future', icon: '·' },
+  { name: 'Elektrik & Sanitär', date: 'Jan 2027 (geplant)', status: 'future', icon: '·' },
+  { name: 'Fertigstellung & Einweihung', date: 'Apr 2027 (geplant)', status: 'future', icon: '·' },
+];
+
 // ── Navigation ──
-function showView(id) {
+function showView(id, btn) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('view-' + id).classList.add('active');
-  event.currentTarget.classList.add('active');
+  if (btn) btn.classList.add('active');
   if (id === 'baustatus') initProgress();
 }
 
-// ── Toggle card collapse ──
 function toggleCard(id) {
   document.getElementById(id).classList.toggle('collapsed');
 }
 
-// ── Call handler ──
 function callPerson(name, number) {
   if (window.Telegram && window.Telegram.WebApp) {
     Telegram.WebApp.showPopup({
@@ -511,156 +1027,152 @@ function callPerson(name, number) {
         { id: 'call', type: 'default', text: '📞 Anrufen' },
         { id: 'cancel', type: 'cancel', text: 'Abbrechen' }
       ]
-    }, (btnId) => {
-      if (btnId === 'call') window.location.href = 'tel:' + number;
-    });
+    }, (btnId) => { if (btnId === 'call') window.location.href = 'tel:' + number; });
   } else {
     window.location.href = 'tel:' + number;
   }
 }
 
-// ── Data ──
-const helferDaten = [
-  { datum: 'Mo, 07.04.2026', kw: 'KW15', fehlend: 3, total: 8 },
-  { datum: 'Sa, 12.04.2026', kw: 'KW15', fehlend: 0, total: 6 },
-  { datum: 'Mo, 14.04.2026', kw: 'KW16', fehlend: 5, total: 10 },
-];
+// ── News overlay ──
+function openNews() { document.getElementById('news-overlay').classList.add('visible'); }
+function closeNews() { document.getElementById('news-overlay').classList.remove('visible'); }
+function openHelp() { document.getElementById('help-overlay').classList.add('visible'); }
+function closeHelp() { document.getElementById('help-overlay').classList.remove('visible'); }
+function overlayClickClose(e, id) {
+  if (e.target === document.getElementById(id)) {
+    document.getElementById(id).classList.remove('visible');
+  }
+}
 
-const einsaetzeDaten = [
-  { datum: 'Mo, 07.04.2026', kw: 'KW15', zeit: '07:00 – 17:00', angemeldet: true },
-  { datum: 'Sa, 12.04.2026', kw: 'KW15', zeit: '08:00 – 14:00', angemeldet: true },
-  { datum: 'Mo, 28.04.2026', kw: 'KW18', zeit: '07:00 – 18:00 (Richtfest)', angemeldet: true },
-];
+// ── Render Meine Einsätze (nur Anmeldung, gruppiert nach Gewerk) ──
+(function renderEinsaetze() {
+  const body = document.getElementById('einsaetze-body');
+  if (!einsaetzeDaten.length) {
+    body.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:8px 0">Alle Einsätze der nächsten 14 Tage sind besetzt ✓</div>';
+    return;
+  }
+  // group by gewerk
+  const byGewerk = {};
+  einsaetzeDaten.forEach(e => { if (!byGewerk[e.gewerk]) byGewerk[e.gewerk] = []; byGewerk[e.gewerk].push(e); });
 
-const meilensteine = [
-  { name: 'Baugenehmigung', date: 'Sep 2024', status: 'done', icon: '📋' },
-  { name: 'Fundament & Bodenplatte', date: 'Nov 2024', status: 'done', icon: '🪨' },
-  { name: 'Rohbau Erdgeschoss', date: 'Mär 2025', status: 'done', icon: '🧱' },
-  { name: 'Rohbau Obergeschoss', date: 'Jun 2025', status: 'done', icon: '🏗️' },
-  { name: 'Dachstuhl & Eindeckung', date: 'Apr 2026 (laufend)', status: 'active', icon: '🏠' },
-  { name: 'Innenausbau', date: 'Okt 2026 (geplant)', status: 'future', icon: '🔨' },
-  { name: 'Elektrik & Sanitär', date: 'Jan 2027 (geplant)', status: 'future', icon: '⚡' },
-  { name: 'Fertigstellung & Einweihung', date: 'Apr 2027 (geplant)', status: 'future', icon: '🎊' },
-];
+  let html = '';
+  Object.entries(byGewerk).forEach(([gewerk, items]) => {
+    const isMine = MY_GEWERKE.includes(gewerk);
+    html += `<div class="gewerk-section">
+      <div class="gewerk-section-header">
+        <div class="gewerk-section-name">${gewerk}</div>
+        ${isMine ? '<span class="gewerk-mine-label">Mein Gewerk</span>' : ''}
+      </div>`;
+    let lastKW = '';
+    items.forEach((e, i) => {
+      const idx = einsaetzeDaten.indexOf(e);
+      if (e.kw !== lastKW) {
+        html += `<div class="section-kw">${e.kw}</div>`;
+        lastKW = e.kw;
+      }
+      const badgeCls = e.fehlend > 0 ? '' : ' ok';
+      const badgeTxt = e.fehlend > 0 ? `${e.fehlend} fehlen` : 'Besetzt';
+      html += `<div class="einsatz-row">
+        <div class="einsatz-date">
+          <strong>${e.datum}</strong>
+          <small>${e.zeit} · ${e.total} Helfer</small>
+        </div>
+        <span class="missing-badge${badgeCls}" id="ebadge-${idx}">${badgeTxt}</span>
+        <button class="action-btn btn-join" id="ejoin-${idx}" onclick="joinEinsatzE(${idx}, this)">Anmelden</button>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  body.innerHTML = html;
+})();
 
-// ── Render Helfer ──
+function joinEinsatzE(idx, btn) {
+  btn.textContent = 'Angemeldet ✓';
+  btn.classList.add('done');
+  btn.disabled = true;
+  const badge = document.getElementById('ebadge-' + idx);
+  if (badge && einsaetzeDaten[idx].fehlend > 0) {
+    einsaetzeDaten[idx].fehlend--;
+    if (einsaetzeDaten[idx].fehlend === 0) { badge.textContent = 'Besetzt'; badge.classList.add('ok'); }
+    else badge.textContent = einsaetzeDaten[idx].fehlend + ' fehlen';
+  }
+}
+
+// ── Render Helfer benötigt – alle Gewerke ──
 (function renderHelfer() {
   const body = document.getElementById('helfer-body');
-  let lastKW = '';
+  const byGewerk = {};
+  helferDaten.forEach(h => { if (!byGewerk[h.gewerk]) byGewerk[h.gewerk] = []; byGewerk[h.gewerk].push(h); });
+
   let html = '';
-  helferDaten.forEach((h, i) => {
-    if (h.kw !== lastKW) {
-      html += `<div class="section-kw">${h.kw}</div>`;
-      lastKW = h.kw;
-    }
-    const missing = h.fehlend;
-    const cls = missing > 0 ? '' : ' ok';
-    const label = missing > 0 ? `${missing} fehlen` : 'Besetzt ✓';
-    html += `
-      <div class="einsatz-row">
+  Object.entries(byGewerk).forEach(([gewerk, items]) => {
+    const isMine = MY_GEWERKE.includes(gewerk);
+    html += `<div class="gewerk-section">
+      <div class="gewerk-section-header">
+        <div class="gewerk-section-name">${gewerk}</div>
+        ${isMine ? '<span class="gewerk-mine-label">Mein Gewerk</span>' : ''}
+      </div>`;
+    let lastKW = '';
+    items.forEach((h, i) => {
+      const idx = helferDaten.indexOf(h);
+      if (h.kw !== lastKW) {
+        html += `<div class="section-kw">${h.kw}</div>`;
+        lastKW = h.kw;
+      }
+      const badgeCls = h.fehlend > 0 ? '' : ' ok';
+      const badgeTxt = h.fehlend > 0 ? `${h.fehlend} fehlen` : 'Besetzt ✓';
+      html += `<div class="einsatz-row">
         <div class="einsatz-date">
           <strong>${h.datum}</strong>
           <small>${h.total} Helfer gesamt</small>
         </div>
-        <span class="missing-badge${cls}">${label}</span>
-        <button class="action-btn btn-join" id="join-${i}" onclick="joinEinsatz(${i}, this)">
-          Ich kann!
-        </button>
+        <span class="missing-badge${badgeCls}" id="hbadge-${idx}">${badgeTxt}</span>
+        <button class="action-btn btn-join" id="hjoin-${idx}" onclick="joinHelfer(${idx}, this)">Ich kann!</button>
       </div>`;
-  });
-  body.innerHTML = html;
-})();
-
-function joinEinsatz(idx, btn) {
-  btn.classList.add('done');
-  btn.textContent = 'Angemeldet ✓';
-  btn.disabled = true;
-  btn.style.borderColor = 'var(--green)';
-  btn.style.background = 'var(--green)';
-  btn.style.color = 'var(--white)';
-  // update badge
-  if (helferDaten[idx].fehlend > 0) {
-    helferDaten[idx].fehlend--;
-    const badge = btn.previousElementSibling;
-    if (helferDaten[idx].fehlend === 0) {
-      badge.textContent = 'Besetzt ✓';
-      badge.classList.add('ok');
-    } else {
-      badge.textContent = helferDaten[idx].fehlend + ' fehlen';
-    }
-  }
-}
-
-// ── Render Einsätze ──
-(function renderEinsaetze() {
-  const body = document.getElementById('einsaetze-body');
-  let lastKW = '';
-  let html = '';
-  einsaetzeDaten.forEach((e, i) => {
-    const kw = e.kw;
-    if (kw !== lastKW) {
-      html += `<div class="section-kw">${kw}</div>`;
-      lastKW = kw;
-    }
-    html += `
-      <div class="einsatz-row">
-        <div class="einsatz-date">
-          <strong>${e.datum}</strong>
-          <small>${e.zeit}</small>
-        </div>
-        <button class="action-btn btn-leave" id="leave-${i}" onclick="leaveEinsatz(${i}, this)">
-          Abmelden
-        </button>
-      </div>`;
-  });
-  body.innerHTML = html;
-})();
-
-function leaveEinsatz(idx, btn) {
-  if (window.Telegram && window.Telegram.WebApp) {
-    Telegram.WebApp.showConfirm('Vom Einsatz am ' + einsaetzeDaten[idx].datum + ' abmelden?', (ok) => {
-      if (ok) doLeave(btn);
     });
-  } else {
-    if (confirm('Vom Einsatz abmelden?')) doLeave(btn);
+    html += '</div>';
+  });
+  body.innerHTML = html;
+})();
+
+function joinHelfer(idx, btn) {
+  btn.textContent = 'Angemeldet ✓';
+  btn.classList.add('done');
+  btn.disabled = true;
+  const badge = document.getElementById('hbadge-' + idx);
+  if (badge && helferDaten[idx].fehlend > 0) {
+    helferDaten[idx].fehlend--;
+    if (helferDaten[idx].fehlend === 0) { badge.textContent = 'Besetzt ✓'; badge.classList.add('ok'); }
+    else badge.textContent = helferDaten[idx].fehlend + ' fehlen';
   }
 }
-function doLeave(btn) {
-  btn.textContent = 'Abgemeldet';
-  btn.style.borderColor = 'var(--red)';
-  btn.style.background = 'var(--red-light)';
-  btn.style.color = 'var(--red)';
-  btn.disabled = true;
-}
 
-// ── Render Meilensteine ──
-(function renderMeilensteine() {
-  const el = document.getElementById('milestones');
+// ── Render Meilensteine (timeline) ──
+(function renderTimeline() {
+  const el = document.getElementById('tl-items');
   el.innerHTML = meilensteine.map(m => {
     const tagLabel = m.status === 'done' ? 'Abgeschlossen' : m.status === 'active' ? 'In Arbeit' : 'Geplant';
-    const tagCls = m.status === 'done' ? 'tag-done' : m.status === 'active' ? 'tag-active' : 'tag-future';
-    const dotCls = m.status === 'done' ? 'done' : m.status === 'active' ? 'active' : 'future';
-    return `
-      <div class="milestone">
-        <div class="milestone-dot ${dotCls}">${m.icon}</div>
-        <div>
-          <div class="milestone-name">${m.name}</div>
-          <div class="milestone-date">${m.date}</div>
-          <span class="milestone-tag ${tagCls}">${tagLabel}</span>
-        </div>
-      </div>`;
+    const tagCls = `tag-${m.status}`;
+    const dotCls = m.status;
+    return `<div class="tl-item">
+      <div class="tl-dot ${dotCls}">${m.icon}</div>
+      <div class="tl-name">${m.name}</div>
+      <div class="tl-date">${m.date}</div>
+      <span class="tl-tag ${tagCls}">${tagLabel}</span>
+    </div>`;
   }).join('');
 })();
 
-// ── Progress animation ──
+// ── Progress + Building animation ──
 let progressInited = false;
 function initProgress() {
   if (progressInited) return;
   progressInited = true;
-  const target = 52; // percent
+  const target = 52;
   const fill = document.getElementById('progress-fill');
   const display = document.getElementById('pct-display');
   fill.style.width = target + '%';
+
   let cur = 0;
   const step = () => {
     cur = Math.min(cur + 1, target);
@@ -668,6 +1180,29 @@ function initProgress() {
     if (cur < target) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
+
+  // Animate building parts with staggered delays
+  // Based on 52% progress: Foundation done, EG done, OG done, Dach active
+  const parts = [
+    { ids: ['bld-eg', 'bld-eg-w1', 'bld-eg-w2', 'bld-eg-w3', 'bld-eg-door'], delay: 200, opacity: 1 },
+    { ids: ['bld-og', 'bld-og-w1', 'bld-og-w2', 'bld-og-w3'], delay: 500, opacity: 1 },
+    { ids: ['bld-roof-outline'], delay: 800, opacity: 1 },
+    { ids: ['bld-roof-fill'], delay: 1000, opacity: 0.55 },
+    { ids: ['bld-tiles'], delay: 1200, opacity: 0.6 },
+    { ids: ['bld-scaffold'], delay: 1400, opacity: 0.8 },
+    { ids: ['bld-label'], delay: 1600, opacity: 1, text: 'Dachstuhl im Bau ...' },
+  ];
+  parts.forEach(p => {
+    setTimeout(() => {
+      p.ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.transition = 'opacity 0.6s ease';
+        el.style.opacity = p.opacity;
+        if (p.text) el.textContent = p.text;
+      });
+    }, p.delay);
+  });
 }
 </script>
 </body>
