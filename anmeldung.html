@@ -34,7 +34,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .form-header p { font-size: 13px; font-weight: 300; color: var(--muted); line-height: 1.7; }
 
 /* TABS */
-.tabs { display: grid; grid-template-columns: repeat(4, 1fr); margin-bottom: 28px; border-bottom: 1px solid var(--border); }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); margin-bottom: 28px; border-bottom: 1px solid var(--border); }
 .tab { padding: 10px 4px; font-size: 11px; font-weight: 400; color: var(--muted); cursor: pointer; border: none; background: transparent; font-family: 'DM Sans', sans-serif; transition: color 0.15s; border-bottom: 3px solid transparent; margin-bottom: -1px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tab.active { color: var(--accent) !important; border-bottom: 3px solid var(--accent) !important; font-weight: 500 !important; background: transparent !important; }
 .tab-panel { display: none; flex-direction: column; gap: 18px; }
@@ -62,18 +62,22 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .checkbox-item input:checked ~ .check-box::after { content: ''; display: block; width: 7px; height: 4px; border-left: 1.5px solid white; border-bottom: 1.5px solid white; transform: rotate(-45deg) translateY(-1px); }
 .check-label { font-size: 13px; font-weight: 300; }
 
-/* TELEGRAM */
-.telegram-info { background: #eef4fb; border: 1px solid #c2d8ef; border-radius: var(--radius); padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; }
-.tg-icon { width: 28px; height: 28px; background: #2ea6e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
-.tg-icon svg { width: 14px; height: 14px; fill: white; }
-.telegram-info p { font-size: 13px; color: #2a5070; font-weight: 300; line-height: 1.65; }
-.telegram-info strong { font-weight: 500; }
+/* Schichtarbeit toggle */
+.schichtarbeit-toggle { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: white; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: border-color 0.15s; user-select: none; -webkit-tap-highlight-color: transparent; }
+.schichtarbeit-toggle:hover { border-color: var(--accent); }
+.schichtarbeit-toggle input[type="checkbox"] { display: none; }
+.schichtarbeit-toggle .check-box { margin-top: 2px; width: 17px; height: 17px; border: 1.5px solid var(--border); border-radius: 3px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.schichtarbeit-toggle input:checked ~ .check-box { background: var(--accent); border-color: var(--accent); }
+.schichtarbeit-toggle input:checked ~ .check-box::after { content: ''; display: block; width: 8px; height: 4.5px; border-left: 1.5px solid white; border-bottom: 1.5px solid white; transform: rotate(-45deg) translateY(-1px); }
+.schichtarbeit-toggle .toggle-text strong { font-size: 13px; font-weight: 500; display: block; margin-bottom: 2px; }
+.schichtarbeit-toggle .toggle-text span { font-size: 12px; font-weight: 300; color: var(--muted); line-height: 1.5; }
 
 /* GEWERK */
 .gewerk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .gewerk-group-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 8px 0 2px; grid-column: 1 / -1; }
 .gewerk-item { display: flex; align-items: center; gap: 8px; padding: 8px 11px; background: white; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; user-select: none; transition: border-color 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .gewerk-item:hover { border-color: var(--accent); }
+.gewerk-item input[type="checkbox"] { display: none; }
 .gewerk-level { display: none; grid-column: 1 / -1; background: var(--accent-light); border: 1px solid #ddb99a; border-radius: var(--radius); padding: 10px 14px; align-items: center; gap: 10px; flex-wrap: wrap; }
 .gewerk-level.visible { display: flex; }
 .gewerk-level-name { font-size: 11px; font-weight: 500; color: var(--accent); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.06em; }
@@ -81,95 +85,68 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .level-pill { padding: 4px 12px; border: 1px solid #ddb99a; border-radius: 20px; font-size: 12px; cursor: pointer; background: white; color: var(--ink); transition: all 0.12s; user-select: none; font-family: 'DM Sans', sans-serif; font-weight: 300; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .level-pill:hover { border-color: var(--accent); color: var(--accent); }
 .level-pill.selected { background: var(--accent); border-color: var(--accent); color: white; }
-
-/* Gewerk loading state */
 .gewerk-loading { grid-column: 1/-1; padding: 24px; text-align: center; color: var(--muted); font-size: 13px; font-weight: 300; }
 .gewerk-error { grid-column: 1/-1; padding: 14px; background: #fdf5ee; border: 1px solid var(--accent-light); border-radius: var(--radius); color: #7a3a12; font-size: 13px; }
 
-/* ── SCHICHT ── */
-.schicht-box { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.schicht-header { padding: 11px 16px; background: var(--cream); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
-.schicht-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-.schicht-row { display: flex; flex-direction: column; gap: 8px; }
-.schicht-label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
-.schicht-pills { display: flex; flex-wrap: wrap; gap: 6px; }
-.schicht-pill { padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; cursor: pointer; background: white; color: var(--ink); transition: all 0.12s; user-select: none; font-weight: 300; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-.schicht-pill:hover { border-color: var(--accent); color: var(--accent); }
-.schicht-pill.selected { background: var(--accent); border-color: var(--accent); color: white; font-weight: 400; }
-.schicht-divider { height: 1px; background: var(--border); }
-.schicht-freitext label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; display: block; margin-bottom: 5px; }
-.schicht-freitext textarea { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 300; background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; color: var(--ink); resize: vertical; min-height: 60px; width: 100%; outline: none; }
-
-/* ── ZEITSLOT TABLE ── */
-.zeitslot-section { display: none; flex-direction: column; gap: 12px; }
-.zeitslot-section.visible { display: flex; }
-.zeitslot-box { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.zeitslot-header { padding: 9px 14px; background: var(--cream); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
-.zeitslot-table { width: 100%; border-collapse: collapse; }
-.zeitslot-table th { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; text-align: center; border-bottom: 1px solid var(--border); }
-.zeitslot-table th:first-child { text-align: left; width: 40px; }
-.zeitslot-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: center; }
-.zeitslot-table td:first-child { font-size: 11px; font-weight: 500; color: var(--muted); text-align: left; letter-spacing: 0.05em; text-transform: uppercase; }
-.zeitslot-table tr:last-child td { border-bottom: none; }
-.slot-toggle { width: 32px; height: 32px; border: 1.5px solid var(--border); border-radius: 4px; background: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.12s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; font-size: 13px; color: var(--muted); }
-.slot-toggle:hover { border-color: var(--accent); color: var(--accent); }
-.slot-toggle.active { background: var(--accent); border-color: var(--accent); color: white; }
-.slot-toggle.disabled { opacity: 0.22; cursor: not-allowed; pointer-events: none; }
-
-/* KW label */
-.kw-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
-.kw-badge.gerade { background: #e8f0fb; color: #2a4a7a; border: 1px solid #b8ccef; }
-.kw-badge.ungerade { background: #f0e8fb; color: #4a2a7a; border: 1px solid #ccb8ef; }
-
-/* Konti info */
-.konti-info { background: #fdf5ee; border: 1px solid var(--accent-light); border-radius: var(--radius); padding: 14px 16px; font-size: 13px; color: #7a3a12; font-weight: 300; line-height: 1.65; display: none; }
-.konti-info.visible { display: block; }
-.konti-info strong { font-weight: 500; }
-
-/* CALENDAR */
-.cal-nav { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
-.cal-nav button { background: white; border: 1px solid var(--border); border-radius: var(--radius); width: 36px; height: 36px; cursor: pointer; font-size: 18px; color: var(--muted); display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-.cal-nav button:hover:not(:disabled) { border-color: var(--ink); color: var(--ink); }
-.cal-month-label { font-family: 'DM Serif Display', serif; font-size: 16px; font-weight: 400; }
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.cal-dow { text-align: center; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 4px 0; }
-.cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 300; border-radius: 3px; border: 1px solid transparent; background: white; color: var(--ink); -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer; }
-.cal-day.other-month { color: var(--border); background: transparent; cursor: default; }
-.cal-day.past { color: var(--border); cursor: default; background: transparent; }
-.cal-day.today { font-weight: 500; border-color: var(--accent); color: var(--accent); }
-.cal-day.range-start { background: var(--accent) !important; color: white !important; border-color: var(--accent) !important; border-radius: 3px 0 0 3px; }
-.cal-day.range-end { background: var(--accent) !important; color: white !important; border-color: var(--accent) !important; border-radius: 0 3px 3px 0; }
-.cal-day.range-start.range-end { border-radius: 3px; }
-.cal-day.in-range { background: var(--accent-light) !important; color: var(--ink) !important; border-color: transparent !important; border-radius: 0; }
-.cal-hint { font-size: 12px; color: var(--accent); font-weight: 400; min-height: 18px; margin-top: 6px; }
-
-/* ABSENCE CHIPS */
-.absence-chips { display: flex; flex-direction: column; gap: 5px; }
-.absence-chip { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: white; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; }
-.chip-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 4px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-.chip-remove:hover { color: #c0392b; }
+/* AUTOSAVE indicator */
+.autosave-bar { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); font-weight: 300; min-height: 20px; padding: 4px 0; transition: all 0.3s; }
+.autosave-bar.saving { color: var(--accent); }
+.autosave-bar.saved { color: var(--success); }
+.autosave-bar.error { color: #c0392b; }
+.autosave-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.autosave-bar.saving .autosave-dot { animation: pulse 0.9s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
 
 /* BUTTONS */
 .submit-btn { padding: 13px 24px; background: var(--ink); color: white; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .submit-btn:hover { background: #2e2d28; }
 .btn-back { padding: 13px 24px; background: white; color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer; transition: border-color 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .btn-back:hover { border-color: var(--ink); }
-.btn-row { display: flex; gap: 10px; justify-content: space-between; margin-top: 8px; }
-.success-msg { display: none; padding: 14px 18px; background: #edf7f0; border: 1px solid #aad4b8; border-radius: var(--radius); color: var(--success); font-size: 13px; line-height: 1.6; }
+.btn-row { display: flex; gap: 10px; justify-content: space-between; margin-top: 8px; align-items: center; }
 
-/* select-all row */
-.slot-select-all { font-size: 11px; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; -webkit-tap-highlight-color: transparent; align-self: flex-end; }
+/* SUCCESS TOAST */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1c1b18; color: white; border-radius: 8px; padding: 12px 20px; font-size: 13px; font-weight: 400; z-index: 9999; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.18); transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), opacity 0.35s; opacity: 0; white-space: nowrap; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+.toast.success { background: #2d6a47; }
+.toast.error { background: #b83a2a; }
+.toast-icon { font-size: 15px; }
+
+/* ── INFOS TAB ── */
+.info-block { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.info-block-header { padding: 10px 16px; background: var(--cream); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 500; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.info-block-body { padding: 18px 16px; }
+.info-placeholder-img { background: linear-gradient(135deg, var(--cream) 0%, #e0dbcc 100%); border: 2px dashed var(--border); border-radius: var(--radius); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 36px 20px; color: var(--muted); font-size: 13px; font-weight: 300; text-align: center; }
+.info-placeholder-img svg { width: 32px; height: 32px; opacity: 0.4; }
+.info-placeholder-img .img-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.6; }
+.info-text { font-size: 13px; font-weight: 300; line-height: 1.75; color: var(--ink); }
+.info-text h3 { font-family: 'DM Serif Display', serif; font-size: 18px; font-weight: 400; margin-bottom: 8px; }
+.info-text p + p { margin-top: 10px; }
+.info-text ul { padding-left: 18px; margin-top: 6px; }
+.info-text ul li { margin-bottom: 4px; }
+.info-loading { padding: 32px; text-align: center; color: var(--muted); font-size: 13px; }
+.info-img-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.info-img-real { width: 100%; border-radius: var(--radius); display: block; object-fit: cover; aspect-ratio: 4/3; }
+.info-tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; letter-spacing: 0.05em; background: var(--accent-light); color: var(--accent); border: 1px solid #ddb99a; margin-right: 5px; margin-bottom: 4px; }
+.info-meta { font-size: 12px; color: var(--muted); font-weight: 300; }
 
 @media (max-width: 600px) {
   .form-side { padding: 24px 16px 48px; }
   .row { grid-template-columns: 1fr; }
   .checkbox-grid { grid-template-columns: 1fr; }
   .gewerk-grid { grid-template-columns: 1fr; }
-  .zeitslot-table th, .zeitslot-table td { padding: 6px 6px; }
+  .info-img-grid { grid-template-columns: 1fr; }
+  .tabs { grid-template-columns: repeat(3, 1fr); }
 }
 </style>
 </head>
 <body>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+  <span class="toast-icon">✓</span>
+  <span id="toast-msg">Gespeichert</span>
+</div>
+
 <div class="page">
   <div class="form-side">
     <div class="logo">
@@ -183,32 +160,39 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
     </div>
 
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('person',0)">1 · Angaben</button>
+      <button class="tab active" onclick="switchTab('person',0)">1 · Profil</button>
       <button class="tab" onclick="switchTab('gewerk',1)">2 · Gewerk</button>
-      <button class="tab" onclick="switchTab('verfueg',2)">3 · Verfügbarkeit</button>
-      <button class="tab" onclick="switchTab('abwesen',3)">4 · Abwesenheiten</button>
+      <button class="tab" onclick="switchTab('infos',2)">3 · Infos</button>
     </div>
 
     <form id="anmeldeform" onsubmit="handleSubmit(event)">
 
-      <!-- TAB 1 -->
+      <!-- TAB 1 – Profil -->
       <div class="tab-panel active" id="tab-person">
         <div class="section-title">Persönliche Daten</div>
         <div class="row">
-          <div class="field"><label>Vorname *</label><input type="text" name="vorname" required placeholder="Max"></div>
-          <div class="field"><label>Nachname *</label><input type="text" name="nachname" required placeholder="Mustermann"></div>
+          <div class="field"><label>Vorname *</label><input type="text" name="vorname" id="f-vorname" required placeholder="Max"></div>
+          <div class="field"><label>Nachname *</label><input type="text" name="nachname" id="f-nachname" required placeholder="Mustermann"></div>
         </div>
         <div class="row">
-          <div class="field"><label>E-Mail *</label><input type="email" name="email" required placeholder="max@beispiel.de"></div>
-          <div class="field"><label>Telefon</label><input type="tel" name="telefon" placeholder="+49 170 ..."></div>
+          <div class="field"><label>E-Mail *</label><input type="email" name="email" id="f-email" required placeholder="max@beispiel.de"></div>
+          <div class="field"><label>Telefon</label><input type="tel" name="telefon" id="f-telefon" placeholder="+49 170 ..."></div>
         </div>
         <div class="divider"></div>
-        <div class="section-title">Telegram</div>
-        <div class="telegram-info">
-          <div class="tg-icon"><svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/></svg></div>
-          <p><strong>Kein Benutzername nötig.</strong> Nach der Anmeldung erhältst du per E-Mail einen Link. Öffnest du ihn auf dem Handy, verbindet sich Telegram automatisch.</p>
+        <div class="section-title">Arbeitssituation</div>
+        <label class="schichtarbeit-toggle">
+          <input type="checkbox" name="schichtarbeit" id="cb-schichtarbeit">
+          <span class="check-box"></span>
+          <span class="toggle-text">
+            <strong>Ich arbeite im Schichtbetrieb</strong>
+            <span>Da unter der Woche auch vormittags gearbeitet wird, ist diese Information in der Organisation hilfreich.</span>
+          </span>
+        </label>
+        <div class="autosave-bar" id="autosave-1"><span class="autosave-dot"></span><span id="autosave-1-text">Wird automatisch gespeichert beim Weiterblättern</span></div>
+        <div class="btn-row">
+          <span></span>
+          <button type="button" class="submit-btn" style="background:var(--accent)" onclick="saveTabAndGo('person','gewerk',1)">Weiter →</button>
         </div>
-        <div class="btn-row"><span></span><button type="button" class="submit-btn" style="background:var(--accent)" onclick="switchTab('gewerk',1)">Weiter →</button></div>
       </div>
 
       <!-- TAB 2 – Gewerk -->
@@ -221,144 +205,31 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
             <div class="gewerk-loading">Gewerke werden geladen …</div>
           </div>
         </div>
-        <div class="field"><label>Qualifikationen (optional)</label><input type="text" name="qualifikationen" placeholder="z.B. Staplerschein, Schweißerpass …"></div>
-        <div class="field"><label>Teamwunsch (optional)</label><input type="text" name="teamwunsch" placeholder="z.B. gerne mit Klaus zusammen"></div>
+        <div class="field">
+          <label>Qualifikationen (optional)</label>
+          <input type="text" name="qualifikationen" id="f-qualifikationen" placeholder="z.B. Staplerschein …">
+        </div>
+        <div class="field">
+          <label>Teamwunsch (optional)</label>
+          <input type="text" name="teamwunsch" id="f-teamwunsch" placeholder="z.B. gerne mit Klaus zusammen">
+        </div>
+        <div class="autosave-bar" id="autosave-2"><span class="autosave-dot"></span><span id="autosave-2-text">Wird automatisch gespeichert beim Weiterblättern</span></div>
         <div class="btn-row">
           <button type="button" class="btn-back" onclick="switchTab('person',0)">← Zurück</button>
-          <button type="button" class="submit-btn" style="background:var(--accent)" onclick="switchTab('verfueg',2)">Weiter →</button>
+          <button type="button" class="submit-btn" style="background:var(--accent)" onclick="saveTabAndGo('gewerk','infos',2)">Weiter →</button>
         </div>
       </div>
 
-      <!-- TAB 3 – Verfügbarkeit (NEU: Zeitslots) -->
-      <div class="tab-panel" id="tab-verfueg">
-        <div class="section-title">Schichtmodell im Job</div>
-        <p style="font-size:13px;line-height:1.7;color:var(--ink)">
-          Wähle dein Schichtmodell – wir zeigen dir dann automatisch die passenden Projektzeitslots.
-        </p>
-
-        <!-- Schichtart-Auswahl -->
-        <div class="schicht-box">
-          <div class="schicht-header">Mein Schichtmodell (optional)</div>
-          <div class="schicht-body">
-            <div class="schicht-row">
-              <div class="schicht-label">Schichtart</div>
-              <div class="schicht-pills">
-                <span class="schicht-pill" data-group="schichtart" data-val="frueh">Frühschicht</span>
-                <span class="schicht-pill" data-group="schichtart" data-val="spaet">Spätschicht</span>
-                <span class="schicht-pill" data-group="schichtart" data-val="wechsel">Wechselschicht</span>
-                <span class="schicht-pill" data-group="schichtart" data-val="konti">Kontischicht</span>
-                <span class="schicht-pill" data-group="schichtart" data-val="sonstiges">Sonstiges / kein Schichtsystem</span>
-              </div>
-            </div>
-          </div>
+      <!-- TAB 3 – Infos -->
+      <div class="tab-panel" id="tab-infos">
+        <div class="section-title">Projektinformationen</div>
+        <div id="infos-loading" class="info-loading">Informationen werden geladen …</div>
+        <div id="infos-content" style="display:none;display:flex;flex-direction:column;gap:16px"></div>
+        <div id="infos-empty" style="display:none">
+          <p style="font-size:13px;color:var(--muted);font-weight:300">Noch keine Informationen hinterlegt. Der Administrator kann sie über das Admin-Frontend einpflegen.</p>
         </div>
-
-        <!-- Konti-Hinweis -->
-        <div class="konti-info" id="konti-info">
-          <strong>Kontischicht:</strong> Wegen der wechselnden Blöcke (Mo+Di → Mi+Do → Fr+Sa+So, Früh → Spät → Nacht → Frei) ist eine automatische Vorauswahl nicht möglich. Bitte trage deine freien Zeiten im Kommentarfeld unten ein – wir übertragen sie manuell.
-        </div>
-
-        <!-- ZEITSLOT-BEREICH: Frühschicht -->
-        <div class="zeitslot-section" id="zs-frueh">
-          <div style="font-size:13px;line-height:1.7;color:var(--ink)">
-            Bei Frühschicht bist du <strong>nachmittags</strong> für das Projekt verfügbar.
-            Am Samstag sind beide Zeitfenster möglich – wähle, was passt.
-          </div>
-          <div class="zeitslot-box">
-            <div class="zeitslot-header">Verfügbare Projektzeitslots — Frühschicht</div>
-            <table class="zeitslot-table" id="zt-frueh"></table>
-          </div>
-        </div>
-
-        <!-- ZEITSLOT-BEREICH: Spätschicht -->
-        <div class="zeitslot-section" id="zs-spaet">
-          <div style="font-size:13px;line-height:1.7;color:var(--ink)">
-            Bei Spätschicht bist du <strong>vormittags</strong> für das Projekt verfügbar.
-            Am Samstag sind beide Zeitfenster möglich – wähle, was passt.
-          </div>
-          <div class="zeitslot-box">
-            <div class="zeitslot-header">Verfügbare Projektzeitslots — Spätschicht</div>
-            <table class="zeitslot-table" id="zt-spaet"></table>
-          </div>
-        </div>
-
-        <!-- ZEITSLOT-BEREICH: Wechselschicht -->
-        <div class="zeitslot-section" id="zs-wechsel">
-          <div style="font-size:13px;line-height:1.7;color:var(--ink)">
-            Bei Wechselschicht variiert deine Verfügbarkeit je nach Kalenderwoche.
-            Bitte für beide Muster angeben, welche Slots passen.
-          </div>
-          <div class="zeitslot-box">
-            <div class="zeitslot-header">
-              <span class="kw-badge gerade">Gerade KW</span> &nbsp;Projektzeitslots in geraden Kalenderwochen
-            </div>
-            <table class="zeitslot-table" id="zt-gerade"></table>
-          </div>
-          <div class="zeitslot-box">
-            <div class="zeitslot-header">
-              <span class="kw-badge ungerade">Ungerade KW</span> &nbsp;Projektzeitslots in ungeraden Kalenderwochen
-            </div>
-            <table class="zeitslot-table" id="zt-ungerade"></table>
-          </div>
-        </div>
-
-        <!-- ZEITSLOT-BEREICH: Sonstiges -->
-        <div class="zeitslot-section" id="zs-sonstiges">
-          <div style="font-size:13px;line-height:1.7;color:var(--ink)">
-            Wähle alle Zeitfenster, an denen du grundsätzlich für das Projekt eingeplant werden kannst.
-          </div>
-          <div class="zeitslot-box">
-            <div class="zeitslot-header">Verfügbare Projektzeitslots</div>
-            <table class="zeitslot-table" id="zt-sonstiges"></table>
-          </div>
-        </div>
-
-        <!-- Kommentarfeld (immer sichtbar, sobald Schichtart gewählt) -->
-        <div class="zeitslot-section" id="zs-kommentar">
-          <div class="field">
-            <label>Sonderfälle / Ergänzungen (optional)</label>
-            <textarea name="schicht_freitext" placeholder="z.B. mittwochs nur bis 12 Uhr, jede 3. Woche Nachtschicht …"></textarea>
-          </div>
-        </div>
-
-        <input type="hidden" name="schichtart" id="hidden-schichtart">
-
-        <div class="btn-row">
+        <div class="btn-row" style="margin-top:16px">
           <button type="button" class="btn-back" onclick="switchTab('gewerk',1)">← Zurück</button>
-          <button type="button" class="submit-btn" style="background:var(--accent)" onclick="switchTab('abwesen',3)">Weiter →</button>
-        </div>
-      </div>
-
-      <!-- TAB 4 – Abwesenheiten -->
-      <div class="tab-panel" id="tab-abwesen">
-        <div class="section-title">Abwesenheiten</div>
-        <p style="font-size:13px;line-height:1.7;color:var(--ink)">
-          Tippe auf einen <strong>Starttag</strong>, dann auf einen <strong>Endtag</strong>.
-          Für einen einzelnen Tag zweimal denselben tippen.
-          Einen Eintrag entfernen: nochmal in den markierten Bereich tippen.<br>
-          <span style="color:var(--muted)">Jederzeit per Telegram aktualisierbar.</span>
-        </p>
-        <div>
-          <div class="cal-nav">
-            <button type="button" onclick="calPrev()">‹</button>
-            <span class="cal-month-label" id="cal-month-label"></span>
-            <button type="button" onclick="calNext()">›</button>
-          </div>
-          <div class="cal-grid" id="cal-grid">
-            <div class="cal-dow">Mo</div><div class="cal-dow">Di</div><div class="cal-dow">Mi</div>
-            <div class="cal-dow">Do</div><div class="cal-dow">Fr</div><div class="cal-dow">Sa</div><div class="cal-dow">So</div>
-          </div>
-          <div class="cal-hint" id="cal-hint"></div>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Eingetragene Abwesenheiten</div>
-          <div class="absence-chips" id="absence-chips">
-            <div style="font-size:13px;color:var(--muted);font-weight:300">Noch keine Abwesenheiten eingetragen.</div>
-          </div>
-        </div>
-        <div class="success-msg" id="success-msg">✓ <strong>Anmeldung eingegangen!</strong> Du erhältst in Kürze eine E-Mail mit deinem Telegram-Verknüpfungslink.</div>
-        <div class="btn-row">
-          <button type="button" class="btn-back" onclick="switchTab('verfueg',2)">← Zurück</button>
           <button type="submit" class="submit-btn">Jetzt anmelden →</button>
         </div>
       </div>
@@ -367,156 +238,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
   </div>
 </div>
 
+<!-- Hidden draft ID -->
+<input type="hidden" id="draft-id" value="">
+
 <script>
-// ─────────────────────────────────────────────
-// KONFIGURATION DER 12 ZEITSLOTS
-// ─────────────────────────────────────────────
-var TAGE = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-var TAGE_FULL = ['mo','di','mi','do','fr','sa'];
-var SLOTS = ['vm','nm']; // Vormittag, Nachmittag
-var SLOT_LABELS = { vm: 'Vormittag', nm: 'Nachmittag' };
-
-// Alle 12 Slot-Keys: mo_vm, mo_nm, di_vm, ... sa_nm
-var ALL_SLOTS = [];
-TAGE_FULL.forEach(function(t) { SLOTS.forEach(function(s) { ALL_SLOTS.push(t + '_' + s); }); });
-
-// ─────────────────────────────────────────────
-// SLOT STATE: { tableId: { slotKey: true/false } }
-// ─────────────────────────────────────────────
-var slotState = {
-  'zt-frueh':    {},
-  'zt-spaet':    {},
-  'zt-gerade':   {},
-  'zt-ungerade': {},
-  'zt-sonstiges':{}
-};
-ALL_SLOTS.forEach(function(k) {
-  Object.keys(slotState).forEach(function(tid) { slotState[tid][k] = false; });
-});
-
-// ─────────────────────────────────────────────
-// WELCHE SLOTS sind in welcher Tabelle klickbar?
-// ─────────────────────────────────────────────
-// true = enabled/clickable, false = greyed-out
-function getEnabledSlots(tableId) {
-  var enabled = {};
-  ALL_SLOTS.forEach(function(k) { enabled[k] = false; });
-
-  if (tableId === 'zt-frueh') {
-    // Frühschicht: Mo-Fr Nachmittag + Sa beide
-    TAGE_FULL.forEach(function(t, i) {
-      if (i < 5) { enabled[t + '_nm'] = true; }          // Mo-Fr: nur Nachmittag
-      else { enabled[t + '_vm'] = true; enabled[t + '_nm'] = true; } // Sa: beide
-    });
-  } else if (tableId === 'zt-spaet') {
-    // Spätschicht: Mo-Fr Vormittag + Sa beide
-    TAGE_FULL.forEach(function(t, i) {
-      if (i < 5) { enabled[t + '_vm'] = true; }          // Mo-Fr: nur Vormittag
-      else { enabled[t + '_vm'] = true; enabled[t + '_nm'] = true; } // Sa: beide
-    });
-  } else {
-    // Wechsel (gerade/ungerade) + Sonstiges: alle 12
-    ALL_SLOTS.forEach(function(k) { enabled[k] = true; });
-  }
-  return enabled;
-}
-
-// ─────────────────────────────────────────────
-// TABELLE AUFBAUEN
-// ─────────────────────────────────────────────
-function buildZeitslotTable(tableId) {
-  var table = document.getElementById(tableId);
-  if (!table) return;
-  table.innerHTML = '';
-  var enabled = getEnabledSlots(tableId);
-
-  // Header-Zeile
-  var thead = document.createElement('thead');
-  var headerRow = document.createElement('tr');
-  var thEmpty = document.createElement('th');
-  headerRow.appendChild(thEmpty);
-  TAGE.forEach(function(t) {
-    var th = document.createElement('th'); th.textContent = t; headerRow.appendChild(th);
-  });
-  thead.appendChild(headerRow);
-  table.appendChild(thead);
-
-  // Body: je eine Zeile für Vormittag und Nachmittag
-  var tbody = document.createElement('tbody');
-  SLOTS.forEach(function(slot) {
-    var tr = document.createElement('tr');
-    var td0 = document.createElement('td'); td0.textContent = SLOT_LABELS[slot]; tr.appendChild(td0);
-    TAGE_FULL.forEach(function(tag) {
-      var key = tag + '_' + slot;
-      var td = document.createElement('td');
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'slot-toggle' + (enabled[key] ? '' : ' disabled');
-      btn.setAttribute('data-table', tableId);
-      btn.setAttribute('data-key', key);
-      btn.setAttribute('aria-label', TAGE[TAGE_FULL.indexOf(tag)] + ' ' + SLOT_LABELS[slot]);
-      btn.innerHTML = enabled[key] ? '○' : '—';
-      if (enabled[key]) {
-        btn.addEventListener('click', function() { toggleSlot(tableId, key, btn); });
-      }
-      td.appendChild(btn);
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  });
-  table.appendChild(tbody);
-}
-
-function toggleSlot(tableId, key, btn) {
-  slotState[tableId][key] = !slotState[tableId][key];
-  if (slotState[tableId][key]) {
-    btn.classList.add('active'); btn.innerHTML = '✓';
-  } else {
-    btn.classList.remove('active'); btn.innerHTML = '○';
-  }
-}
-
-// Alle Tabellen einmal bauen
-['zt-frueh','zt-spaet','zt-gerade','zt-ungerade','zt-sonstiges'].forEach(buildZeitslotTable);
-
-// ─────────────────────────────────────────────
-// SCHICHTART UMSCHALTEN → passende Zeitslot-Sektionen zeigen
-// ─────────────────────────────────────────────
-function applySchichtart(val) {
-  // Alle Sektionen ausblenden
-  ['frueh','spaet','wechsel','sonstiges','kommentar'].forEach(function(id) {
-    document.getElementById('zs-' + id).classList.remove('visible');
-  });
-  document.getElementById('konti-info').classList.remove('visible');
-
-  if (val === 'frueh') {
-    document.getElementById('zs-frueh').classList.add('visible');
-    document.getElementById('zs-kommentar').classList.add('visible');
-  } else if (val === 'spaet') {
-    document.getElementById('zs-spaet').classList.add('visible');
-    document.getElementById('zs-kommentar').classList.add('visible');
-  } else if (val === 'wechsel') {
-    document.getElementById('zs-wechsel').classList.add('visible');
-    document.getElementById('zs-kommentar').classList.add('visible');
-  } else if (val === 'konti') {
-    document.getElementById('konti-info').classList.add('visible');
-    document.getElementById('zs-kommentar').classList.add('visible');
-  } else if (val === 'sonstiges') {
-    document.getElementById('zs-sonstiges').classList.add('visible');
-    document.getElementById('zs-kommentar').classList.add('visible');
-  }
-}
-
-document.querySelectorAll('.schicht-pill[data-group="schichtart"]').forEach(function(pill) {
-  pill.addEventListener('click', function() {
-    document.querySelectorAll('.schicht-pill[data-group="schichtart"]').forEach(function(p) { p.classList.remove('selected'); });
-    pill.classList.add('selected');
-    var val = pill.dataset.val;
-    document.getElementById('hidden-schichtart').value = val;
-    applySchichtart(val);
-  });
-});
-
 // ─────────────────────────────────────────────
 // TABS
 // ─────────────────────────────────────────────
@@ -529,10 +254,88 @@ function switchTab(id, idx) {
 }
 
 // ─────────────────────────────────────────────
-// GEWERK STATE
+// TOAST
+// ─────────────────────────────────────────────
+var toastTimer;
+function showToast(msg, type) {
+  clearTimeout(toastTimer);
+  var el = document.getElementById('toast');
+  var msgEl = document.getElementById('toast-msg');
+  el.className = 'toast ' + (type || '');
+  el.querySelector('.toast-icon').textContent = type === 'error' ? '✕' : '✓';
+  msgEl.textContent = msg;
+  el.classList.add('show');
+  toastTimer = setTimeout(function() { el.classList.remove('show'); }, 3500);
+}
+
+// ─────────────────────────────────────────────
+// AUTOSAVE STATUS
+// ─────────────────────────────────────────────
+function setAutosave(barId, state, text) {
+  var bar = document.getElementById(barId);
+  var txt = document.getElementById(barId + '-text');
+  bar.className = 'autosave-bar ' + (state || '');
+  txt.textContent = text || '';
+}
+
+// ─────────────────────────────────────────────
+// COLLECT FORM DATA
 // ─────────────────────────────────────────────
 var loadedGewerke = [];
 
+function collectPayload() {
+  var gewerke = [];
+  document.querySelectorAll('input[name="gewerk"]:checked').forEach(function(cb) { gewerke.push(cb.value); });
+  var erfahrung = {};
+  gewerke.forEach(function(g) {
+    var el = document.getElementById('level-val-' + g);
+    erfahrung[g] = el ? (el.value || '') : '';
+  });
+  return {
+    vorname: document.getElementById('f-vorname').value || '',
+    nachname: document.getElementById('f-nachname').value || '',
+    email: document.getElementById('f-email').value || '',
+    telefon: document.getElementById('f-telefon').value || '',
+    schichtarbeit: document.getElementById('cb-schichtarbeit').checked,
+    gewerke: gewerke,
+    erfahrung: erfahrung,
+    qualifikationen: document.getElementById('f-qualifikationen').value || '',
+    teamwunsch: document.getElementById('f-teamwunsch').value || '',
+    status: 'angemeldet',
+    updatedAt: new Date().toISOString()
+  };
+}
+
+// ─────────────────────────────────────────────
+// SAVE (Firestore) – called on tab switch
+// ─────────────────────────────────────────────
+async function saveDraft(barId) {
+  if (!window._saveAnmeldung) return true; // no Firestore yet loaded, skip silently
+  setAutosave(barId, 'saving', 'Wird gespeichert …');
+  try {
+    var payload = collectPayload();
+    var result = await window._saveAnmeldung(payload);
+    if (result && result.id) {
+      document.getElementById('draft-id').value = result.id;
+    }
+    setAutosave(barId, 'saved', 'Gespeichert ✓');
+    setTimeout(function() { setAutosave(barId, '', 'Wird automatisch gespeichert beim Weiterblättern'); }, 2500);
+    return true;
+  } catch(e) {
+    setAutosave(barId, 'error', 'Speichern fehlgeschlagen');
+    return false;
+  }
+}
+
+async function saveTabAndGo(fromTabId, toTabId, toIdx) {
+  var barId = fromTabId === 'person' ? 'autosave-1' : 'autosave-2';
+  await saveDraft(barId);
+  switchTab(toTabId, toIdx);
+}
+
+// ─────────────────────────────────────────────
+// GEWERK STATE
+// ─────────────────────────────────────────────
 function buildGewerkGrid(gewerke, levels) {
   var grid = document.getElementById('gewerk-grid');
   grid.innerHTML = '';
@@ -541,60 +344,72 @@ function buildGewerkGrid(gewerke, levels) {
     return;
   }
   loadedGewerke = gewerke;
+
+  // Add "Bauhelfer allgemein" at top
+  var bauhelferItem = buildGewerkItem({ id: 'bauhelfer_allgemein', name: 'Bauhelfer allgemein', levels: [] }, levels);
+  grid.appendChild(bauhelferItem.label);
+  grid.appendChild(bauhelferItem.levelRow);
+
   gewerke.forEach(function(g) {
-    var safeId = g.id;
-    var label = document.createElement('label');
-    label.className = 'gewerk-item checkbox-item';
-    label.innerHTML =
-      '<input type="checkbox" name="gewerk" value="' + safeId + '" id="cb-' + safeId + '">' +
-      '<span class="check-box"></span>' +
-      '<span class="check-label">' + g.name + '</span>';
-    label.querySelector('input').addEventListener('change', function() { toggleLevel(safeId, this.checked); });
-    grid.appendChild(label);
-
-    var levelRow = document.createElement('div');
-    levelRow.className = 'gewerk-level';
-    levelRow.id = 'level-' + safeId;
-    levelRow.style.gridColumn = '1 / -1';
-
-    var gwLevels = (g.levels || [])
-      .map(function(lid) { return levels.find(function(l) { return l.id === lid; }); })
-      .filter(Boolean);
-
-    if (gwLevels.length > 0) {
-      var nameSpan = document.createElement('span');
-      nameSpan.className = 'gewerk-level-name';
-      nameSpan.textContent = g.name.split('/')[0].trim() + ':';
-      levelRow.appendChild(nameSpan);
-
-      var pillsWrap = document.createElement('div');
-      pillsWrap.className = 'level-pills';
-      pillsWrap.id = 'pills-' + safeId;
-
-      gwLevels.forEach(function(lv) {
-        var pill = document.createElement('span');
-        pill.className = 'level-pill';
-        pill.textContent = lv.name;
-        pill.addEventListener('click', function(e) {
-          e.stopPropagation();
-          pillsWrap.querySelectorAll('.level-pill').forEach(function(p) { p.classList.remove('selected'); });
-          pill.classList.add('selected');
-          document.getElementById('level-val-' + safeId).value = lv.id;
-        });
-        pillsWrap.appendChild(pill);
-      });
-      levelRow.appendChild(pillsWrap);
-
-      var hiddenInput = document.createElement('input');
-      hiddenInput.type = 'hidden';
-      hiddenInput.name = 'level_' + safeId;
-      hiddenInput.id = 'level-val-' + safeId;
-      levelRow.appendChild(hiddenInput);
-    } else {
-      levelRow.style.display = 'none';
-    }
-    grid.appendChild(levelRow);
+    var item = buildGewerkItem(g, levels);
+    grid.appendChild(item.label);
+    grid.appendChild(item.levelRow);
   });
+}
+
+function buildGewerkItem(g, levels) {
+  var safeId = g.id;
+  var label = document.createElement('label');
+  label.className = 'gewerk-item checkbox-item';
+  label.innerHTML =
+    '<input type="checkbox" name="gewerk" value="' + safeId + '" id="cb-' + safeId + '">' +
+    '<span class="check-box"></span>' +
+    '<span class="check-label">' + g.name + '</span>';
+  label.querySelector('input').addEventListener('change', function() { toggleLevel(safeId, this.checked); });
+
+  var levelRow = document.createElement('div');
+  levelRow.className = 'gewerk-level';
+  levelRow.id = 'level-' + safeId;
+  levelRow.style.gridColumn = '1 / -1';
+
+  var gwLevels = (g.levels || [])
+    .map(function(lid) { return levels.find(function(l) { return l.id === lid; }); })
+    .filter(Boolean);
+
+  if (gwLevels.length > 0) {
+    var nameSpan = document.createElement('span');
+    nameSpan.className = 'gewerk-level-name';
+    nameSpan.textContent = g.name.split('/')[0].trim() + ':';
+    levelRow.appendChild(nameSpan);
+
+    var pillsWrap = document.createElement('div');
+    pillsWrap.className = 'level-pills';
+    pillsWrap.id = 'pills-' + safeId;
+
+    gwLevels.forEach(function(lv) {
+      var pill = document.createElement('span');
+      pill.className = 'level-pill';
+      pill.textContent = lv.name;
+      pill.addEventListener('click', function(e) {
+        e.stopPropagation();
+        pillsWrap.querySelectorAll('.level-pill').forEach(function(p) { p.classList.remove('selected'); });
+        pill.classList.add('selected');
+        document.getElementById('level-val-' + safeId).value = lv.id;
+      });
+      pillsWrap.appendChild(pill);
+    });
+    levelRow.appendChild(pillsWrap);
+
+    var hiddenInput = document.createElement('input');
+    hiddenInput.type = 'hidden';
+    hiddenInput.name = 'level_' + safeId;
+    hiddenInput.id = 'level-val-' + safeId;
+    levelRow.appendChild(hiddenInput);
+  } else {
+    levelRow.style.cssText = 'display:none;grid-column:1/-1';
+  }
+
+  return { label: label, levelRow: levelRow };
 }
 
 function toggleLevel(id, checked) {
@@ -612,192 +427,146 @@ function toggleLevel(id, checked) {
 }
 
 // ─────────────────────────────────────────────
-// ZEITSLOTS → normalisiertes Payload-Objekt
+// INFOS TAB RENDERER
 // ─────────────────────────────────────────────
-/**
- * Erstellt das normalisierte zeitslots-Objekt für die Datenbank.
- * Immer 12 Felder: mo_vm, mo_nm, di_vm, ... sa_nm
- * Bei Wechselschicht: { gerade: {...}, ungerade: {...} }
- * Bei Konti: null (alles im Kommentarfeld)
- */
-function buildZeitslotPayload(schichtart) {
-  if (schichtart === 'konti') return null;
+function renderInfos(blocks) {
+  var loading = document.getElementById('infos-loading');
+  var content = document.getElementById('infos-content');
+  var empty = document.getElementById('infos-empty');
 
-  function extractSlots(tableId) {
-    var result = {};
-    ALL_SLOTS.forEach(function(k) { result[k] = slotState[tableId][k] === true; });
-    return result;
+  loading.style.display = 'none';
+
+  if (!blocks || blocks.length === 0) {
+    empty.style.display = 'block';
+    return;
   }
 
-  if (schichtart === 'frueh')    return { typ: 'frueh',    slots: extractSlots('zt-frueh') };
-  if (schichtart === 'spaet')    return { typ: 'spaet',    slots: extractSlots('zt-spaet') };
-  if (schichtart === 'wechsel')  return { typ: 'wechsel',  gerade: extractSlots('zt-gerade'), ungerade: extractSlots('zt-ungerade') };
-  if (schichtart === 'sonstiges') return { typ: 'sonstiges', slots: extractSlots('zt-sonstiges') };
-  // Kein Schichtmodell gewählt → alle Slots offen (werden manuell besprochen)
-  return null;
-}
+  content.style.display = 'flex';
+  content.innerHTML = '';
 
-// ─────────────────────────────────────────────
-// KALENDER
-// ─────────────────────────────────────────────
-var today = new Date(); today.setHours(0,0,0,0);
-var calYear = today.getFullYear(), calMonth = today.getMonth();
-var selStart = null, picking = 'start', absences = [];
-var MONTHS = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  blocks.forEach(function(block) {
+    var wrapper = document.createElement('div');
+    wrapper.className = 'info-block';
 
-function fmt(d) { return d.getDate() + '.' + (d.getMonth()+1) + '.' + d.getFullYear(); }
-
-function renderCal() {
-  document.getElementById('cal-month-label').textContent = MONTHS[calMonth] + ' ' + calYear;
-  var prevBtn = document.querySelector('.cal-nav button:first-child');
-  var thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  var curMonth = new Date(calYear, calMonth, 1);
-  if (prevBtn) { prevBtn.disabled = curMonth <= thisMonth; prevBtn.style.opacity = curMonth <= thisMonth ? '0.3' : '1'; }
-  var grid = document.getElementById('cal-grid');
-  var headers = Array.prototype.slice.call(grid.children, 0, 7);
-  grid.innerHTML = '';
-  headers.forEach(function(h) { grid.appendChild(h); });
-  var first = new Date(calYear, calMonth, 1);
-  var startDow = (first.getDay() + 6) % 7;
-  for (var i = 0; i < startDow; i++) grid.appendChild(makeDay(new Date(calYear, calMonth, 1-(startDow-i)), true));
-  var dim = new Date(calYear, calMonth+1, 0).getDate();
-  for (var d = 1; d <= dim; d++) grid.appendChild(makeDay(new Date(calYear, calMonth, d), false));
-  var total = grid.children.length - 7;
-  var rem = total % 7 === 0 ? 0 : 7-(total%7);
-  for (var j = 1; j <= rem; j++) grid.appendChild(makeDay(new Date(calYear, calMonth+1, j), true));
-}
-
-function makeDay(date, otherMonth) {
-  var el = document.createElement('div');
-  el.className = 'cal-day';
-  el.textContent = date.getDate();
-  if (otherMonth) { el.classList.add('other-month'); return el; }
-  if (date < today) { el.classList.add('past'); return el; }
-  if (date.getTime() === today.getTime()) el.classList.add('today');
-  absences.forEach(function(ab) {
-    if (date >= ab.start && date <= ab.end) {
-      if (date.getTime()===ab.start.getTime() && date.getTime()===ab.end.getTime()) el.classList.add('range-start','range-end');
-      else if (date.getTime()===ab.start.getTime()) el.classList.add('range-start');
-      else if (date.getTime()===ab.end.getTime()) el.classList.add('range-end');
-      else el.classList.add('in-range');
+    if (block.title) {
+      var header = document.createElement('div');
+      header.className = 'info-block-header';
+      header.textContent = block.title;
+      wrapper.appendChild(header);
     }
-  });
-  if (selStart && picking==='end' && date.getTime()===selStart.getTime()) el.classList.add('range-start','range-end');
-  el.setAttribute('data-ts', date.getTime());
-  return el;
-}
 
-function onDayClick(date) {
-  var hint = document.getElementById('cal-hint');
-  if (picking === 'start') {
-    for (var i = 0; i < absences.length; i++) {
-      if (date >= absences[i].start && date <= absences[i].end) {
-        absences.splice(i, 1); renderChips(); renderCal(); return;
-      }
-    }
-    selStart = new Date(date); picking = 'end';
-    hint.textContent = 'Endtag wählen – gleichen Tag nochmal tippen für einzelnen Tag';
-    renderCal();
-  } else {
-    var s = selStart <= date ? new Date(selStart) : new Date(date);
-    var e = selStart <= date ? new Date(date) : new Date(selStart);
-    absences.push({start: s, end: e});
-    selStart = null; picking = 'start';
-    hint.textContent = '';
-    renderChips(); renderCal();
-  }
-}
+    var body = document.createElement('div');
+    body.className = 'info-block-body';
 
-function renderChips() {
-  var c = document.getElementById('absence-chips');
-  c.innerHTML = '';
-  if (absences.length === 0) {
-    c.innerHTML = '<div style="font-size:13px;color:var(--muted);font-weight:300">Noch keine Abwesenheiten eingetragen.</div>';
-  } else {
-    absences.forEach(function(ab, i) {
-      var div = document.createElement('div');
-      div.className = 'absence-chip';
-      var label = ab.start.getTime()===ab.end.getTime() ? fmt(ab.start) : fmt(ab.start)+' – '+fmt(ab.end);
-      div.innerHTML = '<span>'+label+'</span><button type="button" class="chip-remove" onclick="removeAbsence('+i+')">✕</button>';
-      c.appendChild(div);
-    });
-  }
-}
-
-function removeAbsence(idx) { absences.splice(idx,1); renderChips(); renderCal(); }
-function calPrev() { var p=new Date(calYear,calMonth-1,1); if(p<new Date(today.getFullYear(),today.getMonth(),1))return; calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCal(); }
-function calNext() { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCal(); }
-
-function initCal() {
-  renderCal();
-  var grid = document.getElementById('cal-grid');
-  function handleTap(e) {
-    var t = e.target;
-    while (t && t !== grid) {
-      if (t.classList && t.classList.contains('cal-day') &&
-          !t.classList.contains('other-month') &&
-          !t.classList.contains('past')) {
-        var ts = t.getAttribute('data-ts');
-        if (ts) {
-          if (e.type === 'touchend') e.preventDefault();
-          onDayClick(new Date(parseInt(ts, 10)));
-          return;
+    // Images
+    if (block.images && block.images.length > 0) {
+      var imgGrid = document.createElement('div');
+      imgGrid.className = 'info-img-grid';
+      imgGrid.style.marginBottom = '14px';
+      block.images.forEach(function(src) {
+        if (src && src !== '__placeholder__') {
+          var img = document.createElement('img');
+          img.className = 'info-img-real';
+          img.src = src;
+          img.alt = block.title || '';
+          imgGrid.appendChild(img);
+        } else {
+          var ph = document.createElement('div');
+          ph.className = 'info-placeholder-img';
+          ph.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span class="img-label">Bild-Platzhalter</span><span style="font-size:11px">Wird über Admin-Frontend eingepflegt</span>';
+          imgGrid.appendChild(ph);
         }
-      }
-      t = t.parentNode;
+      });
+      body.appendChild(imgGrid);
+    } else if (block.showImagePlaceholder) {
+      // Show single placeholder
+      var ph = document.createElement('div');
+      ph.className = 'info-placeholder-img';
+      ph.style.marginBottom = '14px';
+      ph.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span class="img-label">Bild-Platzhalter</span><span style="font-size:11px">Wird über Admin-Frontend eingepflegt</span>';
+      body.appendChild(ph);
     }
-  }
-  grid.addEventListener('click', handleTap);
-  grid.addEventListener('touchend', handleTap, {passive: false});
+
+    // Text content
+    if (block.html) {
+      var textDiv = document.createElement('div');
+      textDiv.className = 'info-text';
+      textDiv.innerHTML = block.html;
+      body.appendChild(textDiv);
+    } else if (block.text) {
+      var textDiv2 = document.createElement('div');
+      textDiv2.className = 'info-text';
+      textDiv2.textContent = block.text;
+      body.appendChild(textDiv2);
+    }
+
+    // Tags
+    if (block.tags && block.tags.length > 0) {
+      var tagRow = document.createElement('div');
+      tagRow.style.marginTop = '10px';
+      block.tags.forEach(function(t) {
+        var tag = document.createElement('span');
+        tag.className = 'info-tag';
+        tag.textContent = t;
+        tagRow.appendChild(tag);
+      });
+      body.appendChild(tagRow);
+    }
+
+    // Meta
+    if (block.meta) {
+      var metaEl = document.createElement('div');
+      metaEl.className = 'info-meta';
+      metaEl.style.marginTop = '8px';
+      metaEl.textContent = block.meta;
+      body.appendChild(metaEl);
+    }
+
+    wrapper.appendChild(body);
+    content.appendChild(wrapper);
+  });
+}
+
+// Fallback placeholder blocks if Firestore not available
+function renderInfosFallback() {
+  renderInfos([
+    {
+      title: 'Über das Projekt',
+      showImagePlaceholder: true,
+      html: '<h3>Gemeindehaus Achim</h3><p>Hier erscheinen Informationen zum Projekt, sobald der Administrator sie über das Admin-Frontend einpflegt.</p><p>Mögliche Inhalte: Projektbeschreibung, Zeitplan, Ansprechpartner, Lagepläne, Fotos.</p>',
+      tags: ['Projekt', 'Information']
+    },
+    {
+      title: 'Zeitplan & Ablauf',
+      images: ['__placeholder__', '__placeholder__'],
+      html: '<p>Zeitplan und Ablaufpläne werden hier angezeigt.</p>',
+      meta: 'Zuletzt aktualisiert: –'
+    }
+  ]);
 }
 
 // ─────────────────────────────────────────────
 // SUBMIT
 // ─────────────────────────────────────────────
-function handleSubmit(e) {
+async function handleSubmit(e) {
   e.preventDefault();
-  var data = new FormData(document.getElementById('anmeldeform'));
-  var gewerke = data.getAll('gewerk');
-  var erfahrung = {};
-  gewerke.forEach(function(g) { erfahrung[g] = data.get('level_' + g) || ''; });
 
-  var schichtart = data.get('schichtart') || '';
-  var zeitslots = buildZeitslotPayload(schichtart);
+  var payload = collectPayload();
+  payload.status = 'final';
 
-  var payload = {
-    vorname: data.get('vorname') || '',
-    nachname: data.get('nachname') || '',
-    email: data.get('email') || '',
-    telefon: data.get('telefon') || '',
-    gewerke: gewerke,
-    erfahrung: erfahrung,
-    qualifikationen: data.get('qualifikationen') || '',
-    teamwunsch: data.get('teamwunsch') || '',
-    schichtart: schichtart,
-    zeitslots: zeitslots,
-    schicht_freitext: data.get('schicht_freitext') || '',
-    verfueg_kommentar: data.get('verfueg_kommentar') || '',
-    abwesenheiten: absences.map(function(a) { return {von: fmt(a.start), bis: fmt(a.end)}; })
-  };
-
-  var msg = document.getElementById('success-msg');
-
-  if (window.saveAnmeldung) {
-    window.saveAnmeldung(payload).then(function(result) {
-      if (result.success) {
-        msg.style.background = '#edf7f0'; msg.style.borderColor = '#aad4b8'; msg.style.color = '#3a7a52';
-        msg.innerHTML = '✓ <strong>Anmeldung eingegangen!</strong> Du erhältst in Kürze eine E-Mail mit deinem Telegram-Verknüpfungslink.';
-      } else {
-        msg.style.background = '#fdf0f0'; msg.style.borderColor = '#f0a0a0'; msg.style.color = '#c0392b';
-        msg.innerHTML = 'Fehler beim Speichern. Bitte nochmal versuchen.';
-      }
-      msg.style.display = 'block';
-    });
+  if (window._saveAnmeldung) {
+    try {
+      await window._saveAnmeldung(payload);
+      showToast('Anmeldung eingegangen! Du erhältst bald eine E-Mail.', 'success');
+    } catch(err) {
+      showToast('Fehler beim Speichern. Bitte nochmal versuchen.', 'error');
+      return;
+    }
   } else {
-    msg.style.display = 'block';
+    showToast('Anmeldung eingegangen!', 'success');
   }
 
-  // Reset
+  // Reset form
   document.getElementById('anmeldeform').reset();
   loadedGewerke.forEach(function(g) {
     var l = document.getElementById('level-' + g.id);
@@ -807,29 +576,16 @@ function handleSubmit(e) {
     var valInput = document.getElementById('level-val-' + g.id);
     if (valInput) valInput.value = '';
   });
-  document.querySelectorAll('.schicht-pill').forEach(function(p) { p.classList.remove('selected'); });
-  ['frueh','spaet','wechsel','sonstiges','kommentar'].forEach(function(id) {
-    var el = document.getElementById('zs-' + id); if (el) el.classList.remove('visible');
-  });
-  document.getElementById('konti-info').classList.remove('visible');
-  Object.keys(slotState).forEach(function(tid) {
-    ALL_SLOTS.forEach(function(k) { slotState[tid][k] = false; });
-  });
-  ['zt-frueh','zt-spaet','zt-gerade','zt-ungerade','zt-sonstiges'].forEach(buildZeitslotTable);
-  absences = []; renderChips(); renderCal();
-  switchTab('person', 0);
-  setTimeout(function() { msg.style.display = 'none'; }, 7000);
+  // Also reset bauhelfer
+  var lBh = document.getElementById('level-bauhelfer_allgemein');
+  if (lBh) lBh.classList.remove('visible');
 }
 
-// ─────────────────────────────────────────────
-// INIT
-// ─────────────────────────────────────────────
-initCal();
 </script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, addDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
@@ -843,6 +599,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// ── Save / upsert Anmeldung ──
+window._saveAnmeldung = async function(payload) {
+  const draftId = document.getElementById('draft-id').value;
+  if (draftId) {
+    await updateDoc(doc(db, 'anmeldungen', draftId), { ...payload, updatedAt: serverTimestamp() });
+    return { id: draftId };
+  } else {
+    const ref = await addDoc(collection(db, 'anmeldungen'), { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    document.getElementById('draft-id').value = ref.id;
+    return { id: ref.id };
+  }
+};
+
+// ── Load Gewerke ──
 async function loadGewerke() {
   const container = document.getElementById('gewerk-grid');
   container.innerHTML = '<div class="gewerk-loading">Gewerke werden geladen …</div>';
@@ -859,7 +629,25 @@ async function loadGewerke() {
   }
 }
 
-window.addEventListener('DOMContentLoaded', loadGewerke);
+// ── Load Infos ──
+async function loadInfos() {
+  try {
+    const snap = await getDoc(doc(db, 'planung', 'infosKonfig'));
+    if (!snap.exists()) { renderInfosFallback(); return; }
+    const data = snap.data();
+    const blocks = data.blocks || [];
+    if (blocks.length === 0) { renderInfosFallback(); return; }
+    renderInfos(blocks);
+  } catch(e) {
+    console.error(e);
+    renderInfosFallback();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  loadGewerke();
+  loadInfos();
+});
 </script>
 </body>
 </html>
