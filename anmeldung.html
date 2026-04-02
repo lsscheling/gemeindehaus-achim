@@ -187,7 +187,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
             <span>Da unter der Woche auch vormittags gearbeitet wird, ist diese Information in der Organisation hilfreich.</span>
           </span>
         </label>
-        <div class="autosave-bar" id="autosave-1"><span class="autosave-dot"></span><span id="autosave-1-text">Wird automatisch gespeichert beim Weiterblättern</span></div>
         <div class="btn-row">
           <span></span>
           <button type="button" class="submit-btn" style="background:var(--accent)" onclick="saveTabAndGo('person','gewerk',1)">Weiter →</button>
@@ -212,7 +211,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
           <label>Teamwunsch (optional)</label>
           <input type="text" name="teamwunsch" id="f-teamwunsch" placeholder="z.B. gerne mit Klaus zusammen">
         </div>
-        <div class="autosave-bar" id="autosave-2"><span class="autosave-dot"></span><span id="autosave-2-text">Wird automatisch gespeichert beim Weiterblättern</span></div>
         <div class="btn-row">
           <button type="button" class="btn-back" onclick="switchTab('person',0)">← Zurück</button>
           <button type="button" class="submit-btn" style="background:var(--accent)" onclick="saveTabAndGo('gewerk','infos',2)">Weiter →</button>
@@ -555,7 +553,7 @@ async function handleSubmit(e) {
   if (window._saveAnmeldung) {
     try {
       await window._saveAnmeldung(payload);
-      showToast('Anmeldung eingegangen! Du erhältst bald eine E-Mail.', 'success');
+      showToast('Anmeldung eingegangen!', 'success');
     } catch(err) {
       showToast('Fehler beim Speichern. Bitte nochmal versuchen.', 'error');
       return;
