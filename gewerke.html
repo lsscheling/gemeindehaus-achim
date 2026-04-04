@@ -172,32 +172,13 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
       <div class="sidebar-logo-sub">Gewerk-Verwaltung</div>
     </div>
     <nav class="sidebar-nav">
-      <div class="nav-label">Übersicht</div>
-      <button class="nav-item" onclick="location.href='dashboard.html'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-        Anmeldungen
-      </button>
-      <button class="nav-item" onclick="location.href='team.html'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-        Teams
-      </button>
-      <div class="nav-label" style="margin-top:8px">Planung</div>
-      <button class="nav-item active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-        Gewerke
+      <button class="nav-item" onclick="location.href='admin.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 5l-7 7 7 7"/></svg>
+        Admin
       </button>
       <button class="nav-item" onclick="location.href='gantt.html'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Gewerk-Planung
-      </button>
-      <div class="nav-label" style="margin-top:8px">Einladung</div>
-      <button class="nav-item" onclick="location.href='einladung.html'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-        QR-Code & Einladung
-      </button>
-      <button class="nav-item" onclick="window.open('anmeldung.html','_blank')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Anmeldeformular ↗
+        Gantt ↗
       </button>
     </nav>
   </div>
@@ -406,8 +387,7 @@ function render() {
 
     const safeName = g.name.replace(/`/g, "'");
     const archived = !g.active;
-    // visibleInForm is only meaningful when active; force false when archived
-    const visInForm = g.active && g.visibleInForm;
+    const visInForm = !!g.visibleInForm;
 
     html += `<div class="gewerk-row${archived ? ' archived' : ''}">
       <!-- Toggle: aktiv / archiviert -->
@@ -426,10 +406,9 @@ function render() {
       </div>
 
       <!-- Checkbox: in Anmeldung sichtbar -->
-      <div class="vis-wrap" title="${archived ? 'Nur bei aktiven Gewerken möglich' : (visInForm ? 'Im Anmeldeformular sichtbar' : 'Nicht im Anmeldeformular')}">
+      <div class="vis-wrap" title="${visInForm ? 'Im Anmeldeformular sichtbar' : 'Nicht im Anmeldeformular'}">
         <input class="vis-cb" type="checkbox"
           ${visInForm ? 'checked' : ''}
-          ${archived ? 'disabled' : ''}
           onchange="setVisible('${g.id}',this.checked)">
       </div>
 
@@ -499,8 +478,6 @@ window.setActive = function(id, val) {
   const g = gewerke.find(x => x.id === id);
   if (!g) return;
   g.active = val;
-  // Wenn deaktiviert → auch aus Anmeldung nehmen
-  if (!val) g.visibleInForm = false;
   render();
 };
 
@@ -516,9 +493,9 @@ window.addGewerk = function() {
   if (!name) { alert('Bitte einen Namen eingeben.'); return; }
   gewerke.push({
     id: 'gw_' + Date.now(), name,
-    active: true, visibleInForm: true,
+    active: true, visibleInForm: false,
     minPersons: 1, color: COLORS[gewerke.length % COLORS.length],
-    levels: levels.map(l => l.id)
+    levels: []
   });
   render();
 };
