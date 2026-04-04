@@ -514,16 +514,23 @@ function closeSidebar() {
 // ═══════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════
-const LEVEL_ORDER = { profi: 4, erfahren: 3, grundkenntnisse: 2, anfaenger: 1, '': 0 };
-const LEVEL_LABELS = { profi:'Profi', erfahren:'Erfahren', grundkenntnisse:'Grundkenntnis.', anfaenger:'Anfänger' };
-const LEVEL_COLORS = { profi:'#2d6a4f', erfahren:'#b85c2a', grundkenntnisse:'#92610a', anfaenger:'#888' };
-const LEVEL_BGS = { profi:'#d4ead9', erfahren:'#f0d9cc', grundkenntnisse:'#fef3c7', anfaenger:'#f0f0f0' };
-const LEVEL_LIST = [
-  {val:'profi',label:'Beruflich ausgebildet'},
-  {val:'erfahren',label:'Hobbymäßig erfahren'},
-  {val:'grundkenntnisse',label:'Grundkenntnisse'},
-  {val:'anfaenger',label:'Anfänger'}
-];
+function getLevelOrder(id) {
+  if (!id) return -1;
+  const idx = levelsKonfig.findIndex(l => l.id === id);
+  return idx === -1 ? -1 : levelsKonfig.length - idx;
+}
+function getLevelName(id) {
+  const lv = levelsKonfig.find(l => l.id === id);
+  return lv ? lv.name : (id || '–');
+}
+function getLevelColor(id) {
+  const lv = levelsKonfig.find(l => l.id === id);
+  return lv?.color || '#888';
+}
+function getLevelBg(id) {
+  const col = getLevelColor(id);
+  return col + '22';
+}
 
 // ═══════════════════════════════════════════════
 // STATE
@@ -533,9 +540,9 @@ let filteredDocs = [];
 let selectedIds = new Set();
 let planSelectedIds = new Set();
 let gewerkeKonfig = [];
+let levelsKonfig = [];
 let currentFilter = '', currentGewerk = '', currentAssign = '';
 let matrixFilter = '', matrixLevel = '', activeGewerkId = null;
-let currentUserRole = null;
 // Modal state
 let modalErfahrung = {};
 let editingId = null;
@@ -597,9 +604,9 @@ function renderTable() {
     const name = (d.vorname||'') + ' ' + (d.nachname||'');
     const gewerkeHtml = (d.gewerke||[]).map(g => {
       const lv = (d.erfahrung||{})[g];
-      const bg = lv ? LEVEL_BGS[lv] : 'var(--cream)';
-      const col = lv ? LEVEL_COLORS[lv] : 'var(--muted)';
-      const lvl = lv ? (' · ' + LEVEL_LABELS[lv]) : '';
+      const bg = lv ? getLevelBg(lv) : 'var(--cream)';
+      const col = lv ? getLevelColor(lv) : 'var(--muted)';
+      const lvl = lv ? (' · ' + getLevelName(lv)) : '';
       return `<span style="display:inline-block;padding:2px 7px;border-radius:9px;font-size:10px;background:${bg};color:${col};border:1px solid ${col}33;margin:1px">${getGewerkLabel(g)}${lvl}</span>`;
     }).join('') || '–';
     const schichtHtml = d.schichtarbeit ? '<span class="badge badge-green">Ja</span>' : '<span class="badge badge-gray">–</span>';
@@ -770,8 +777,8 @@ function renderMatrix() {
     const aAssigned = (a.gewerk === activeGewerkId) ? 1 : 0;
     const bAssigned = (b.gewerk === activeGewerkId) ? 1 : 0;
     if (aAssigned !== bAssigned) return bAssigned - aAssigned;
-    const aLv = activeGewerkId ? LEVEL_ORDER[(a.erfahrung||{})[activeGewerkId]||''] : 0;
-    const bLv = activeGewerkId ? LEVEL_ORDER[(b.erfahrung||{})[activeGewerkId]||''] : 0;
+    const aLv = activeGewerkId ? getLevelOrder((a.erfahrung||{})[activeGewerkId]) : 0;
+    const bLv = activeGewerkId ? getLevelOrder((b.erfahrung||{})[activeGewerkId]) : 0;
     return bLv - aLv;
   });
 
@@ -806,9 +813,9 @@ function renderMatrix() {
 
     const levelHtml = activeGewerkId ? (() => {
       const lv = (d.erfahrung||{})[activeGewerkId] || '';
-      const col = LEVEL_COLORS[lv] || 'var(--muted)';
-      const bg = LEVEL_BGS[lv] || 'var(--cream)';
-      const lbl = LEVEL_LABELS[lv] || '–';
+      const col = lv ? getLevelColor(lv) : 'var(--muted)';
+      const bg = lv ? getLevelBg(lv) : 'var(--cream)';
+      const lbl = lv ? getLevelName(lv) : '–';
       return `<td><span style="display:inline-block;padding:2px 8px;border-radius:9px;font-size:10px;background:${bg};color:${col};border:1px solid ${col}33">${lbl}</span></td>`;
     })() : '';
 
@@ -870,8 +877,8 @@ function openDrawer(id) {
 
   const gewerkeHtml = (d.gewerke||[]).map(g => {
     const lv = (d.erfahrung||{})[g]||'';
-    const col = LEVEL_COLORS[lv]||'var(--muted)'; const bg = LEVEL_BGS[lv]||'var(--cream)';
-    const lvl = lv ? (' · ' + LEVEL_LABELS[lv]) : '';
+    const col = lv ? getLevelColor(lv) : 'var(--muted)'; const bg = lv ? getLevelBg(lv) : 'var(--cream)';
+    const lvl = lv ? (' · ' + getLevelName(lv)) : '';
     return `<span style="display:inline-block;padding:3px 10px;border-radius:10px;font-size:12px;background:${bg};color:${col};border:1px solid ${col}40;margin:2px">${getGewerkLabel(g)}${lvl}</span>`;
   }).join('') || '–';
 
@@ -940,7 +947,7 @@ function buildPersonForm(data) {
     <div class="mlevel ${checked?'visible':''}" id="mfl-${g.id}" style="grid-column:1/-1">
       <span class="mlevel-name">${g.name}:</span>
       <div class="mlevel-pills" id="mfp-${g.id}">
-        ${LEVEL_LIST.map(lv => `<span class="mlevel-pill ${(modalErfahrung[g.id]===lv.val)?'sel':''}" onclick="mfSelectLevel('${g.id}','${lv.val}',this)">${lv.label}</span>`).join('')}
+        ${levelsKonfig.map(lv => `<span class="mlevel-pill ${(modalErfahrung[g.id]===lv.id)?'sel':''}" onclick="mfSelectLevel('${g.id}','${lv.id}',this)">${lv.name}</span>`).join('')}
       </div>
     </div>`;
   }).join('');
@@ -1139,26 +1146,14 @@ window.doLogout = async function() { await signOut(auth); };
 // ── AUTH STATE ──
 onAuthStateChanged(auth, async user => {
   if (user) {
-    let role = 'teamleiter';
-    try {
-      const snap = await getDoc(doc(db,'users',user.uid));
-      if (snap.exists()) role = snap.data().rolle || 'teamleiter';
-      else { await signOut(auth); return; }
-    } catch(e) {}
-    currentUserRole = role;
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-    // Rollen-UI
-    const isAdmin = role === 'admin';
-    document.querySelectorAll('.').forEach(el => el.style.display = isAdmin ? '' : 'none');
     const info = document.getElementById('sidebar-user-info');
-    info.innerHTML = `<div style="font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:2px">${isAdmin?'⚙ Admin':'👤 Teamleiter'}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${user.email}</div>
+    info.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${user.email}</div>
       <button onclick="window.doLogout()" style="margin-top:8px;width:100%;padding:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius);color:rgba(255,255,255,0.55);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer">Abmelden</button>`;
-    // Daten laden
     await loadGewerke();
     loadAnmeldungen();
-    if (isAdmin) loadUsers();
+    loadUsers();
   } else {
     currentUserRole = null;
     document.getElementById('login-screen').style.display = 'flex';
@@ -1170,17 +1165,27 @@ onAuthStateChanged(auth, async user => {
 async function loadGewerke() {
   try {
     const snap = await getDoc(doc(db,'planung','gewerkeKonfig'));
-    gewerkeKonfig = snap.exists() ? (snap.data().gewerke||[]).filter(g=>g.active) : [];
-  } catch(e) { gewerkeKonfig = []; }
+    if (snap.exists()) {
+      gewerkeKonfig = (snap.data().gewerke||[]).filter(g=>g.active);
+      levelsKonfig = snap.data().levels || [];
+    } else {
+      gewerkeKonfig = []; levelsKonfig = [];
+    }
+  } catch(e) { gewerkeKonfig = []; levelsKonfig = []; }
   buildGewerkFilters();
 }
 
 // ── ANMELDUNGEN ──
 function loadAnmeldungen() {
-  const q = query(collection(db,'anmeldungen'), orderBy('createdAt','desc'));
+  const q = collection(db,'anmeldungen');
   onSnapshot(q, snap => {
     allDocs = [];
     snap.forEach(d => allDocs.push({ id:d.id, ...d.data() }));
+    allDocs.sort((a, b) => {
+      const ta = (a.createdAt?.seconds || a.angemeldet_am?.seconds || 0);
+      const tb = (b.createdAt?.seconds || b.angemeldet_am?.seconds || 0);
+      return tb - ta;
+    });
     filteredDocs = [...allDocs];
     renderStats();
     applyFilters();
