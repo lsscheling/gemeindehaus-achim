@@ -530,7 +530,7 @@ async function loadGewerke() {
     const snap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
     if (!snap.exists()) { container.innerHTML = '<div class="gewerk-error">Keine Daten gefunden.</div>'; return; }
     const data = snap.data();
-    const gewerke = (data.gewerke || []).filter(g => g.active && g.visibleInForm);
+    const gewerke = (data.gewerke || []).filter(g => g.visibleInForm);
     const levels = data.levels || [];
     buildGewerkGrid(gewerke, levels);
   } catch (e) {
