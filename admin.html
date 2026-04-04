@@ -282,6 +282,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       Anmeldeformular ↗
     </button>
+    <button class="nav-item" onclick="window.open('gewerke.html','_blank')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+      Gewerke ↗
+    </button>
   </nav>
   <div style="padding:16px 12px;border-top:1px solid rgba(255,255,255,0.08)" id="sidebar-user-info"></div>
 </div>
@@ -322,6 +326,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
           <option value="">Gewerk zuweisen …</option>
         </select>
         <button class="btn btn-accent btn-sm" onclick="bulkAssignGewerk()">Zuweisen</button>
+        <button class="btn btn-danger btn-sm" onclick="bulkDelete()">Löschen</button>
         <button class="btn btn-outline btn-sm" onclick="clearSelection()">Auswahl aufheben</button>
       </div>
       <div style="overflow-x:auto">
@@ -415,24 +420,31 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 <div id="panel-nutzerverwaltung" class="panel ">
   <div class="topbar">
     <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-    <div><div class="topbar-title">Nutzerverwaltung</div><div class="topbar-sub">Admins & Zugriffe</div></div>
+    <div style="flex:1"><div class="topbar-title">Nutzerverwaltung</div><div class="topbar-sub">Teamleiter & Gewerk-Zuordnung</div></div>
+    <div class="topbar-actions">
+      <button class="btn btn-accent" onclick="window.showAddTeamleiterForm()">+ Teamleiter hinzufügen</button>
+    </div>
   </div>
   <div class="content">
-    <div class="table-card" style="margin-bottom:20px;padding:20px 24px">
-      <div class="msection" style="margin-bottom:14px">Neuen Nutzer anlegen</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 120px auto;gap:10px;align-items:end">
-        <div><div style="font-size:10px;color:var(--muted);margin-bottom:4px">E-Mail</div><input type="email" id="new-user-email" placeholder="name@beispiel.de" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);width:100%"></div>
-        <div><div style="font-size:10px;color:var(--muted);margin-bottom:4px">Passwort</div><input type="password" id="new-user-pw" placeholder="Mind. 6 Zeichen" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);width:100%"></div>
-        <div><div style="font-size:10px;color:var(--muted);margin-bottom:4px">Rolle</div><select id="new-user-rolle" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);width:100%;cursor:pointer;appearance:none"><option value="teamleiter">Teamleiter</option><option value="admin">Admin</option></select></div>
-        <button class="btn btn-accent" onclick="window.createUser()">Anlegen</button>
+    <!-- Add form (hidden by default) -->
+    <div id="tl-add-form" style="display:none;background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:20px">
+      <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Neuer Teamleiter</div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Person</div>
+        <select id="tl-person-select" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);width:100%;max-width:340px;cursor:pointer">
+          <option value="">– Person auswählen –</option>
+        </select>
       </div>
-      <div id="new-user-error" style="display:none;margin-top:10px;font-size:12px;color:var(--danger)"></div>
-      <div id="new-user-success" style="display:none;margin-top:10px;font-size:12px;color:var(--success)">✓ Nutzer angelegt!</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Gewerke</div>
+      <div id="tl-gewerk-rows" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+      <button class="btn btn-outline btn-sm" onclick="window.addGewerkRow()" style="margin-bottom:16px">+ Weiteres Gewerk</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-accent" onclick="window.saveNewTeamleiter()">Hinzufügen</button>
+        <button class="btn btn-outline" onclick="window.hideAddTeamleiterForm()">Abbrechen</button>
+      </div>
     </div>
-    <div class="table-card">
-      <table class="data-table"><thead><tr><th>E-Mail</th><th>Rolle</th><th></th></tr></thead>
-      <tbody id="users-tbody"><tr><td colspan="3" class="loading-state">Wird geladen…</td></tr></tbody></table>
-    </div>
+    <!-- Teamleiter list -->
+    <div id="tl-list" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 </div>
 
@@ -566,6 +578,7 @@ function isAbwesend(person, dateOrToday) {
 // GEWERK HELPER
 // ═══════════════════════════════════════════════
 function getGewerkLabel(id) {
+  if (id === 'bauhelfer_allgemein') return 'Bauhelfer allgemein';
   const gw = gewerkeKonfig.find(g => g.id === id);
   return gw ? gw.name : id;
 }
@@ -656,6 +669,16 @@ function updateBulkBar() {
 // ═══════════════════════════════════════════════
 // BULK ASSIGN
 // ═══════════════════════════════════════════════
+async function bulkDelete() {
+  const ids = [...selectedIds];
+  if (!ids.length) return;
+  if (!confirm(`${ids.length} Person(en) wirklich löschen?`)) return;
+  try {
+    await Promise.all(ids.map(id => window._deleteDoc(window._docFn(window._db, 'anmeldungen', id))));
+    clearSelection();
+  } catch(e) { alert('Fehler: ' + e.message); }
+}
+
 async function bulkAssignGewerk() {
   const gewerkId = document.getElementById('bulk-gewerk-sel').value;
   if (!gewerkId) { alert('Bitte ein Gewerk auswählen.'); return; }
@@ -1153,7 +1176,6 @@ onAuthStateChanged(auth, async user => {
       <button onclick="window.doLogout()" style="margin-top:8px;width:100%;padding:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius);color:rgba(255,255,255,0.55);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer">Abmelden</button>`;
     await loadGewerke();
     loadAnmeldungen();
-    loadUsers();
   } else {
     currentUserRole = null;
     document.getElementById('login-screen').style.display = 'flex';
@@ -1191,52 +1213,125 @@ function loadAnmeldungen() {
     applyFilters();
     if (document.getElementById('panel-planung').classList.contains('active')) renderPlanungPanel();
     if (document.getElementById('panel-abwesenheiten').classList.contains('active')) renderAbwesenheiten();
+    if (document.getElementById('panel-nutzerverwaltung').classList.contains('active')) renderUsersTable();
   });
 }
 
-// ── NUTZER ──
-let allUsers = [];
-function loadUsers() {
-  onSnapshot(collection(db,'users'), snap => {
-    allUsers = []; snap.forEach(d => allUsers.push({uid:d.id,...d.data()}));
-    renderUsersTable();
-  });
-}
+// ── NUTZERVERWALTUNG / TEAMLEITER ──
 function renderUsersTable() {
-  const tbody = document.getElementById('users-tbody'); if(!tbody) return;
-  if (!allUsers.length) { tbody.innerHTML='<tr><td colspan="3" class="loading-state">Keine Nutzer.</td></tr>'; return; }
-  tbody.innerHTML = allUsers.map(u => `<tr>
-    <td>${u.email||'–'}</td>
-    <td><select onchange="window.updateUserRole('${u.uid}',this.value)" style="font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);padding:4px 8px;background:var(--paper);outline:none">
-      <option value="admin" ${u.rolle==='admin'?'selected':''}>Admin</option>
-      <option value="teamleiter" ${u.rolle==='teamleiter'?'selected':''}>Teamleiter</option>
-    </select></td>
-    <td><button class="btn btn-danger btn-sm" onclick="window.deleteUser('${u.uid}')">Entfernen</button></td>
-  </tr>`).join('');
-}
-window.updateUserRole = async (uid,rolle) => await setDoc(doc(db,'users',uid),{rolle},{merge:true});
-window.deleteUser = async (uid) => { if(confirm('Nutzer entfernen?')) await deleteDoc(doc(db,'users',uid)); };
-window.createUser = async function() {
-  const email = document.getElementById('new-user-email').value.trim();
-  const pw = document.getElementById('new-user-pw').value;
-  const rolle = document.getElementById('new-user-rolle').value;
-  if(!email||!pw) { alert('E-Mail und Passwort eingeben.'); return; }
-  try {
-    const sec = initializeApp(firebaseConfig,'sec_'+Date.now());
-    const secAuth = getAuth(sec);
-    const cred = await createUserWithEmailAndPassword(secAuth,email,pw);
-    await secAuth.signOut();
-    await setDoc(doc(db,'users',cred.user.uid),{email,rolle});
-    document.getElementById('new-user-email').value='';
-    document.getElementById('new-user-pw').value='';
-    const s=document.getElementById('new-user-success'); s.style.display='block';
-    setTimeout(()=>s.style.display='none',2000);
-  } catch(e) {
-    const err=document.getElementById('new-user-error');
-    err.textContent='Fehler: '+(e.code==='auth/email-already-in-use'?'E-Mail vergeben.':e.message);
-    err.style.display='block';
+  const list = document.getElementById('tl-list'); if (!list) return;
+  const teamleiter = allDocs.filter(d => d.rolle === 'teamleiter')
+    .sort((a,b) => (a.vorname+a.nachname).localeCompare(b.vorname+b.nachname,'de'));
+  if (!teamleiter.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Noch keine Teamleiter angelegt.</div>';
+    return;
   }
+  list.innerHTML = teamleiter.map(d => {
+    const assigned = d.teamleiterGewerke || [];
+    const pills = assigned.map(gid => {
+      const g = gewerkeKonfig.find(x => x.id === gid);
+      const name = g ? g.name : gid;
+      return `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 8px;border:1px solid var(--accent);border-radius:20px;background:var(--accent-light)">
+        ${name}
+        <button onclick="window.removeTeamleiterGewerk('${d.id}','${gid}')" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;line-height:1;padding:0;display:flex;align-items:center">✕</button>
+      </span>`;
+    }).join('');
+    const noPills = `<span style="color:var(--muted);font-size:12px;font-style:italic">Kein Gewerk zugeordnet</span>`;
+    return `<div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-weight:500;font-size:14px">${d.vorname||''} ${d.nachname||''}</div>
+        <button class="btn btn-danger btn-sm" onclick="window.removeTeamleiter('${d.id}')">Entfernen</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+        ${assigned.length ? pills : noPills}
+        <button onclick="window.addGewerkToExisting('${d.id}')" style="background:none;border:1px dashed var(--border);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif">+ Gewerk</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.showAddTeamleiterForm = function() {
+  const form = document.getElementById('tl-add-form');
+  form.style.display = 'block';
+  // populate person select (only non-teamleiter)
+  const sel = document.getElementById('tl-person-select');
+  const available = allDocs.filter(d => d.rolle !== 'teamleiter')
+    .sort((a,b) => (a.vorname+a.nachname).localeCompare(b.vorname+b.nachname,'de'));
+  sel.innerHTML = '<option value="">– Person auswählen –</option>' +
+    available.map(d => `<option value="${d.id}">${d.vorname||''} ${d.nachname||''}</option>`).join('');
+  // reset gewerk rows, start with one
+  document.getElementById('tl-gewerk-rows').innerHTML = '';
+  window.addGewerkRow();
 };
+
+window.hideAddTeamleiterForm = function() {
+  document.getElementById('tl-add-form').style.display = 'none';
+};
+
+window.addGewerkRow = function() {
+  const container = document.getElementById('tl-gewerk-rows');
+  const aktive = gewerkeKonfig.filter(g => g.aktiv !== false);
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;align-items:center;gap:8px';
+  div.innerHTML = `<select class="tl-gewerk-sel" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;outline:none;background:var(--paper);flex:1;max-width:300px;cursor:pointer">
+      <option value="">– Gewerk wählen –</option>
+      ${aktive.map(g => `<option value="${g.id}">${g.name}</option>`).join('')}
+    </select>
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1">✕</button>`;
+  container.appendChild(div);
+};
+
+window.saveNewTeamleiter = async function() {
+  const personId = document.getElementById('tl-person-select').value;
+  if (!personId) { alert('Bitte eine Person auswählen.'); return; }
+  const gewerke = [...document.querySelectorAll('.tl-gewerk-sel')]
+    .map(s => s.value).filter(Boolean);
+  await updateDoc(doc(db,'anmeldungen',personId), { rolle: 'teamleiter', teamleiterGewerke: [...new Set(gewerke)] });
+  window.hideAddTeamleiterForm();
+};
+
+window.removeTeamleiter = async (id) => {
+  if (!confirm('Teamleiter-Rolle entfernen?')) return;
+  await updateDoc(doc(db,'anmeldungen',id), { rolle: null, teamleiterGewerke: [] });
+};
+
+window.removeTeamleiterGewerk = async (id, gewerkId) => {
+  const d = allDocs.find(x => x.id === id); if (!d) return;
+  const updated = (d.teamleiterGewerke || []).filter(x => x !== gewerkId);
+  await updateDoc(doc(db,'anmeldungen',id), { teamleiterGewerke: updated });
+};
+
+window.addGewerkToExisting = function(id) {
+  const aktive = gewerkeKonfig.filter(g => g.aktiv !== false);
+  const d = allDocs.find(x => x.id === id); if (!d) return;
+  const assigned = d.teamleiterGewerke || [];
+  // Build a small inline select+confirm via prompt-style approach using a temporary popover
+  const sel = document.createElement('select');
+  sel.style.cssText = 'font-family:"DM Sans",sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;outline:none;background:var(--paper);cursor:pointer';
+  sel.innerHTML = '<option value="">– Gewerk wählen –</option>' +
+    aktive.filter(g => !assigned.includes(g.id)).map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+  const confirmBtn = document.createElement('button');
+  confirmBtn.textContent = 'OK';
+  confirmBtn.className = 'btn btn-accent btn-sm';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '✕';
+  cancelBtn.className = 'btn btn-outline btn-sm';
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:8px';
+  row.appendChild(sel); row.appendChild(confirmBtn); row.appendChild(cancelBtn);
+  // insert after pills row of this card — re-render will clean it up
+  const cards = document.getElementById('tl-list').children;
+  const card = [...cards].find(c => c.innerHTML.includes(`'${id}'`));
+  if (card) card.appendChild(row);
+  cancelBtn.onclick = () => row.remove();
+  confirmBtn.onclick = async () => {
+    const val = sel.value; if (!val) return;
+    const updated = [...new Set([...assigned, val])];
+    await updateDoc(doc(db,'anmeldungen',id), { teamleiterGewerke: updated });
+    row.remove();
+  };
+};
+
 window.renderUsersTable = renderUsersTable;
 </script>
 </body>
