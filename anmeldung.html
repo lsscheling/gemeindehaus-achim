@@ -90,15 +90,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .gewerk-loading { grid-column: 1/-1; padding: 24px; text-align: center; color: var(--muted); font-size: 13px; font-weight: 300; }
 .gewerk-error { grid-column: 1/-1; padding: 14px; background: #fdf5ee; border: 1px solid var(--accent-light); border-radius: var(--radius); color: #7a3a12; font-size: 13px; }
 
-/* AUTOSAVE indicator */
-.autosave-bar { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); font-weight: 300; min-height: 20px; padding: 4px 0; transition: all 0.3s; }
-.autosave-bar.saving { color: var(--accent); }
-.autosave-bar.saved { color: var(--success); }
-.autosave-bar.error { color: #c0392b; }
-.autosave-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-.autosave-bar.saving .autosave-dot { animation: pulse 0.9s infinite; }
-@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-
 /* BUTTONS */
 .submit-btn { padding: 13px 24px; background: var(--ink); color: white; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .submit-btn:hover { background: #2e2d28; }
@@ -248,16 +239,6 @@ function showToast(msg, type) {
   msgEl.textContent = msg;
   el.classList.add('show');
   toastTimer = setTimeout(function() { el.classList.remove('show'); }, 3500);
-}
-
-// ─────────────────────────────────────────────
-// AUTOSAVE STATUS
-// ─────────────────────────────────────────────
-function setAutosave(barId, state, text) {
-  var bar = document.getElementById(barId);
-  var txt = document.getElementById(barId + '-text');
-  bar.className = 'autosave-bar ' + (state || '');
-  txt.textContent = text || '';
 }
 
 // ─────────────────────────────────────────────
