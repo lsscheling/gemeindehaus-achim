@@ -20,9 +20,6 @@ html, body { background-color: #f4f1e8 !important; color: #1c1b18 !important; }
   --accent: #b85c2a; --accent-light: #f0d9cc;
   --muted: #79776e; --border: #d6d0c4; --radius: 5px;
   --success: #3a7a52; --danger: #991b1b;
-  --slot-vm: #fef3c7; --slot-vm-text: #92610a;
-  --slot-nm: #dbeafe; --slot-nm-text: #1e40af;
-  --slot-off: #f0f0f0; --slot-off-text: #aaa;
 }
 body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.6; }
 
@@ -130,14 +127,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .abw-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 20px; font-size: 11px; color: var(--danger); margin: 2px; }
 
 /* ── ZEITSLOT MINI DISPLAY ── */
-.slot-grid-mini { display: grid; grid-template-columns: auto repeat(6, 1fr); gap: 2px; }
-.slot-grid-mini .sh { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); text-align: center; padding: 3px 2px; }
-.slot-grid-mini .sl { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding: 3px 4px; }
-.slot-dot { width: 100%; aspect-ratio: 1; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 500; }
-.slot-dot.on-vm { background: var(--slot-vm); color: var(--slot-vm-text); }
-.slot-dot.on-nm { background: var(--slot-nm); color: var(--slot-nm-text); }
-.slot-dot.off { background: var(--slot-off); color: var(--slot-off-text); }
-.slot-dot.kw-split { background: linear-gradient(135deg, var(--slot-vm) 50%, var(--slot-nm) 50%); color: transparent; font-size: 0; }
 
 /* ── PLANUNG PANEL ── */
 .plan-layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
@@ -152,13 +141,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .plan-gewerk-item.active .pgw-count { color: var(--accent); }
 .plan-main { display: flex; flex-direction: column; gap: 16px; }
 .plan-toolbar { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.kw-selector { display: flex; align-items: center; gap: 8px; }
-.kw-selector label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.kw-input { font-family: 'DM Sans', sans-serif; font-size: 13px; border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 10px; width: 70px; outline: none; background: var(--paper); text-align: center; }
-.kw-input:focus { border-color: var(--accent); }
-.kw-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; letter-spacing: 0.05em; }
-.kw-badge.gerade { background: #e8f0fb; color: #2a4a7a; border: 1px solid #b8ccef; }
-.kw-badge.ungerade { background: #f0e8fb; color: #4a2a7a; border: 1px solid #ccb8ef; }
 
 /* ── VERFÜGBARKEITSMATRIX ── */
 .avail-matrix { background: white; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
@@ -173,12 +155,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .matrix-table tr:last-child td { border-bottom: none; }
 .matrix-table tr:hover td { background: var(--paper); }
 .matrix-table tr.assigned td { background: #f0f9f3; }
-.matrix-slot { width: 24px; height: 24px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; letter-spacing: 0; }
-.matrix-slot.vm { background: var(--slot-vm); color: var(--slot-vm-text); }
-.matrix-slot.nm { background: var(--slot-nm); color: var(--slot-nm-text); }
-.matrix-slot.both { background: linear-gradient(135deg, var(--slot-vm) 50%, var(--slot-nm) 50%); color: transparent; font-size: 0; width: 24px; }
-.matrix-slot.none { background: var(--slot-off); color: var(--slot-off-text); }
-.matrix-slot.abw { background: #fee2e2; color: var(--danger); }
 .person-name-cell { display: flex; flex-direction: column; }
 .person-name-cell .pname { font-weight: 400; font-size: 13px; }
 .person-name-cell .pschicht { font-size: 10px; color: var(--muted); font-weight: 300; }
@@ -217,23 +193,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .mrow { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .msection { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-bottom: 6px; border-bottom: 1px solid var(--border); }
 
-/* ZEITSLOT TABLE IN MODAL */
-.modal-slot-table { width: 100%; border-collapse: collapse; }
-.modal-slot-table th { font-size: 10px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); padding: 7px 8px; text-align: center; border-bottom: 1px solid var(--border); }
-.modal-slot-table th:first-child { text-align: left; }
-.modal-slot-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); text-align: center; }
-.modal-slot-table td:first-child { font-size: 11px; font-weight: 500; color: var(--muted); text-align: left; text-transform: uppercase; letter-spacing: 0.05em; }
-.modal-slot-table tr:last-child td { border-bottom: none; }
-.mslot-btn { width: 30px; height: 30px; border-radius: 4px; border: 1.5px solid var(--border); background: white; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); transition: all 0.12s; }
-.mslot-btn:hover:not(.mslot-disabled) { border-color: var(--accent); color: var(--accent); }
-.mslot-btn.mslot-active { background: var(--accent); border-color: var(--accent); color: white; }
-.mslot-btn.mslot-disabled { opacity: 0.2; cursor: not-allowed; pointer-events: none; }
-
-/* SCHICHT PILLS IN MODAL */
-.mpill-group { display: flex; flex-wrap: wrap; gap: 6px; }
-.mpill { padding: 6px 13px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; cursor: pointer; background: white; color: var(--ink); transition: all 0.12s; user-select: none; font-family: 'DM Sans', sans-serif; }
-.mpill:hover { border-color: var(--accent); color: var(--accent); }
-.mpill.sel { background: var(--accent); border-color: var(--accent); color: white; }
 
 /* GEWERK CHECKBOXES IN MODAL */
 .mcheckgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -247,13 +206,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .mlevel-pill { padding: 3px 10px; border: 1px solid #ddb99a; border-radius: 20px; font-size: 11px; cursor: pointer; background: white; color: var(--ink); transition: all 0.12s; user-select: none; font-family: 'DM Sans', sans-serif; }
 .mlevel-pill:hover { border-color: var(--accent); color: var(--accent); }
 .mlevel-pill.sel { background: var(--accent); border-color: var(--accent); color: white; }
-.modal-slot-section { display: none; flex-direction: column; gap: 10px; }
-.modal-slot-section.visible { display: flex; }
-.modal-konti-info { background: #fdf5ee; border: 1px solid var(--accent-light); border-radius: var(--radius); padding: 12px 14px; font-size: 13px; color: #7a3a12; font-weight: 300; line-height: 1.6; display: none; }
-.modal-konti-info.visible { display: block; }
-.kw-label-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 12px; font-size: 11px; font-weight: 500; letter-spacing: 0.05em; }
-.kw-label-gerade { background: #e8f0fb; color: #2a4a7a; border: 1px solid #b8ccef; }
-.kw-label-ungerade { background: #f0e8fb; color: #4a2a7a; border: 1px solid #ccb8ef; }
 
 /* ── HAMBURGER ── */
 .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 8px; flex-direction: column; gap: 5px; }
@@ -357,15 +309,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <div class="table-toolbar">
         <input class="search-input" type="text" placeholder="Name, E-Mail, Gewerk …" oninput="filterTable(this.value)" id="search-input">
         <select class="filter-select" onchange="applyFilters()" id="gewerk-filter"><option value="">Alle Gewerke</option></select>
-        <select class="filter-select" onchange="applyFilters()" id="schicht-filter">
-          <option value="">Alle Schichten</option>
-          <option value="frueh">Frühschicht</option>
-          <option value="spaet">Spätschicht</option>
-          <option value="wechsel">Wechselschicht</option>
-          <option value="konti">Kontischicht</option>
-          <option value="sonstiges">Sonstiges</option>
-          <option value="">Kein Schichtmodell</option>
-        </select>
         <select class="filter-select" onchange="applyFilters()" id="assign-filter">
           <option value="">Alle</option>
           <option value="assigned">Zugewiesen</option>
@@ -388,8 +331,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
               <th class="cb-col"><input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this.checked)" title="Alle auswählen"></th>
               <th>Name</th>
               <th>Gewerk(e) & Level</th>
-              <th>Schicht</th>
-              <th>Verfügbarkeit</th>
+              <th>Schichtarbeit</th>
               <th>Zugewiesen</th>
               <th></th>
             </tr>
@@ -408,13 +350,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
   <div class="topbar">
     <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
     <div><div class="topbar-title">Planung</div><div class="topbar-sub">Gewerk-Zuweisung & Verfügbarkeitsmatrix</div></div>
-    <div class="topbar-actions">
-      <div class="kw-selector">
-        <label>KW</label>
-        <input type="number" class="kw-input" id="kw-input" min="1" max="53" value="" oninput="onKwChange(this.value)">
-        <span id="kw-badge-display" class="kw-badge" style="display:none"></span>
-      </div>
-    </div>
+    <div class="topbar-actions"></div>
   </div>
   <div class="content">
     <div class="plan-layout">
@@ -429,14 +365,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <div class="plan-main">
         <div class="plan-toolbar">
           <input class="search-input" type="text" placeholder="Person suchen …" oninput="filterMatrix(this.value)" style="max-width:220px">
-          <select class="filter-select" onchange="filterMatrixSchicht(this.value)" id="matrix-schicht-filter">
-            <option value="">Alle Schichten</option>
-            <option value="frueh">Frühschicht</option>
-            <option value="spaet">Spätschicht</option>
-            <option value="wechsel">Wechselschicht</option>
-            <option value="konti">Kontischicht</option>
-            <option value="sonstiges">Sonstiges</option>
-          </select>
           <select class="filter-select" onchange="filterMatrixLevel(this.value)" id="matrix-level-filter">
             <option value="">Alle Level</option>
             <option value="profi">Profi</option>
@@ -444,12 +372,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
             <option value="grundkenntnisse">Grundkenntnisse</option>
             <option value="anfaenger">Anfänger</option>
           </select>
-          <div class="legend" style="margin-left:auto">
-            <div class="legend-item"><span class="matrix-slot vm"></span> Vormittag</div>
-            <div class="legend-item"><span class="matrix-slot nm"></span> Nachmittag</div>
-            <div class="legend-item"><span class="matrix-slot both" style="width:18px;height:18px;border-radius:3px"></span> Beide</div>
-            <div class="legend-item"><span class="matrix-slot abw"></span> Abwesend</div>
-          </div>
         </div>
         <!-- BULK in planung -->
         <div class="bulk-bar" id="plan-bulk-bar">
@@ -592,12 +514,6 @@ function closeSidebar() {
 // ═══════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════
-const TAGE = ['Mo','Di','Mi','Do','Fr','Sa'];
-const TAGE_KEYS = ['mo','di','mi','do','fr','sa'];
-const ALL_SLOTS = [];
-TAGE_KEYS.forEach(t => ['vm','nm'].forEach(s => ALL_SLOTS.push(t+'_'+s)));
-const SLOT_LABELS = { vm: 'Vormittag', nm: 'Nachmittag' };
-const SCHICHT_LABELS = { frueh:'Frühschicht', spaet:'Spätschicht', wechsel:'Wechselschicht', konti:'Kontischicht', sonstiges:'Sonstiges' };
 const LEVEL_ORDER = { profi: 4, erfahren: 3, grundkenntnisse: 2, anfaenger: 1, '': 0 };
 const LEVEL_LABELS = { profi:'Profi', erfahren:'Erfahren', grundkenntnisse:'Grundkenntnis.', anfaenger:'Anfänger' };
 const LEVEL_COLORS = { profi:'#2d6a4f', erfahren:'#b85c2a', grundkenntnisse:'#92610a', anfaenger:'#888' };
@@ -617,56 +533,13 @@ let filteredDocs = [];
 let selectedIds = new Set();
 let planSelectedIds = new Set();
 let gewerkeKonfig = [];
-let currentFilter = '', currentGewerk = '', currentSchicht = '', currentAssign = '';
-let matrixFilter = '', matrixSchicht = '', matrixLevel = '', activeGewerkId = null;
-let currentKW = getISOWeek(new Date());
+let currentFilter = '', currentGewerk = '', currentAssign = '';
+let matrixFilter = '', matrixLevel = '', activeGewerkId = null;
 let currentUserRole = null;
 // Modal state
-let modalSlotState = {};
-let modalSchichtart = '';
 let modalErfahrung = {};
 let editingId = null;
 
-// ═══════════════════════════════════════════════
-// KW HELPER
-// ═══════════════════════════════════════════════
-function getISOWeek(date) {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-}
-function isGeradeKW(kw) { return kw % 2 === 0; }
-function onKwChange(val) {
-  currentKW = parseInt(val) || getISOWeek(new Date());
-  const el = document.getElementById('kw-badge-display');
-  el.style.display = 'inline-flex';
-  el.className = 'kw-badge ' + (isGeradeKW(currentKW) ? 'gerade' : 'ungerade');
-  el.textContent = isGeradeKW(currentKW) ? 'Gerade KW' : 'Ungerade KW';
-  if (document.getElementById('panel-planung').classList.contains('active')) renderMatrix();
-}
-
-// ═══════════════════════════════════════════════
-// ZEITSLOT HELPER: effektive Slots einer Person für eine KW
-// ═══════════════════════════════════════════════
-function getEffectiveSlots(person, kw) {
-  const zs = person.zeitslots;
-  if (!zs) return null; // kein Zeitslot eingetragen
-  const gerade = isGeradeKW(kw);
-  if (zs.typ === 'wechsel') {
-    return gerade ? (zs.gerade || {}) : (zs.ungerade || {});
-  }
-  return zs.slots || {};
-}
-
-function slotKey(tag, period) { return tag + '_' + period; }
-
-function isAvailableSlot(person, tag, period, kw) {
-  const slots = getEffectiveSlots(person, kw);
-  if (!slots) return false;
-  return slots[slotKey(tag, period)] === true;
-}
 
 // ═══════════════════════════════════════════════
 // ABWESENHEITS-CHECK
@@ -701,17 +574,14 @@ function getGewerkLevel(person, gewerkId) {
 function filterTable(val) { currentFilter = val.toLowerCase(); applyFilters(); }
 function applyFilters() {
   currentGewerk = document.getElementById('gewerk-filter').value;
-  currentSchicht = document.getElementById('schicht-filter').value;
   currentAssign = document.getElementById('assign-filter').value;
   filteredDocs = allDocs.filter(d => {
     const name = ((d.vorname||'') + ' ' + (d.nachname||'') + ' ' + (d.email||'')).toLowerCase();
     const gw = (d.gewerke||[]).join(' ');
-    const sc = (d.schichtart||'').toLowerCase();
-    const matchText = !currentFilter || name.includes(currentFilter) || gw.includes(currentFilter) || sc.includes(currentFilter);
+    const matchText = !currentFilter || name.includes(currentFilter) || gw.includes(currentFilter);
     const matchGewerk = !currentGewerk || (d.gewerke||[]).includes(currentGewerk);
-    const matchSchicht = !currentSchicht || d.schichtart === currentSchicht;
     const matchAssign = !currentAssign || (currentAssign === 'assigned' ? !!d.gewerk : !d.gewerk);
-    return matchText && matchGewerk && matchSchicht && matchAssign;
+    return matchText && matchGewerk && matchAssign;
   });
   renderTable();
 }
@@ -732,43 +602,19 @@ function renderTable() {
       const lvl = lv ? (' · ' + LEVEL_LABELS[lv]) : '';
       return `<span style="display:inline-block;padding:2px 7px;border-radius:9px;font-size:10px;background:${bg};color:${col};border:1px solid ${col}33;margin:1px">${getGewerkLabel(g)}${lvl}</span>`;
     }).join('') || '–';
-    const schicht = d.schichtart ? (SCHICHT_LABELS[d.schichtart] || d.schichtart) : '–';
+    const schichtHtml = d.schichtarbeit ? '<span class="badge badge-green">Ja</span>' : '<span class="badge badge-gray">–</span>';
     const assignedGw = d.gewerk ? `<span class="badge badge-green">${getGewerkLabel(d.gewerk)}</span>` : '<span class="badge badge-gray">–</span>';
-    // Slot-Mini-Darstellung
-    const slotHtml = renderSlotMini(d);
     return `<tr class="${isSelected ? 'selected' : ''}" onclick="rowClick(event,'${d.id}')">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${isSelected?'checked':''} onchange="toggleSelect('${d.id}',this.checked)" onclick="event.stopPropagation()"></td>
       <td><strong>${name}</strong><br><span style="font-size:11px;color:var(--muted)">${d.email||''}</span></td>
       <td>${gewerkeHtml}</td>
-      <td style="white-space:nowrap;font-size:12px">${schicht}</td>
-      <td>${slotHtml}</td>
+      <td>${schichtHtml}</td>
       <td>${assignedGw}</td>
       <td onclick="event.stopPropagation()"><button class="btn btn-outline btn-sm" onclick="openDrawer('${d.id}')">Details</button></td>
     </tr>`;
   }).join('');
 }
 
-function renderSlotMini(person) {
-  // Kleine 2×6 Slot-Visualisierung für Tabellenzelle
-  const today = new Date();
-  const kw = getISOWeek(today);
-  const slots = getEffectiveSlots(person, kw);
-  if (!slots && !person.schichtart) return '<span style="font-size:11px;color:var(--muted)">–</span>';
-  if (person.schichtart === 'konti') return '<span style="font-size:11px;color:var(--muted);font-style:italic">Konti</span>';
-  if (!slots) return '<span style="font-size:11px;color:var(--muted)">–</span>';
-  let html = '<div style="display:grid;grid-template-columns:auto repeat(6,1fr);gap:2px;min-width:120px">';
-  ['vm','nm'].forEach(period => {
-    html += `<div style="font-size:8px;font-weight:500;text-transform:uppercase;letter-spacing:0.04em;color:var(--muted);display:flex;align-items:center;padding-right:4px">${period.toUpperCase()}</div>`;
-    TAGE_KEYS.forEach(tag => {
-      const on = slots[tag+'_'+period];
-      const bg = on ? (period === 'vm' ? 'var(--slot-vm)' : 'var(--slot-nm)') : 'var(--slot-off)';
-      const col = on ? (period === 'vm' ? 'var(--slot-vm-text)' : 'var(--slot-nm-text)') : 'var(--slot-off-text)';
-      html += `<div style="width:16px;height:12px;border-radius:2px;background:${bg};color:${col};font-size:7px;display:flex;align-items:center;justify-content:center;font-weight:700">${on?'✓':''}</div>`;
-    });
-  });
-  html += '</div>';
-  return html;
-}
 
 // ═══════════════════════════════════════════════
 // SELECTION
@@ -835,7 +681,7 @@ function renderStats() {
   let schichtCount = 0, assignedCount = 0;
   allDocs.forEach(d => {
     (d.gewerke||[]).forEach(g => gewerkSet.add(g));
-    if (d.schichtart) schichtCount++;
+    if (d.schichtarbeit) schichtCount++;
     if (d.gewerk) assignedCount++;
   });
   document.getElementById('s-total').textContent = total;
@@ -862,9 +708,6 @@ function buildGewerkFilters() {
 // PLANUNG PANEL
 // ═══════════════════════════════════════════════
 function renderPlanungPanel() {
-  // KW initialisieren
-  const kwInput = document.getElementById('kw-input');
-  if (!kwInput.value) { kwInput.value = currentKW; onKwChange(currentKW); }
   renderGewerkSidebar();
   renderMatrix();
 }
@@ -894,9 +737,8 @@ function selectPlanGewerk(gwId) {
   renderMatrix();
 }
 
-let _matrixFilter = '', _matrixSchicht = '', _matrixLevel = '';
+let _matrixFilter = '', _matrixLevel = '';
 function filterMatrix(val) { _matrixFilter = val.toLowerCase(); renderMatrix(); }
-function filterMatrixSchicht(val) { _matrixSchicht = val; renderMatrix(); }
 function filterMatrixLevel(val) { _matrixLevel = val; renderMatrix(); }
 
 function clearPlanSelection() {
@@ -906,14 +748,9 @@ function clearPlanSelection() {
 }
 
 function renderMatrix() {
-  const kw = currentKW;
-  const gerade = isGeradeKW(kw);
-  const today = new Date(); today.setHours(0,0,0,0);
-
   // Personen filtern
   let persons = allDocs.filter(d => {
     if (activeGewerkId) {
-      // Zeige Personen die dieses Gewerk haben oder schon zugewiesen sind
       const hasGewerk = (d.gewerke||[]).includes(activeGewerkId) || d.gewerk === activeGewerkId;
       if (!hasGewerk) return false;
     }
@@ -921,7 +758,6 @@ function renderMatrix() {
       const name = ((d.vorname||'') + ' ' + (d.nachname||'')).toLowerCase();
       if (!name.includes(_matrixFilter)) return false;
     }
-    if (_matrixSchicht && d.schichtart !== _matrixSchicht) return false;
     if (_matrixLevel && activeGewerkId) {
       const lv = (d.erfahrung||{})[activeGewerkId];
       if (lv !== _matrixLevel) return false;
@@ -941,11 +777,9 @@ function renderMatrix() {
 
   // Titel
   const titleEl = document.getElementById('matrix-title');
-  if (activeGewerkId) {
-    titleEl.textContent = getGewerkLabel(activeGewerkId) + ' — ' + persons.length + ' Person(en) — KW ' + kw + (gerade ? ' (gerade)' : ' (ungerade)');
-  } else {
-    titleEl.textContent = 'Alle Personen — ' + persons.length + ' — KW ' + kw + (gerade ? ' (gerade)' : ' (ungerade)');
-  }
+  titleEl.textContent = activeGewerkId
+    ? getGewerkLabel(activeGewerkId) + ' — ' + persons.length + ' Person(en)'
+    : 'Alle Personen — ' + persons.length;
 
   // Tabellen-Header
   const thead = document.getElementById('matrix-thead');
@@ -953,39 +787,22 @@ function renderMatrix() {
     <th class="matrix-row-cb"><input type="checkbox" id="matrix-select-all" onchange="togglePlanSelectAll(this.checked)" title="Alle auswählen"></th>
     <th>Person</th>
     ${activeGewerkId ? '<th>Level</th>' : ''}
-    <th>Schicht</th>
-    ${TAGE.map(t => `<th class="day-header">${t}</th>`).join('')}
+    <th>Schichtarbeit</th>
     <th>Zugewiesen</th>
   </tr>`;
 
   // Body
   const tbody = document.getElementById('matrix-tbody');
   if (!persons.length) {
-    tbody.innerHTML = `<tr><td colspan="${6 + TAGE.length + (activeGewerkId?1:0)}" class="empty-state">Keine Personen gefunden.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${3 + (activeGewerkId?1:0)}" class="empty-state">Keine Personen gefunden.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = persons.map(d => {
     const isAssigned = d.gewerk === activeGewerkId && activeGewerkId;
     const isPlanSelected = planSelectedIds.has(d.id);
-    const abw = isAbwesend(d, today);
-    const schichtLabel = d.schichtart ? (SCHICHT_LABELS[d.schichtart]||d.schichtart) : '–';
     const name = (d.vorname||'') + ' ' + (d.nachname||'');
-    const pschicht = d.schichtart === 'wechsel' ? (gerade ? 'Gerade KW' : 'Ungerade KW') : '';
-
-    // Slots für diese KW
-    const slots = d.schichtart === 'konti' ? null : getEffectiveSlots(d, kw);
-
-    const slotsHtml = TAGE_KEYS.map(tag => {
-      if (abw) return '<td><span class="matrix-slot abw" title="Abwesend">✕</span></td>';
-      if (!slots) return '<td><span class="matrix-slot none" title="Keine Zeitslots eingetragen">–</span></td>';
-      const vm = slots[tag+'_vm'];
-      const nm = slots[tag+'_nm'];
-      if (vm && nm) return `<td><span class="matrix-slot both" title="Vor- & Nachmittag"></span></td>`;
-      if (vm) return `<td><span class="matrix-slot vm" title="Vormittag">V</span></td>`;
-      if (nm) return `<td><span class="matrix-slot nm" title="Nachmittag">N</span></td>`;
-      return `<td><span class="matrix-slot none">–</span></td>`;
-    }).join('');
+    const schichtHtml = d.schichtarbeit ? '<span class="badge badge-green">Ja</span>' : '<span class="badge badge-gray">–</span>';
 
     const levelHtml = activeGewerkId ? (() => {
       const lv = (d.erfahrung||{})[activeGewerkId] || '';
@@ -1003,14 +820,10 @@ function renderMatrix() {
         <input type="checkbox" ${isPlanSelected?'checked':''} onchange="togglePlanSelect('${d.id}',this.checked)" onclick="event.stopPropagation()">
       </td>
       <td onclick="event.stopPropagation();openDrawer('${d.id}')">
-        <div class="person-name-cell">
-          <span class="pname" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${name}</span>
-          ${pschicht ? `<span class="pschicht">${pschicht}</span>` : ''}
-        </div>
+        <span class="pname" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${name}</span>
       </td>
       ${levelHtml}
-      <td style="font-size:11px;white-space:nowrap">${schichtLabel}</td>
-      ${slotsHtml}
+      <td>${schichtHtml}</td>
       <td class="assign-btn-cell" onclick="event.stopPropagation()">
         <select class="assign-select ${d.gewerk?'assigned':''}" onchange="assignGewerk('${d.id}',this.value,this)">
           ${assignOpts}
@@ -1032,7 +845,6 @@ function togglePlanSelect(id, checked) {
   renderMatrix();
 }
 function togglePlanSelectAll(checked) {
-  const kw = currentKW;
   let persons = allDocs.filter(d => !activeGewerkId || (d.gewerke||[]).includes(activeGewerkId) || d.gewerk === activeGewerkId);
   persons.forEach(d => { if (checked) planSelectedIds.add(d.id); else planSelectedIds.delete(d.id); });
   const bar = document.getElementById('plan-bulk-bar');
@@ -1065,36 +877,6 @@ function openDrawer(id) {
 
   const abw = (d.abwesenheiten||[]).map(a => `<span class="abw-chip">🔴 ${a.von}${a.von!==a.bis?' – '+a.bis:''}</span>`).join('') || '–';
 
-  // Zeitslots anzeigen
-  const kw = currentKW;
-  let slotDisplay = '';
-  if (d.schichtart === 'konti') {
-    slotDisplay = '<div style="font-size:12px;color:var(--muted);font-style:italic">Kontischicht – Details im Kommentarfeld</div>';
-  } else if (d.zeitslots) {
-    const showSlotTable = (slots, label) => {
-      let h = label ? `<div style="font-size:11px;font-weight:500;color:var(--muted);margin-bottom:4px">${label}</div>` : '';
-      h += '<div style="display:grid;grid-template-columns:auto repeat(6,1fr);gap:2px;font-size:10px">';
-      h += '<div></div>' + TAGE.map(t => `<div style="text-align:center;font-weight:500;color:var(--muted)">${t}</div>`).join('');
-      ['vm','nm'].forEach(p => {
-        h += `<div style="color:var(--muted);font-weight:500;text-transform:uppercase;font-size:9px;padding-right:6px;display:flex;align-items:center">${p.toUpperCase()}</div>`;
-        TAGE_KEYS.forEach(tag => {
-          const on = slots && slots[tag+'_'+p];
-          const bg = on ? (p==='vm'?'var(--slot-vm)':'var(--slot-nm)') : 'var(--slot-off)';
-          h += `<div style="height:18px;border-radius:3px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:${on?(p==='vm'?'var(--slot-vm-text)':'var(--slot-nm-text)'):'var(--slot-off-text)'}">${on?'✓':''}</div>`;
-        });
-      });
-      h += '</div>';
-      return h;
-    };
-    if (d.zeitslots.typ === 'wechsel') {
-      slotDisplay = showSlotTable(d.zeitslots.gerade, '🔵 Gerade KW') + '<div style="height:8px"></div>' + showSlotTable(d.zeitslots.ungerade, '🟣 Ungerade KW');
-    } else {
-      slotDisplay = showSlotTable(d.zeitslots.slots, null);
-    }
-  } else {
-    slotDisplay = '<div style="font-size:12px;color:var(--muted)">Keine Zeitslots eingetragen.</div>';
-  }
-
   const assignOpts = '<option value="">– kein –</option>' + gewerkeKonfig.map(g => `<option value="${g.id}" ${d.gewerk===g.id?'selected':''}>${g.name}</option>`).join('');
 
   document.getElementById('drawer-body').innerHTML = `
@@ -1106,13 +888,11 @@ function openDrawer(id) {
       <div>${gewerkeHtml}</div>
       ${d.qualifikationen?`<div class="drow" style="margin-top:6px"><span class="drow-label">Qualifikationen</span><span class="drow-val">${d.qualifikationen}</span></div>`:''}
     </div>
-    <div class="dsection"><div class="dsection-title">Schichtmodell</div>
-      <div class="drow"><span class="drow-label">Schicht</span><span class="drow-val">${d.schichtart?SCHICHT_LABELS[d.schichtart]:'–'}</span></div>
-      ${d.schicht_freitext?`<div class="note-box" style="margin-top:6px">${d.schicht_freitext}</div>`:''}
+    <div class="dsection"><div class="dsection-title">Schichtarbeit</div>
+      <div class="drow"><span class="drow-label">Im Schichtbetrieb</span><span class="drow-val">${d.schichtarbeit ? 'Ja' : 'Nein'}</span></div>
     </div>
-    <div class="dsection"><div class="dsection-title">Verfügbarkeit (KW ${kw})</div>${slotDisplay}</div>
     <div class="dsection"><div class="dsection-title">Abwesenheiten</div><div>${abw}</div></div>
-    ${d.teamwunsch?`<div class="dsection"><div class="dsection-title">Teamwunsch</div><div class="note-box">${d.teamwunsch}</div></div>`:''}
+    ${d.gruppenwunsch||d.teamwunsch?`<div class="dsection"><div class="dsection-title">Gruppenwunsch</div><div class="note-box">${d.gruppenwunsch||d.teamwunsch}</div></div>`:''}
     ${d.verfueg_kommentar?`<div class="dsection"><div class="dsection-title">Anmerkungen</div><div class="note-box">${d.verfueg_kommentar}</div></div>`:''}
     <div class="dsection"><div class="dsection-title">Gewerk-Zuweisung</div>
       <select onchange="assignGewerk('${d.id}',this.value,this)" class="assign-select ${d.gewerk?'assigned':''}" style="width:100%;font-size:14px;padding:10px 12px">
@@ -1143,36 +923,15 @@ async function deletePerson(id) {
 // ═══════════════════════════════════════════════
 // PERSON MODAL – FORMULAR (IDENTISCH ZUR ANMELDESEITE)
 // ═══════════════════════════════════════════════
-const MODAL_TAGE = ['Mo','Di','Mi','Do','Fr','Sa'];
-const MODAL_TAGE_KEYS = ['mo','di','mi','do','fr','sa'];
-const MODAL_SLOT_TAGE = MODAL_TAGE_KEYS;
 
 function buildPersonForm(data) {
-  // data = bestehende Person (edit) oder null (add)
   const d = data || {};
   modalErfahrung = Object.assign({}, d.erfahrung || {});
-  modalSchichtart = d.schichtart || '';
-  // Slot-State initialisieren
-  ['frueh','spaet','gerade','ungerade','sonstiges'].forEach(t => {
-    modalSlotState[t] = {};
-    ALL_SLOTS.forEach(k => { modalSlotState[t][k] = false; });
-  });
-  if (d.zeitslots) {
-    if (d.zeitslots.typ === 'wechsel') {
-      const g = d.zeitslots.gerade||{}; const u = d.zeitslots.ungerade||{};
-      ALL_SLOTS.forEach(k => { modalSlotState['gerade'][k] = !!g[k]; modalSlotState['ungerade'][k] = !!u[k]; });
-    } else if (d.zeitslots.slots) {
-      const typ = d.zeitslots.typ || 'sonstiges';
-      const s = d.zeitslots.slots||{};
-      ALL_SLOTS.forEach(k => { modalSlotState[typ] && (modalSlotState[typ][k] = !!s[k]); });
-    }
-  }
 
   const val = (f, fb='') => (d[f] !== undefined && d[f] !== null) ? d[f] : fb;
   const field = (label, id, type, value, placeholder='') =>
     `<div class="mfield"><label>${label}</label><input type="${type}" id="mf-${id}" value="${(value||'').toString().replace(/"/g,'&quot;')}" placeholder="${placeholder}"></div>`;
 
-  // Gewerke
   const gwHtml = gewerkeKonfig.map(g => {
     const checked = (d.gewerke||[]).includes(g.id);
     return `<label class="mcheck">
@@ -1186,15 +945,7 @@ function buildPersonForm(data) {
     </div>`;
   }).join('');
 
-  // Schicht-Pills
-  const schichtHtml = ['frueh','spaet','wechsel','konti','sonstiges'].map(s =>
-    `<span class="mpill ${modalSchichtart===s?'sel':''}" onclick="mfSetSchicht('${s}',this)">${SCHICHT_LABELS[s]||s}</span>`
-  ).join('');
-
-  // Wochentage
-  const tageHtml = MODAL_TAGE_KEYS.map((k,i) => `
-    <label class="mcheck"><input type="checkbox" name="mf-tag" value="${k}" ${(d.wochentage||[]).includes(k)?'checked':''}> ${['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'][i]}</label>
-  `).join('');
+  const bauhelferChecked = (d.gewerke||[]).includes('bauhelfer_allgemein');
 
   return `
     <div class="msection">Persönliche Daten</div>
@@ -1206,84 +957,27 @@ function buildPersonForm(data) {
       ${field('E-Mail','email','email',val('email'),'max@beispiel.de')}
       ${field('Telefon','telefon','tel',val('telefon'),'+49 170 …')}
     </div>
+    <div class="msection">Schichtarbeit</div>
+    <label class="mcheck" style="max-width:400px">
+      <input type="checkbox" id="mf-schichtarbeit" ${val('schichtarbeit') ? 'checked' : ''}> Ich arbeite im Schichtbetrieb
+    </label>
+    <div class="msection">Bauhelfer allgemein</div>
+    <label class="mcheck" style="max-width:300px">
+      <input type="checkbox" name="mf-gewerk" value="bauhelfer_allgemein" ${bauhelferChecked?'checked':''}> Bauhelfer allgemein
+    </label>
     <div class="msection">Gewerk(e) & Erfahrung</div>
     <div class="mcheckgrid" id="mf-gewerk-grid">${gwHtml}</div>
-    <div class="msection">Schichtmodell</div>
-    <div class="mpill-group" id="mf-schicht-pills">${schichtHtml}</div>
-    <!-- Slot-Sektionen -->
-    <div class="modal-konti-info ${modalSchichtart==='konti'?'visible':''}" id="mf-konti-info">
-      <strong>Kontischicht:</strong> Bitte freie Zeiten im Kommentarfeld unten angeben – wir übertragen sie manuell.
-    </div>
-    <div class="modal-slot-section ${modalSchichtart==='frueh'?'visible':''}" id="mfs-frueh">
-      <div style="font-size:12px;color:var(--muted)">Frühschicht: Mo–Fr nur Nachmittag, Sa beide Zeitfenster.</div>
-      <table class="modal-slot-table">${buildModalSlotTable('frueh')}</table>
-    </div>
-    <div class="modal-slot-section ${modalSchichtart==='spaet'?'visible':''}" id="mfs-spaet">
-      <div style="font-size:12px;color:var(--muted)">Spätschicht: Mo–Fr nur Vormittag, Sa beide Zeitfenster.</div>
-      <table class="modal-slot-table">${buildModalSlotTable('spaet')}</table>
-    </div>
-    <div class="modal-slot-section ${modalSchichtart==='wechsel'?'visible':''}" id="mfs-wechsel">
-      <div style="font-size:12px;color:var(--muted)">Bitte für beide Wochenmuster angeben.</div>
-      <div style="font-size:11px;font-weight:500;color:var(--muted);margin-bottom:4px">Gerade KW</div>
-      <table class="modal-slot-table">${buildModalSlotTable('gerade')}</table>
-      <div style="font-size:11px;font-weight:500;color:var(--muted);margin-top:8px;margin-bottom:4px">Ungerade KW</div>
-      <table class="modal-slot-table">${buildModalSlotTable('ungerade')}</table>
-    </div>
-    <div class="modal-slot-section ${modalSchichtart==='sonstiges'?'visible':''}" id="mfs-sonstiges">
-      <table class="modal-slot-table">${buildModalSlotTable('sonstiges')}</table>
+    <div class="mfield">
+      <label>Sonstige Qualifikationen, Ergänzungen zu Gewerken & Erfahrung (Optional)</label>
+      <textarea id="mf-quali" rows="3" placeholder="z.B. zu Elektrotechnik: Erfahrung mit Beleuchtung, Staplerschein, ...">${val('qualifikationen')}</textarea>
     </div>
     <div class="mfield">
-      <label>Sonderfälle / Ergänzungen (optional)</label>
-      <textarea id="mf-freitext" placeholder="z.B. mittwochs nur bis 12 Uhr …" style="min-height:60px">${val('schicht_freitext')}</textarea>
+      <label>Gruppenwunsch (optional)</label>
+      <textarea id="mf-gruppenwunsch" rows="3" placeholder="z.B. wegen Fahrgemeinschaft bitte in dieselbe Gruppe wie Hans Meier ...">${val('gruppenwunsch')||val('teamwunsch')}</textarea>
     </div>
-    <div class="msection">Wochentage (allgemein)</div>
-    <div class="mcheckgrid">${tageHtml}</div>
-    ${field('Qualifikationen (optional)','quali','text',val('qualifikationen'),'z.B. Staplerschein …')}
-    ${field('Teamwunsch (optional)','teamwunsch','text',val('teamwunsch'),'z.B. gerne mit Klaus …')}
-    <div class="mfield"><label>Anmerkungen</label><textarea id="mf-kommentar" placeholder="Besonderheiten …" style="min-height:60px">${val('verfueg_kommentar')}</textarea></div>
   `;
 }
 
-function buildModalSlotTable(tableKey) {
-  const enabled = getModalEnabledSlots(tableKey);
-  let h = '<thead><tr><th></th>' + MODAL_TAGE.map(t => `<th>${t}</th>`).join('') + '</tr></thead><tbody>';
-  ['vm','nm'].forEach(period => {
-    h += `<tr><td>${SLOT_LABELS[period]}</td>`;
-    MODAL_TAGE_KEYS.forEach(tag => {
-      const key = tag+'_'+period;
-      const isEnabled = enabled[key];
-      const isActive = modalSlotState[tableKey] && modalSlotState[tableKey][key];
-      h += `<td><button type="button" class="mslot-btn ${isActive?'mslot-active':''} ${!isEnabled?'mslot-disabled':''}"
-        id="mslot-${tableKey}-${key}"
-        onclick="mfToggleSlot('${tableKey}','${key}',this)"
-        >${isActive?'✓':'○'}</button></td>`;
-    });
-    h += '</tr>';
-  });
-  h += '</tbody>';
-  return h;
-}
-
-function getModalEnabledSlots(tableKey) {
-  const enabled = {};
-  ALL_SLOTS.forEach(k => enabled[k] = false);
-  if (tableKey === 'frueh') {
-    MODAL_TAGE_KEYS.forEach((t,i) => { if(i<5) enabled[t+'_nm']=true; else { enabled[t+'_vm']=true; enabled[t+'_nm']=true; } });
-  } else if (tableKey === 'spaet') {
-    MODAL_TAGE_KEYS.forEach((t,i) => { if(i<5) enabled[t+'_vm']=true; else { enabled[t+'_vm']=true; enabled[t+'_nm']=true; } });
-  } else {
-    ALL_SLOTS.forEach(k => enabled[k] = true);
-  }
-  return enabled;
-}
-
-function mfToggleSlot(tableKey, key, btn) {
-  if (!modalSlotState[tableKey]) modalSlotState[tableKey] = {};
-  modalSlotState[tableKey][key] = !modalSlotState[tableKey][key];
-  if (modalSlotState[tableKey][key]) { btn.classList.add('mslot-active'); btn.textContent = '✓'; }
-  else { btn.classList.remove('mslot-active'); btn.textContent = '○'; }
-}
-window.mfToggleSlot = mfToggleSlot;
 
 function mfToggleLevel(gwId, checked) {
   const el = document.getElementById('mfl-' + gwId);
@@ -1300,30 +994,6 @@ function mfSelectLevel(gwId, val, el) {
 }
 window.mfSelectLevel = mfSelectLevel;
 
-function mfSetSchicht(val, el) {
-  modalSchichtart = val;
-  document.getElementById('mf-schicht-pills').querySelectorAll('.mpill').forEach(p => p.classList.remove('sel'));
-  el.classList.add('sel');
-  ['frueh','spaet','wechsel','sonstiges'].forEach(s => {
-    const sec = document.getElementById('mfs-' + s);
-    if (sec) sec.classList.toggle('visible', s === val);
-  });
-  const konti = document.getElementById('mf-konti-info');
-  if (konti) konti.classList.toggle('visible', val === 'konti');
-}
-window.mfSetSchicht = mfSetSchicht;
-
-function buildZeitslotPayload(schichtart) {
-  if (schichtart === 'konti') return null;
-  const extract = (key) => {
-    const r = {}; ALL_SLOTS.forEach(k => r[k] = !!(modalSlotState[key]&&modalSlotState[key][k])); return r;
-  };
-  if (schichtart === 'frueh')     return { typ:'frueh',    slots: extract('frueh') };
-  if (schichtart === 'spaet')     return { typ:'spaet',    slots: extract('spaet') };
-  if (schichtart === 'wechsel')   return { typ:'wechsel',  gerade: extract('gerade'), ungerade: extract('ungerade') };
-  if (schichtart === 'sonstiges') return { typ:'sonstiges',slots: extract('sonstiges') };
-  return null;
-}
 
 function openAddModal() {
   editingId = null;
@@ -1347,21 +1017,15 @@ async function savePerson(isEdit) {
   const nachname = document.getElementById('mf-nachname')?.value.trim();
   if (!vorname||!nachname) { alert('Bitte Vor- und Nachname angeben.'); return; }
   const gewerke = [...document.querySelectorAll('input[name="mf-gewerk"]:checked')].map(cb => cb.value);
-  const wochentage = [...document.querySelectorAll('input[name="mf-tag"]:checked')].map(cb => cb.value);
-  const zeitslots = buildZeitslotPayload(modalSchichtart);
   const data = {
     vorname, nachname,
     email: document.getElementById('mf-email')?.value.trim()||'',
     telefon: document.getElementById('mf-telefon')?.value.trim()||'',
     gewerke,
     erfahrung: Object.assign({}, modalErfahrung),
-    schichtart: modalSchichtart,
-    zeitslots,
-    schicht_freitext: document.getElementById('mf-freitext')?.value.trim()||'',
-    wochentage,
+    schichtarbeit: document.getElementById('mf-schichtarbeit')?.checked || false,
     qualifikationen: document.getElementById('mf-quali')?.value.trim()||'',
-    teamwunsch: document.getElementById('mf-teamwunsch')?.value.trim()||'',
-    verfueg_kommentar: document.getElementById('mf-kommentar')?.value.trim()||'',
+    gruppenwunsch: document.getElementById('mf-gruppenwunsch')?.value.trim()||'',
     manuell_eingetragen: true,
   };
   try {
@@ -1370,7 +1034,7 @@ async function savePerson(isEdit) {
       closeEditModal();
       openDrawer(editingId);
     } else {
-      data.angemeldet_am = { seconds: Math.floor(Date.now()/1000), nanoseconds: 0 };
+      data.createdAt = { seconds: Math.floor(Date.now()/1000), nanoseconds: 0 };
       data.abwesenheiten = [];
       await window._addDoc(window._colFn(window._db,'anmeldungen'), data);
       closeAddModal();
@@ -1413,16 +1077,15 @@ function renderAbwesenheiten() {
 // EXPORT CSV
 // ═══════════════════════════════════════════════
 function exportCSV() {
-  const headers = ['Vorname','Nachname','E-Mail','Telefon','Gewerke','Erfahrung','Schichtart','Zeitslot-Typ','Wochentage','Zugewiesenes Gewerk','Qualifikationen'];
+  const headers = ['Vorname','Nachname','E-Mail','Telefon','Gewerke','Erfahrung','Schichtarbeit','Zugewiesenes Gewerk','Qualifikationen','Gruppenwunsch'];
   const rows = allDocs.map(d => [
     d.vorname||'', d.nachname||'', d.email||'', d.telefon||'',
     (d.gewerke||[]).map(g=>getGewerkLabel(g)).join('; '),
     (d.gewerke||[]).map(g=>(d.erfahrung||{})[g]||'').join('; '),
-    d.schichtart||'',
-    d.zeitslots?.typ||'',
-    (d.wochentage||[]).join('; '),
+    d.schichtarbeit ? 'Ja' : 'Nein',
     d.gewerk ? getGewerkLabel(d.gewerk) : '',
-    d.qualifikationen||''
+    d.qualifikationen||'',
+    d.gruppenwunsch||d.teamwunsch||''
   ].map(v => '"' + String(v).replace(/"/g,'""') + '"'));
   const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
   const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
@@ -1514,7 +1177,7 @@ async function loadGewerke() {
 
 // ── ANMELDUNGEN ──
 function loadAnmeldungen() {
-  const q = query(collection(db,'anmeldungen'), orderBy('angemeldet_am','desc'));
+  const q = query(collection(db,'anmeldungen'), orderBy('createdAt','desc'));
   onSnapshot(q, snap => {
     allDocs = [];
     snap.forEach(d => allDocs.push({ id:d.id, ...d.data() }));
