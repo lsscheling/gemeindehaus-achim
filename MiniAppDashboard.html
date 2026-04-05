@@ -691,10 +691,14 @@ async function loadUserData() {
     const gruppe  = userDoc?.gruppe  || null;
     const gewerke = userDoc?.gewerke_zugewiesen || [];
 
-    // 2. Gewerk-Namen laden
-    const gwSnap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
+    // 2. Gewerk-Namen + Gantt-Daten laden
+    const [gwSnap, ganttSnap] = await Promise.all([
+      getDoc(doc(db, 'planung', 'gewerkeKonfig')),
+      getDoc(doc(db, 'planung', 'ganttDaten'))
+    ]);
     const gewerkeMap = {};
     (gwSnap.exists() ? gwSnap.data().gewerke || [] : []).forEach(g => { gewerkeMap[g.id] = g; });
+    const allBars = ganttSnap.exists() ? ganttSnap.data().gewerke || [] : [];
 
     // ── Mein Team ──
     if (!gruppe || !gewerke.length) {
@@ -834,9 +838,6 @@ async function loadUserData() {
       einsaetzeBody.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Noch keine Gruppe oder Gewerk zugewiesen.</div>';
       return;
     }
-
-    const ganttSnap = await getDoc(doc(db, 'planung', 'ganttDaten'));
-    const allBars = ganttSnap.exists() ? ganttSnap.data().gewerke || [] : [];
 
     const today = new Date(); today.setHours(0,0,0,0);
     const in14  = new Date(today); in14.setDate(in14.getDate() + 14);
