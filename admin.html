@@ -269,10 +269,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Planung
     </button>
-    <button class="nav-item" onclick="showPanel('abwesenheiten')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      Abwesenheiten
-    </button>
     <div class="nav-label" style="margin-top:8px">System</div>
     <button class="nav-item " onclick="showPanel('nutzerverwaltung')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><line x1="18" y1="11" x2="18" y2="17"/><line x1="15" y1="14" x2="21" y2="14"/></svg>
@@ -285,6 +281,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
     <button class="nav-item" onclick="window.open('gewerke.html','_blank')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
       Gewerke ↗
+    </button>
+    <button class="nav-item" onclick="window.open('gantt.html','_blank')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Gantt ↗
     </button>
   </nav>
   <div style="padding:16px 12px;border-top:1px solid rgba(255,255,255,0.08)" id="sidebar-user-info"></div>
@@ -362,6 +362,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <!-- Gewerk-Sidebar -->
       <div class="plan-sidebar">
         <div class="plan-sidebar-header">Gewerke</div>
+        <div style="padding:8px 10px;border-bottom:1px solid var(--border)">
+          <input type="text" placeholder="Gewerk suchen …" oninput="filterSidebar(this.value)"
+            style="width:100%;font-family:'DM Sans',sans-serif;font-size:12px;border:1px solid var(--border);border-radius:var(--radius);padding:6px 9px;outline:none;background:var(--paper)">
+        </div>
         <div class="plan-gewerk-list" id="plan-gewerk-list">
           <div class="loading-state">Wird geladen…</div>
         </div>
@@ -372,10 +376,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
           <input class="search-input" type="text" placeholder="Person suchen …" oninput="filterMatrix(this.value)" style="max-width:220px">
           <select class="filter-select" onchange="filterMatrixLevel(this.value)" id="matrix-level-filter">
             <option value="">Alle Level</option>
-            <option value="profi">Profi</option>
-            <option value="erfahren">Erfahren</option>
-            <option value="grundkenntnisse">Grundkenntnisse</option>
-            <option value="anfaenger">Anfänger</option>
           </select>
         </div>
         <!-- BULK in planung -->
@@ -399,19 +399,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════ ABWESENHEITEN ══ -->
-<div id="panel-abwesenheiten" class="panel">
-  <div class="topbar">
-    <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-    <div><div class="topbar-title">Abwesenheiten</div><div class="topbar-sub">Bevorstehend & aktuell</div></div>
-  </div>
-  <div class="content">
-    <div style="display:flex;flex-direction:column;gap:8px" id="abw-list">
-      <div class="loading-state">Wird geladen…</div>
     </div>
   </div>
 </div>
@@ -510,7 +497,6 @@ function showPanel(id) {
     if ((n.getAttribute('onclick')||'').includes("'" + id + "'")) n.classList.add('active');
   });
   if (id === 'planung') renderPlanungPanel();
-  if (id === 'abwesenheiten') renderAbwesenheiten();
   if (id === 'nutzerverwaltung') renderUsersTable();
   closeSidebar();
 }
@@ -552,6 +538,7 @@ let filteredDocs = [];
 let selectedIds = new Set();
 let planSelectedIds = new Set();
 let gewerkeKonfig = [];
+let allGewerkeKonfig = [];
 let levelsKonfig = [];
 let currentFilter = '', currentGewerk = '', currentAssign = '';
 let matrixFilter = '', matrixLevel = '', activeGewerkId = null;
@@ -579,8 +566,12 @@ function isAbwesend(person, dateOrToday) {
 // ═══════════════════════════════════════════════
 function getGewerkLabel(id) {
   if (id === 'bauhelfer_allgemein') return 'Bauhelfer allgemein';
-  const gw = gewerkeKonfig.find(g => g.id === id);
+  const gw = allGewerkeKonfig.find(g => g.id === id) || gewerkeKonfig.find(g => g.id === id);
   return gw ? gw.name : id;
+}
+// Fallback für altes Einzelfeld
+function getAssigned(d) {
+  return d.gewerke_zugewiesen || (d.gewerk ? [d.gewerk] : []);
 }
 function getGewerkLevel(person, gewerkId) {
   // Bestes Level aus der Person für ein bestimmtes Gewerk
@@ -600,7 +591,7 @@ function applyFilters() {
     const gw = (d.gewerke||[]).join(' ');
     const matchText = !currentFilter || name.includes(currentFilter) || gw.includes(currentFilter);
     const matchGewerk = !currentGewerk || (d.gewerke||[]).includes(currentGewerk);
-    const matchAssign = !currentAssign || (currentAssign === 'assigned' ? !!d.gewerk : !d.gewerk);
+    const matchAssign = !currentAssign || (currentAssign === 'assigned' ? getAssigned(d).length > 0 : getAssigned(d).length === 0);
     return matchText && matchGewerk && matchAssign;
   });
   renderTable();
@@ -623,7 +614,7 @@ function renderTable() {
       return `<span style="display:inline-block;padding:2px 7px;border-radius:9px;font-size:10px;background:${bg};color:${col};border:1px solid ${col}33;margin:1px">${getGewerkLabel(g)}${lvl}</span>`;
     }).join('') || '–';
     const schichtHtml = d.schichtarbeit ? '<span class="badge badge-green">Ja</span>' : '<span class="badge badge-gray">–</span>';
-    const assignedGw = d.gewerk ? `<span class="badge badge-green">${getGewerkLabel(d.gewerk)}</span>` : '<span class="badge badge-gray">–</span>';
+    const assignedGw = getAssigned(d).length > 0 ? getAssigned(d).map(g => `<span class="badge badge-green">${getGewerkLabel(g)}</span>`).join(' ') : '<span class="badge badge-gray">–</span>';
     return `<tr class="${isSelected ? 'selected' : ''}" onclick="rowClick(event,'${d.id}')">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${isSelected?'checked':''} onchange="toggleSelect('${d.id}',this.checked)" onclick="event.stopPropagation()"></td>
       <td><strong>${name}</strong><br><span style="font-size:11px;color:var(--muted)">${d.email||''}</span></td>
@@ -685,9 +676,12 @@ async function bulkAssignGewerk() {
   const ids = [...selectedIds];
   if (!ids.length) return;
   if (!confirm(`${ids.length} Person(en) dem Gewerk "${getGewerkLabel(gewerkId)}" zuweisen?`)) return;
-  await Promise.all(ids.map(id =>
-    window._db && window.updateDoc(window._docFn(window._db,'anmeldungen',id), { gewerk: gewerkId })
-  ));
+  await Promise.all(ids.map(id => {
+    const d = allDocs.find(x => x.id === id); if (!d) return;
+    const current = getAssigned(d);
+    if (current.includes(gewerkId)) return;
+    return window._db && window.updateDoc(window._docFn(window._db,'anmeldungen',id), { gewerke_zugewiesen: [...current, gewerkId] });
+  }));
   clearSelection();
 }
 async function bulkAssignPlan() {
@@ -696,9 +690,12 @@ async function bulkAssignPlan() {
   const ids = [...planSelectedIds];
   if (!ids.length) return;
   if (!confirm(`${ids.length} Person(en) dem Gewerk "${getGewerkLabel(gewerkId)}" zuweisen?`)) return;
-  await Promise.all(ids.map(id =>
-    window._db && window.updateDoc(window._docFn(window._db,'anmeldungen',id), { gewerk: gewerkId })
-  ));
+  await Promise.all(ids.map(id => {
+    const d = allDocs.find(x => x.id === id); if (!d) return;
+    const current = getAssigned(d);
+    if (current.includes(gewerkId)) return;
+    return window._db && window.updateDoc(window._docFn(window._db,'anmeldungen',id), { gewerke_zugewiesen: [...current, gewerkId] });
+  }));
   clearPlanSelection();
 }
 
@@ -712,7 +709,7 @@ function renderStats() {
   allDocs.forEach(d => {
     (d.gewerke||[]).forEach(g => gewerkSet.add(g));
     if (d.schichtarbeit) schichtCount++;
-    if (d.gewerk) assignedCount++;
+    if (getAssigned(d).length > 0) assignedCount++;
   });
   document.getElementById('s-total').textContent = total;
   document.getElementById('s-gewerke').textContent = gewerkSet.size;
@@ -738,25 +735,59 @@ function buildGewerkFilters() {
 // PLANUNG PANEL
 // ═══════════════════════════════════════════════
 function renderPlanungPanel() {
+  // Populate level filter from Firestore levelsKonfig
+  const sel = document.getElementById('matrix-level-filter');
+  if (sel) {
+    const current = sel.value;
+    sel.innerHTML = '<option value="">Alle Level</option>' +
+      levelsKonfig.map(lv => `<option value="${lv.id}" ${lv.id===current?'selected':''}>${lv.name}</option>`).join('');
+  }
   renderGewerkSidebar();
   renderMatrix();
 }
 
+let _sidebarFilter = '';
+function filterSidebar(val) { _sidebarFilter = val.toLowerCase(); renderGewerkSidebar(); }
+
 function renderGewerkSidebar() {
   const list = document.getElementById('plan-gewerk-list');
-  const assignCounts = {};
-  allDocs.forEach(d => { if (d.gewerk) assignCounts[d.gewerk] = (assignCounts[d.gewerk]||0) + 1; });
+
+  // Build counts from person profiles
+  const interestedCounts = {}, assignedCounts = {};
+  allDocs.forEach(d => {
+    (d.gewerke||[]).forEach(gid => { interestedCounts[gid] = (interestedCounts[gid]||0) + 1; });
+    getAssigned(d).forEach(gid => { assignedCounts[gid] = (assignedCounts[gid]||0) + 1; });
+  });
+
+  // All unique gewerk IDs that appear in profiles, sorted by interest count
+  let gwIds = [...new Set(Object.keys(interestedCounts))];
+  gwIds.sort((a,b) => (interestedCounts[b]||0) - (interestedCounts[a]||0));
+
+  // Apply search filter
+  if (_sidebarFilter) {
+    gwIds = gwIds.filter(id => getGewerkLabel(id).toLowerCase().includes(_sidebarFilter));
+  }
+
   let html = `<div class="plan-gewerk-item ${!activeGewerkId?'active':''}" onclick="selectPlanGewerk(null)">
     <span class="pgw-name">Alle Personen</span>
     <span class="pgw-count">${allDocs.length} gesamt</span>
   </div>`;
-  gewerkeKonfig.forEach(g => {
-    const cnt = assignCounts[g.id] || 0;
-    html += `<div class="plan-gewerk-item ${activeGewerkId===g.id?'active':''}" onclick="selectPlanGewerk('${g.id}')">
-      <span class="pgw-name">${g.name}</span>
-      <span class="pgw-count">${cnt} zugewiesen</span>
+
+  gwIds.forEach(gid => {
+    const interested = interestedCounts[gid] || 0;
+    const assigned = assignedCounts[gid] || 0;
+    html += `<div class="plan-gewerk-item ${activeGewerkId===gid?'active':''}" onclick="selectPlanGewerk('${gid}')">
+      <div style="min-width:0">
+        <div class="pgw-name">${getGewerkLabel(gid)}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${interested} interessiert · ${assigned} zugewiesen</div>
+      </div>
     </div>`;
   });
+
+  if (!gwIds.length) {
+    html += `<div style="padding:12px 16px;font-size:12px;color:var(--muted)">Keine Treffer.</div>`;
+  }
+
   list.innerHTML = html;
 }
 
@@ -781,7 +812,7 @@ function renderMatrix() {
   // Personen filtern
   let persons = allDocs.filter(d => {
     if (activeGewerkId) {
-      const hasGewerk = (d.gewerke||[]).includes(activeGewerkId) || d.gewerk === activeGewerkId;
+      const hasGewerk = (d.gewerke||[]).includes(activeGewerkId) || getAssigned(d).includes(activeGewerkId);
       if (!hasGewerk) return false;
     }
     if (_matrixFilter) {
@@ -797,8 +828,8 @@ function renderMatrix() {
 
   // Sortierung: zugewiesene zuerst, dann nach Level (bestes zuerst)
   persons.sort((a, b) => {
-    const aAssigned = (a.gewerk === activeGewerkId) ? 1 : 0;
-    const bAssigned = (b.gewerk === activeGewerkId) ? 1 : 0;
+    const aAssigned = activeGewerkId && getAssigned(a).includes(activeGewerkId) ? 1 : 0;
+    const bAssigned = activeGewerkId && getAssigned(b).includes(activeGewerkId) ? 1 : 0;
     if (aAssigned !== bAssigned) return bAssigned - aAssigned;
     const aLv = activeGewerkId ? getLevelOrder((a.erfahrung||{})[activeGewerkId]) : 0;
     const bLv = activeGewerkId ? getLevelOrder((b.erfahrung||{})[activeGewerkId]) : 0;
@@ -829,7 +860,8 @@ function renderMatrix() {
   }
 
   tbody.innerHTML = persons.map(d => {
-    const isAssigned = d.gewerk === activeGewerkId && activeGewerkId;
+    const isAssigned = activeGewerkId && getAssigned(d).includes(activeGewerkId);
+    const assigned = getAssigned(d);
     const isPlanSelected = planSelectedIds.has(d.id);
     const name = (d.vorname||'') + ' ' + (d.nachname||'');
     const schichtHtml = d.schichtarbeit ? '<span class="badge badge-green">Ja</span>' : '<span class="badge badge-gray">–</span>';
@@ -842,8 +874,8 @@ function renderMatrix() {
       return `<td><span style="display:inline-block;padding:2px 8px;border-radius:9px;font-size:10px;background:${bg};color:${col};border:1px solid ${col}33">${lbl}</span></td>`;
     })() : '';
 
-    const assignOpts = '<option value="">– kein –</option>' +
-      gewerkeKonfig.map(g => `<option value="${g.id}" ${d.gewerk===g.id?'selected':''}>${g.name}</option>`).join('');
+    const chips = assigned.map(gid => `<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:9px;background:var(--accent-light);border:1px solid var(--accent);color:var(--accent);white-space:nowrap">${getGewerkLabel(gid)}<button onclick="window.removeAssignment('${d.id}','${gid}')" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:11px;line-height:1;padding:0;margin-left:1px">✕</button></span>`).join('');
+    const addOpts = '<option value="">+ Gewerk</option>' + gewerkeKonfig.filter(g => !assigned.includes(g.id)).map(g => `<option value="${g.id}">${g.name}</option>`).join('');
 
     return `<tr class="${isAssigned?'assigned':''} ${isPlanSelected?'selected':''}" onclick="planRowClick(event,'${d.id}')">
       <td class="matrix-row-cb" onclick="event.stopPropagation()">
@@ -855,9 +887,12 @@ function renderMatrix() {
       ${levelHtml}
       <td>${schichtHtml}</td>
       <td class="assign-btn-cell" onclick="event.stopPropagation()">
-        <select class="assign-select ${d.gewerk?'assigned':''}" onchange="assignGewerk('${d.id}',this.value,this)">
-          ${assignOpts}
-        </select>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">
+          ${chips}
+          <select onchange="window.addAssignment('${d.id}',this.value,this)" style="font-size:10px;border:1px dashed var(--border);border-radius:var(--radius);padding:2px 5px;background:white;cursor:pointer;outline:none;font-family:'DM Sans',sans-serif;color:var(--muted)">
+            ${addOpts}
+          </select>
+        </div>
       </td>
     </tr>`;
   }).join('');
@@ -875,7 +910,7 @@ function togglePlanSelect(id, checked) {
   renderMatrix();
 }
 function togglePlanSelectAll(checked) {
-  let persons = allDocs.filter(d => !activeGewerkId || (d.gewerke||[]).includes(activeGewerkId) || d.gewerk === activeGewerkId);
+  let persons = allDocs.filter(d => !activeGewerkId || (d.gewerke||[]).includes(activeGewerkId) || getAssigned(d).includes(activeGewerkId));
   persons.forEach(d => { if (checked) planSelectedIds.add(d.id); else planSelectedIds.delete(d.id); });
   const bar = document.getElementById('plan-bulk-bar');
   bar.classList.toggle('visible', planSelectedIds.size > 0);
@@ -883,12 +918,25 @@ function togglePlanSelectAll(checked) {
   renderMatrix();
 }
 
-async function assignGewerk(id, gewerkId, selectEl) {
+async function addAssignment(personId, gewerkId, selectEl) {
+  if (!gewerkId) return;
+  const d = allDocs.find(x => x.id === personId); if (!d) return;
+  const current = getAssigned(d);
+  if (current.includes(gewerkId)) { if (selectEl) selectEl.value = ''; return; }
   try {
-    await window.updateDoc(window._docFn(window._db, 'anmeldungen', id), { gewerk: gewerkId || null });
-    if (selectEl) { selectEl.className = 'assign-select ' + (gewerkId ? 'assigned' : ''); }
+    await window.updateDoc(window._docFn(window._db,'anmeldungen',personId), { gewerke_zugewiesen: [...current, gewerkId] });
+    if (selectEl) selectEl.value = '';
   } catch(e) { alert('Fehler: ' + e.message); }
 }
+async function removeAssignment(personId, gewerkId) {
+  const d = allDocs.find(x => x.id === personId); if (!d) return;
+  const updated = getAssigned(d).filter(g => g !== gewerkId);
+  try {
+    await window.updateDoc(window._docFn(window._db,'anmeldungen',personId), { gewerke_zugewiesen: updated });
+  } catch(e) { alert('Fehler: ' + e.message); }
+}
+window.addAssignment = addAssignment;
+window.removeAssignment = removeAssignment;
 
 // ═══════════════════════════════════════════════
 // DRAWER
@@ -907,7 +955,9 @@ function openDrawer(id) {
 
   const abw = (d.abwesenheiten||[]).map(a => `<span class="abw-chip">🔴 ${a.von}${a.von!==a.bis?' – '+a.bis:''}</span>`).join('') || '–';
 
-  const assignOpts = '<option value="">– kein –</option>' + gewerkeKonfig.map(g => `<option value="${g.id}" ${d.gewerk===g.id?'selected':''}>${g.name}</option>`).join('');
+  const drawerAssigned = getAssigned(d);
+  const drawerChips = drawerAssigned.map(gid => `<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 9px;border-radius:9px;background:var(--accent-light);border:1px solid var(--accent);color:var(--accent)">${getGewerkLabel(gid)}<button onclick="window.removeAssignment('${d.id}','${gid}')" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;line-height:1;padding:0">✕</button></span>`).join('');
+  const drawerAddOpts = '<option value="">+ Gewerk hinzufügen …</option>' + gewerkeKonfig.filter(g => !drawerAssigned.includes(g.id)).map(g => `<option value="${g.id}">${g.name}</option>`).join('');
 
   document.getElementById('drawer-body').innerHTML = `
     <div class="dsection"><div class="dsection-title">Kontakt</div>
@@ -925,8 +975,11 @@ function openDrawer(id) {
     ${d.gruppenwunsch||d.teamwunsch?`<div class="dsection"><div class="dsection-title">Gruppenwunsch</div><div class="note-box">${d.gruppenwunsch||d.teamwunsch}</div></div>`:''}
     ${d.verfueg_kommentar?`<div class="dsection"><div class="dsection-title">Anmerkungen</div><div class="note-box">${d.verfueg_kommentar}</div></div>`:''}
     <div class="dsection"><div class="dsection-title">Gewerk-Zuweisung</div>
-      <select onchange="assignGewerk('${d.id}',this.value,this)" class="assign-select ${d.gewerk?'assigned':''}" style="width:100%;font-size:14px;padding:10px 12px">
-        ${assignOpts}
+      <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:8px">
+        ${drawerChips || '<span style="font-size:12px;color:var(--muted);font-style:italic">Noch kein Gewerk zugewiesen</span>'}
+      </div>
+      <select onchange="window.addAssignment('${d.id}',this.value,this)" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);width:100%;cursor:pointer">
+        ${drawerAddOpts}
       </select>
     </div>
   `;
@@ -1074,35 +1127,6 @@ async function savePerson(isEdit) {
 window.savePerson = savePerson;
 
 // ═══════════════════════════════════════════════
-// ABWESENHEITEN
-// ═══════════════════════════════════════════════
-function renderAbwesenheiten() {
-  const list = document.getElementById('abw-list');
-  const today = new Date(); today.setHours(0,0,0,0);
-  const entries = [];
-  allDocs.forEach(d => {
-    (d.abwesenheiten||[]).forEach(a => {
-      const [vd,vm,vy] = a.von.split('.').map(Number);
-      const [bd,bm,by] = a.bis.split('.').map(Number);
-      const von = new Date(vy,vm-1,vd), bis = new Date(by,bm-1,bd);
-      if (bis >= today) entries.push({ name:(d.vorname||'')+' '+(d.nachname||''), gewerke:(d.gewerke||[]).map(g=>getGewerkLabel(g)).join(', ')||'–', von, bis });
-    });
-  });
-  entries.sort((a,b) => a.von - b.von);
-  if (!entries.length) { list.innerHTML = '<div class="empty-state">Keine bevorstehenden Abwesenheiten.</div>'; return; }
-  list.innerHTML = entries.map(e => {
-    const vs = e.von.toLocaleDateString('de-DE'), bs = e.bis.toLocaleDateString('de-DE');
-    const days = Math.round((e.bis - e.von) / 86400000) + 1;
-    const now = e.von <= today && e.bis >= today;
-    return `<div class="abw-row" style="${now?'border-left:3px solid var(--accent);':''}">
-      <div><div class="abw-name">${e.name}</div><div style="font-size:11px;color:var(--muted)">${e.gewerke}</div></div>
-      <div class="abw-dates">${vs===bs?vs:vs+' – '+bs}</div>
-      <div class="abw-days">${days} Tag${days!==1?'e':''}</div>
-      ${now?'<span class="badge badge-accent">Aktuell</span>':''}
-    </div>`;
-  }).join('');
-}
-
 // ═══════════════════════════════════════════════
 // EXPORT CSV
 // ═══════════════════════════════════════════════
@@ -1113,7 +1137,7 @@ function exportCSV() {
     (d.gewerke||[]).map(g=>getGewerkLabel(g)).join('; '),
     (d.gewerke||[]).map(g=>(d.erfahrung||{})[g]||'').join('; '),
     d.schichtarbeit ? 'Ja' : 'Nein',
-    d.gewerk ? getGewerkLabel(d.gewerk) : '',
+    getAssigned(d).map(g => getGewerkLabel(g)).join('; '),
     d.qualifikationen||'',
     d.gruppenwunsch||d.teamwunsch||''
   ].map(v => '"' + String(v).replace(/"/g,'""') + '"'));
@@ -1188,12 +1212,13 @@ async function loadGewerke() {
   try {
     const snap = await getDoc(doc(db,'planung','gewerkeKonfig'));
     if (snap.exists()) {
-      gewerkeKonfig = (snap.data().gewerke||[]).filter(g=>g.active);
+      allGewerkeKonfig = snap.data().gewerke || [];
+      gewerkeKonfig = allGewerkeKonfig.filter(g => g.active);
       levelsKonfig = snap.data().levels || [];
     } else {
-      gewerkeKonfig = []; levelsKonfig = [];
+      allGewerkeKonfig = []; gewerkeKonfig = []; levelsKonfig = [];
     }
-  } catch(e) { gewerkeKonfig = []; levelsKonfig = []; }
+  } catch(e) { allGewerkeKonfig = []; gewerkeKonfig = []; levelsKonfig = []; }
   buildGewerkFilters();
 }
 
@@ -1212,7 +1237,6 @@ function loadAnmeldungen() {
     renderStats();
     applyFilters();
     if (document.getElementById('panel-planung').classList.contains('active')) renderPlanungPanel();
-    if (document.getElementById('panel-abwesenheiten').classList.contains('active')) renderAbwesenheiten();
     if (document.getElementById('panel-nutzerverwaltung').classList.contains('active')) renderUsersTable();
   });
 }
