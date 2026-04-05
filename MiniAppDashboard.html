@@ -196,6 +196,7 @@
   <button class="nav-btn active" onclick="showView('dashboard',this)">Dashboard</button>
   <button class="nav-btn" onclick="showView('infos',this)">Infos</button>
   <button class="nav-btn" onclick="showView('baustatus',this)">Baustatus</button>
+  <button class="nav-btn" id="nav-tl" style="display:none" onclick="showView('teamleiter',this)">Teamleiter</button>
   <button class="help-btn" onclick="openHelp()">?</button>
 </nav>
 
@@ -306,6 +307,23 @@
   <div class="milestone-timeline">
     <div class="block-title">Meilensteine</div>
     <div class="tl-items" id="tl-items"></div>
+  </div>
+</div>
+
+<!-- ══════════ TEAMLEITER VIEW ══════════ -->
+<div class="view" id="view-teamleiter">
+  <div id="tl-view-body"><div style="color:var(--text-muted);font-size:13px">Wird geladen …</div></div>
+</div>
+
+<!-- ══════════ ANMELDUNGEN POPUP ══════════ -->
+<div class="overlay" id="anm-overlay" onclick="overlayClose(event,'anm-overlay')">
+  <div class="sheet">
+    <div class="news-header">
+      <div class="news-header-title" id="anm-title">Anmeldungen</div>
+      <div class="news-header-sub" id="anm-sub"></div>
+      <button class="sheet-close" onclick="closeOverlay('anm-overlay')">✕</button>
+    </div>
+    <div id="anm-list" style="padding:12px 16px;display:flex;flex-direction:column;gap:8px"></div>
   </div>
 </div>
 
@@ -735,6 +753,80 @@ async function loadUserData() {
         if (cb) callPerson(cb.dataset.name, cb.dataset.tel);
         if (tb) tgOpen(tb.dataset.tgid);
       });
+    }
+
+    // ── Teamleiter-Tab ──
+    if (userDoc?.rolle === 'teamleiter' && (userDoc?.teamleiterGewerke||[]).length) {
+      document.getElementById('nav-tl').style.display = '';
+      const tlGewerke = userDoc.teamleiterGewerke;
+      const today2 = new Date(); today2.setHours(0,0,0,0);
+      const in14b  = new Date(today2); in14b.setDate(in14b.getDate() + 14);
+      const WD2    = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+      const allBars2 = allBars.filter(b => tlGewerke.includes(b.gewerkId));
+
+      // Tage + Bars für TL-Gewerke sammeln (alle Tage Mo–Sa, kein Gruppenfilter)
+      const tlTage = [];
+      const cur2 = new Date(today2);
+      while (cur2 <= in14b) {
+        if (cur2.getDay() !== 0) {
+          const iso2 = `${cur2.getFullYear()}-${String(cur2.getMonth()+1).padStart(2,'0')}-${String(cur2.getDate()).padStart(2,'0')}`;
+          const dayBars2 = allBars2.filter(b => {
+            const s = parseLocalDate(b.start), e = parseLocalDate(b.end);
+            return cur2 >= s && cur2 <= e;
+          });
+          if (dayBars2.length) tlTage.push({ iso: iso2, date: new Date(cur2), bars: dayBars2 });
+        }
+        cur2.setDate(cur2.getDate() + 1);
+      }
+
+      // Anmeldungen für TL-relevante Docs laden
+      const tlDocIds = new Set();
+      tlTage.forEach(({ iso, bars }) => bars.forEach(b => tlDocIds.add(`${iso}_${b.gewerkId}`)));
+      const tlAnmMap = {};
+      await Promise.all([...tlDocIds].map(async id => {
+        const s = await getDoc(doc(db, 'einsatzAnmeldungen', id));
+        tlAnmMap[id] = s.exists() ? (s.data().angemeldete || {}) : {};
+      }));
+
+      // Popup-Funktion
+      window._showAnmeldungen = (docId, dayLabel, gwName) => {
+        const anm = tlAnmMap[docId] || {};
+        const namen = Object.values(anm);
+        document.getElementById('anm-title').textContent = gwName;
+        document.getElementById('anm-sub').textContent = dayLabel;
+        document.getElementById('anm-list').innerHTML = namen.length
+          ? namen.map(n => `<div style="padding:8px 12px;background:var(--sand);border-radius:10px;font-size:13px;font-weight:500">${n}</div>`).join('')
+          : '<div style="color:var(--text-muted);font-size:13px">Noch niemand angemeldet.</div>';
+        document.getElementById('anm-overlay').classList.add('visible');
+      };
+
+      // TL-View rendern: gruppiert nach Gewerk, dann nach KW
+      let tlHtml = '';
+      tlGewerke.forEach(gwId => {
+        const gw = gewerkeMap[gwId];
+        const gwName = gw?.name || gwId;
+        const color  = gw?.color || 'var(--clay)';
+        const gwTage = tlTage.filter(t => t.bars.some(b => b.gewerkId === gwId));
+        if (!gwTage.length) return;
+        tlHtml += `<div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin:16px 0 8px;display:flex;align-items:center;gap:6px">
+          <span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block"></span>${gwName}
+          <span style="flex:1;height:1px;background:var(--clay-pale)"></span></div>`;
+        let lastKW2 = '';
+        gwTage.forEach(({ iso, date, bars }) => {
+          const kw2 = 'KW ' + String(isoWeek(date)).padStart(2,'0');
+          if (kw2 !== lastKW2) { tlHtml += `<div class="kw-sep">${kw2}</div>`; lastKW2 = kw2; }
+          const docId2  = `${iso}_${gwId}`;
+          const anm     = tlAnmMap[docId2] || {};
+          const count   = Object.keys(anm).length;
+          const dayLbl  = WD2[date.getDay()] + ', ' + fmtDateDE(date);
+          tlHtml += `<div class="gewerk-row" style="cursor:pointer" onclick="window._showAnmeldungen('${docId2}','${dayLbl}','${gwName}')">
+            <span class="gewerk-row-name">${dayLbl}</span>
+            <span class="need-badge${count>0?' ok':''}">${count} angemeldet</span>
+            <span style="font-size:18px;color:var(--clay-dark)">›</span>
+          </div>`;
+        });
+      });
+      document.getElementById('tl-view-body').innerHTML = tlHtml || '<div style="color:var(--text-muted);font-size:13px">Keine Einsätze in den nächsten 14 Tagen.</div>';
     }
 
     // ── Meine Einsätze ──
