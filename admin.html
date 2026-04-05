@@ -1017,6 +1017,7 @@ function openDrawer(id) {
     <div class="dsection"><div class="dsection-title">Kontakt</div>
       <div class="drow"><span class="drow-label">E-Mail</span><span class="drow-val">${d.email||'–'}</span></div>
       <div class="drow"><span class="drow-label">Telefon</span><span class="drow-val">${d.telefon||'–'}</span></div>
+      <div class="drow"><span class="drow-label">Telegram ID</span><span class="drow-val">${d.telegram_id||'–'}</span></div>
     </div>
     <div class="dsection"><div class="dsection-title">Gewerk & Erfahrung</div>
       <div>${gewerkeHtml}</div>
@@ -1094,6 +1095,9 @@ function buildPersonForm(data) {
       ${field('E-Mail','email','email',val('email'),'max@beispiel.de')}
       ${field('Telefon','telefon','tel',val('telefon'),'+49 170 …')}
     </div>
+    <div class="mrow">
+      ${field('Telegram ID','telegram-id','text',val('telegram_id') ? String(val('telegram_id')) : '','z.B. 123456789')}
+    </div>
     <div class="msection">Schichtarbeit</div>
     <label class="mcheck" style="max-width:400px">
       <input type="checkbox" id="mf-schichtarbeit" ${val('schichtarbeit') ? 'checked' : ''}> Ich arbeite im Schichtbetrieb
@@ -1158,6 +1162,7 @@ async function savePerson(isEdit) {
     vorname, nachname,
     email: document.getElementById('mf-email')?.value.trim()||'',
     telefon: document.getElementById('mf-telefon')?.value.trim()||'',
+    telegram_id: Number(document.getElementById('mf-telegram-id')?.value.trim())||null,
     gewerke,
     erfahrung: Object.assign({}, modalErfahrung),
     schichtarbeit: document.getElementById('mf-schichtarbeit')?.checked || false,
