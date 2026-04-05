@@ -15,7 +15,7 @@ html, body { background: #f4f1e8 !important; color: #1c1b18 !important; }
   --accent: #b85c2a; --accent-light: #f0d9cc;
   --muted: #79776e; --border: #d6d0c4; --radius: 5px;
   --success: #3a7a52;
-  --col-w: 40px;
+  --col-w: 80px;
 }
 body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 .shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
@@ -183,9 +183,9 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
         <input type="date" id="proj-end" onchange="rebuildGantt()">
       </div>
       <div class="zoom-btns">
-        <button class="zoom-btn" onclick="setZoom(20,this)">Wochen</button>
-        <button class="zoom-btn active" onclick="setZoom(40,this)">Standard</button>
-        <button class="zoom-btn" onclick="setZoom(60,this)">Tage</button>
+        <button class="zoom-btn active" onclick="setWeekMode(this)">KW</button>
+        <button class="zoom-btn" onclick="setCompactMode(this)">2J</button>
+        <button class="zoom-btn" onclick="setZoom(40,this)">Tage</button>
       </div>
     </div>
 
@@ -262,9 +262,10 @@ var LEVEL_COLORS = {profi:'#2d6a4f', erfahren:'#b85c2a', grundkenntnisse:'#92610
 var LEVEL_LABELS = {profi:'Profi', erfahren:'Erfahren', grundkenntnisse:'Grundkenntnisse', anfaenger:'Anfänger'};
 
 // ── STATE ──
-var COL_W = 40;
+var COL_W = 80;
+var weekMode = true;
 var today = new Date(); today.setHours(0,0,0,0);
-var projStart, projEnd, totalDays;
+var projStart, projEnd, totalDays, totalWeeks;
 var editingId = null;
 var selectedColor = COLORS[0];
 var _gewerke = [];
@@ -291,8 +292,39 @@ function fmtDate(str) {
 }
 
 // ── ZOOM ──
+function getISOWeek(d) {
+  var tmp = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  tmp.setDate(tmp.getDate() + 4 - (tmp.getDay() || 7));
+  var yearStart = new Date(tmp.getFullYear(), 0, 1);
+  return Math.ceil(((tmp - yearStart) / 86400000 + 1) / 7);
+}
+
+// Returns the Monday (Mo) of the ISO week that contains d
+function isoWeekMonday(d) {
+  var day = d.getDay() || 7; // 1=Mo ... 7=So
+  var mon = new Date(d);
+  mon.setDate(d.getDate() - (day - 1));
+  return mon;
+}
+
+function setWeekMode(btn) {
+  weekMode = true; COL_W = 80;
+  document.documentElement.style.setProperty('--col-w', '80px');
+  document.querySelectorAll('.zoom-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  rebuildGantt();
+}
+
+function setCompactMode(btn) {
+  weekMode = true; COL_W = 14;
+  document.documentElement.style.setProperty('--col-w', '14px');
+  document.querySelectorAll('.zoom-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  rebuildGantt();
+}
+
 function setZoom(w, btn) {
-  COL_W = w;
+  weekMode = false; COL_W = w;
   document.documentElement.style.setProperty('--col-w', w + 'px');
   document.querySelectorAll('.zoom-btn').forEach(function(b) { b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
@@ -327,7 +359,10 @@ function rebuildGantt() {
   if (!endEl.value) endEl.value = offsetDate(today, 130);
   projStart = parseDate(startEl.value);
   projEnd = parseDate(endEl.value);
+  // In week mode, align grid to Monday so all columns are proper Mo–So weeks
+  if (weekMode) { projStart = isoWeekMonday(projStart); projEnd = isoWeekMonday(projEnd); projEnd.setDate(projEnd.getDate() + 6); }
   totalDays = daysBetween(projStart, projEnd) + 1;
+  totalWeeks = Math.ceil(totalDays / 7);
 
   buildHeader();
   buildRows();
@@ -337,31 +372,38 @@ function rebuildGantt() {
 
 function buildHeader() {
   var head = document.getElementById('gantt-head');
-  head.style.width = (totalDays * COL_W) + 'px';
-
   var months = [], curMonth = '', monthStart = 0;
-  var daysHtml = '';
+  var colsHtml = '';
+  var cols = weekMode ? totalWeeks : totalDays;
+  head.style.width = (cols * COL_W) + 'px';
+  var todayCol = weekMode ? Math.floor(daysBetween(projStart, today) / 7) : -1;
 
-  for (var i = 0; i < totalDays; i++) {
-    var d = new Date(projStart); d.setDate(d.getDate() + i);
-    var isWE = d.getDay() === 0 || d.getDay() === 6;
-    var isToday = d.getTime() === today.getTime();
+  for (var i = 0; i < cols; i++) {
+    var d = new Date(projStart); d.setDate(d.getDate() + (weekMode ? i * 7 : i));
     var mn = d.toLocaleDateString('de-DE', {month:'short', year:'2-digit'});
     if (mn !== curMonth) {
-      if (curMonth) months.push({name: curMonth, days: i - monthStart});
+      if (curMonth) months.push({name: curMonth, count: i - monthStart});
       curMonth = mn; monthStart = i;
     }
-    daysHtml += '<div class="gantt-day' + (isWE ? ' weekend' : '') + (isToday ? ' today' : '') + '">'
-      + (COL_W >= 30 ? d.getDate() : '') + '</div>';
+    if (weekMode) {
+      var kw = getISOWeek(d);
+      var kwLabel = COL_W >= 40 ? 'KW ' + String(kw).padStart(2,'0') : (COL_W >= 20 ? String(kw) : '');
+      colsHtml += '<div class="gantt-day' + (i === todayCol ? ' today' : '') + '">' + kwLabel + '</div>';
+    } else {
+      var isWE = d.getDay() === 0 || d.getDay() === 6;
+      var isToday = d.getTime() === today.getTime();
+      colsHtml += '<div class="gantt-day' + (isWE?' weekend':'') + (isToday?' today':'') + '">'
+        + (COL_W >= 30 ? d.getDate() : '') + '</div>';
+    }
   }
-  months.push({name: curMonth, days: totalDays - monthStart});
+  months.push({name: curMonth, count: cols - monthStart});
 
   var monthsHtml = months.map(function(m) {
-    return '<div class="gantt-month" style="width:' + (m.days * COL_W) + 'px">' + m.name + '</div>';
+    return '<div class="gantt-month" style="width:' + (m.count * COL_W) + 'px">' + m.name + '</div>';
   }).join('');
 
   head.innerHTML = '<div class="gantt-months">' + monthsHtml + '</div>'
-    + '<div class="gantt-days">' + daysHtml + '</div>';
+    + '<div class="gantt-days">' + colsHtml + '</div>';
 }
 
 function buildRows() {
@@ -394,22 +436,36 @@ function buildRows() {
     // Row
     var row = document.createElement('div');
     row.className = 'gantt-row';
-    row.style.width = (totalDays * COL_W) + 'px';
-    for (var i = 0; i < totalDays; i++) {
-      var d = new Date(projStart); d.setDate(d.getDate() + i);
-      var isWE = d.getDay() === 0 || d.getDay() === 6;
-      var isToday = d.getTime() === today.getTime();
+    var cols = weekMode ? totalWeeks : totalDays;
+    var todayCol = weekMode ? Math.floor(daysBetween(projStart, today) / 7) : -1;
+    row.style.width = (cols * COL_W) + 'px';
+    for (var i = 0; i < cols; i++) {
       var cell = document.createElement('div');
-      cell.className = 'gantt-cell' + (isWE ? ' weekend' : '') + (isToday ? ' today-col' : '');
+      if (weekMode) {
+        cell.className = 'gantt-cell' + (i === todayCol ? ' today-col' : '');
+      } else {
+        var d = new Date(projStart); d.setDate(d.getDate() + i);
+        var isWE = d.getDay() === 0 || d.getDay() === 6;
+        var isToday = d.getTime() === today.getTime();
+        cell.className = 'gantt-cell' + (isWE ? ' weekend' : '') + (isToday ? ' today-col' : '');
+      }
       row.appendChild(cell);
     }
 
     // Bar
     var gStart = parseDate(g.start), gEnd = parseDate(g.end);
-    var startOff = daysBetween(projStart, gStart);
-    var dur = daysBetween(gStart, gEnd) + 1;
-    var cStart = Math.max(0, startOff);
-    var cEnd = Math.min(totalDays, startOff + dur);
+    var startOff, dur, cStart, cEnd;
+    if (weekMode) {
+      startOff = Math.floor(daysBetween(projStart, gStart) / 7);
+      dur = Math.max(1, Math.round((daysBetween(gStart, gEnd) + 1) / 7));
+      cStart = Math.max(0, startOff);
+      cEnd = Math.min(totalWeeks, startOff + dur);
+    } else {
+      startOff = daysBetween(projStart, gStart);
+      dur = daysBetween(gStart, gEnd) + 1;
+      cStart = Math.max(0, startOff);
+      cEnd = Math.min(totalDays, startOff + dur);
+    }
 
     if (cEnd > cStart) {
       var elapsed = Math.max(0, Math.min(dur, daysBetween(gStart, today) + 1));
@@ -420,10 +476,11 @@ function buildRows() {
       bar.style.left = (cStart * COL_W) + 'px';
       bar.style.width = ((cEnd - cStart) * COL_W) + 'px';
       bar.style.background = g.done ? '#aaa' : g.color;
-      bar.innerHTML = '<div class="bar-resize bar-resize-l">⋮</div>'
+      var showLabel = COL_W >= 30;
+      bar.innerHTML = (showLabel ? '<div class="bar-resize bar-resize-l">⋮</div>' : '')
         + (pct > 0 && !g.done ? '<div class="bar-progress" style="width:' + pct + '%"></div>' : '')
-        + '<div class="bar-label">' + g.name + (g.note ? ' · ' + g.note : '') + '</div>'
-        + '<div class="bar-resize bar-resize-r">⋮</div>';
+        + '<div class="bar-label">' + (showLabel ? g.name + (g.note ? ' · ' + g.note : '') : '') + '</div>'
+        + (showLabel ? '<div class="bar-resize bar-resize-r">⋮</div>' : '');
 
       // Click label to edit
       bar.querySelector('.bar-label').addEventListener('click', (function(gid) {
@@ -511,14 +568,21 @@ function setupDrag(bar, g) {
 
     var origDur = daysBetween(parseDate(g.start), parseDate(g.end)); // duration in days
 
+    var origDurWeeks = weekMode ? Math.max(1, Math.round((origDur + 1) / 7)) : 0;
+
     function move(e) {
-      // Snap bar's left edge to the column the cursor is currently over
-      var newDay = Math.floor(gridX(e.clientX) / COL_W);
-      newDay = Math.max(0, newDay);
-      var ns = new Date(projStart); ns.setDate(ns.getDate() + newDay);
-      var ne = new Date(ns);        ne.setDate(ne.getDate() + origDur);
-      g.start = toDateStr(ns); g.end = toDateStr(ne);
-      bar.style.left = (newDay * COL_W) + 'px';
+      var col = Math.max(0, Math.floor(gridX(e.clientX) / COL_W));
+      var ns = new Date(projStart);
+      if (weekMode) {
+        ns.setDate(ns.getDate() + col * 7);
+        var ne = new Date(ns); ne.setDate(ne.getDate() + origDurWeeks * 7 - 1);
+        g.start = toDateStr(ns); g.end = toDateStr(ne);
+      } else {
+        ns.setDate(ns.getDate() + col);
+        var ne = new Date(ns); ne.setDate(ne.getDate() + origDur);
+        g.start = toDateStr(ns); g.end = toDateStr(ne);
+      }
+      bar.style.left = (col * COL_W) + 'px';
       showTip(e.clientX, e.clientY);
     }
     function up() {
@@ -544,19 +608,44 @@ function setupDrag(bar, g) {
       var origS = g.start, origE = g.end;
 
       function move(e) {
-        var delta = Math.round((e.clientX - x0) / COL_W);
-        if (side === 'left') {
-          var ns = new Date(parseDate(origS)); ns.setDate(ns.getDate() + delta);
-          if (ns < parseDate(g.end)) {
-            g.start = toDateStr(ns);
-            bar.style.left  = (daysBetween(projStart, ns) * COL_W) + 'px';
-            bar.style.width = ((daysBetween(ns, parseDate(g.end)) + 1) * COL_W) + 'px';
+        var col = Math.max(0, Math.floor(gridX(e.clientX) / COL_W));
+        if (weekMode) {
+          if (side === 'left') {
+            var ns = new Date(projStart); ns.setDate(ns.getDate() + col * 7); // projStart is Monday
+            var gEnd = parseDate(g.end);
+            if (ns < gEnd) {
+              g.start = toDateStr(ns);
+              var eCol = Math.floor(daysBetween(projStart, gEnd) / 7);
+              bar.style.left  = (col * COL_W) + 'px';
+              bar.style.width = (Math.max(1, eCol - col + 1) * COL_W) + 'px';
+            }
+          } else {
+            var ne = new Date(projStart); ne.setDate(ne.getDate() + col * 7 + 6); // Sunday of col
+            var gStart = parseDate(g.start);
+            if (ne > gStart) {
+              g.end = toDateStr(ne);
+              var sCol = Math.floor(daysBetween(projStart, gStart) / 7);
+              bar.style.width = (Math.max(1, col - sCol + 1) * COL_W) + 'px';
+            }
           }
         } else {
-          var ne = new Date(parseDate(origE)); ne.setDate(ne.getDate() + delta);
-          if (ne > parseDate(g.start)) {
-            g.end = toDateStr(ne);
-            bar.style.width = ((daysBetween(parseDate(g.start), ne) + 1) * COL_W) + 'px';
+          var delta = Math.round((e.clientX - x0) / COL_W);
+          if (side === 'left') {
+            var ns = new Date(parseDate(origS)); ns.setDate(ns.getDate() + delta);
+            if (ns < parseDate(g.end)) {
+              g.start = toDateStr(ns);
+              var sOff = daysBetween(projStart, ns);
+              var eOff = daysBetween(ns, parseDate(g.end)) + 1;
+              bar.style.left  = (sOff * COL_W) + 'px';
+              bar.style.width = (Math.max(1, eOff) * COL_W) + 'px';
+            }
+          } else {
+            var ne = new Date(parseDate(origE)); ne.setDate(ne.getDate() + delta);
+            if (ne > parseDate(g.start)) {
+              g.end = toDateStr(ne);
+              var wid = daysBetween(parseDate(g.start), ne) + 1;
+              bar.style.width = (wid * COL_W) + 'px';
+            }
           }
         }
         showTip(e.clientX, e.clientY);
@@ -754,8 +843,15 @@ async function loadGewerkeList() {
 
 async function loadGanttDaten() {
   const snap = await getDoc(doc(db, "planung", "ganttDaten"));
-  if (snap.exists() && snap.data().gewerke && snap.data().gewerke.length > 0) {
-    _gewerke = snap.data().gewerke.map(g => {   const def = GEWERK_LIST.find(x => x.id === g.gewerkId);   if (def) g.name = def.label;   return g; });
+  if (snap.exists()) {
+    const data = snap.data();
+    if (data.gewerke && data.gewerke.length > 0) {
+      _gewerke = data.gewerke.map(g => { const def = GEWERK_LIST.find(x => x.id === g.gewerkId); if (def) g.name = def.label; return g; });
+    } else {
+      _gewerke = getDefaultGewerke();
+    }
+    if (data.projStart) document.getElementById('proj-start').value = data.projStart;
+    if (data.projEnd)   document.getElementById('proj-end').value   = data.projEnd;
   } else {
     _gewerke = getDefaultGewerke();
   }
@@ -766,7 +862,9 @@ window.saveToFirebase = async function() {
   btn.textContent = 'Speichern…';
   btn.disabled = true;
   try {
-    await setDoc(doc(db, "planung", "ganttDaten"), { gewerke: _gewerke });
+    const startVal = document.getElementById('proj-start').value;
+    const endVal   = document.getElementById('proj-end').value;
+    await setDoc(doc(db, "planung", "ganttDaten"), { gewerke: _gewerke, projStart: startVal, projEnd: endVal });
     btn.textContent = 'Gespeichert ✓';
     setTimeout(() => { btn.textContent = 'Speichern'; btn.disabled = false; }, 2000);
   } catch(e) {
