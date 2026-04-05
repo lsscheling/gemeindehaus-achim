@@ -271,16 +271,21 @@ var _gewerke = [];
 var _persons = [];
 
 // ── HELPERS ──
+function localDateStr(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
 function offsetDate(base, days) {
   var d = new Date(base); d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
+  return localDateStr(d);
 }
 function parseDate(str) {
   var p = str.split('-');
   return new Date(+p[0], +p[1]-1, +p[2]);
 }
 function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
-function toDateStr(d) { return d.toISOString().split('T')[0]; }
+function toDateStr(d) { return localDateStr(d); }
 function fmtDate(str) {
   return parseDate(str).toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'});
 }
