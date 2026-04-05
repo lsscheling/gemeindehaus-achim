@@ -79,7 +79,7 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 }
 .gewerk-row:last-child { border-bottom: none; }
 .gewerk-row:hover { background: var(--paper); }
-.gewerk-row.archived { opacity: 0.45; }
+.gewerk-row.archived { opacity: 1; }
 
 /* Toggle */
 .toggle { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
@@ -269,8 +269,8 @@ const BASIS = [
 function defaultLevels() {
   return [
     {id:'profi',           name:'Beruflich ausgebildet', color:'#2d6a4f'},
-    {id:'erfahren',        name:'Hobbymäßig erfahren',   color:'#b85c2a'},
-    {id:'grundkenntnisse', name:'Grundkenntnisse',        color:'#92610a'},
+    {id:'erfahren',        name:'Hobbymäßig erfahren',   color:'#3a7a52'},
+    {id:'grundkenntnisse', name:'Grundkenntnisse',        color:'#ca8a04'},
     {id:'anfaenger',       name:'Anfänger',               color:'#888888'}
   ];
 }
@@ -320,10 +320,12 @@ function buildDefaults() {
 }
 
 async function saveToDb() {
-  // Flush inline level-name edits
+  // Flush inline level-name and color edits
   levels.forEach(lv => {
     const el = document.getElementById('lv-inp-' + lv.id);
     if (el) lv.name = el.value.trim() || lv.name;
+    const col = document.getElementById('lv-col-' + lv.id);
+    if (col) lv.color = col.value;
   });
   await setDoc(doc(db, 'planung', 'gewerkeKonfig'), {
     gewerke, levels, savedAt: new Date().toISOString()
@@ -401,7 +403,7 @@ function render() {
 
       <!-- Name + Details -->
       <div style="min-width:0">
-        <div class="gewerk-name" style="${archived ? 'color:var(--muted)' : ''}">${safeName}</div>
+        <div class="gewerk-name">${safeName}</div>
         <div class="level-pills">${levelHTML}</div>
       </div>
 
@@ -448,7 +450,7 @@ function render() {
   levels.forEach(lv => {
     const safeLvName = lv.name.replace(/`/g, "'");
     levelsHTML += `<div class="level-row">
-      <div class="level-color-dot" style="background:${lv.color}"></div>
+      <input type="color" id="lv-col-${lv.id}" value="${lv.color}" title="Farbe" style="width:28px;height:28px;border:1px solid var(--border);border-radius:4px;padding:1px;cursor:pointer;flex-shrink:0">
       <input class="level-name-input" id="lv-inp-${lv.id}" value="${safeLvName}" placeholder="Level-Name">
       <button class="btn btn-icon del btn-sm" onclick="deleteLevel('${lv.id}')">✕</button>
     </div>`;
