@@ -11,6 +11,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Logge jeden Request!
+app.use((req, res, next) => {
+  console.log(`[API] ${req.method} ${req.url}`);
+  next();
+});
+
 // Supabase Client mit Service Role (erlaubt vollen Zugriff aufs Backend)
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -71,6 +77,7 @@ app.post('/api/auth/telegram', async (req, res) => {
 
     // Verifizieren der Signatur
     if (!verifyTelegramWebAppData(initData)) {
+      console.error('[API] Telegram Auth fehlgeschlagen! Falscher BOT_TOKEN?');
       return res.status(401).json({ error: 'Invalid Telegram signature' });
     }
 
@@ -80,6 +87,7 @@ app.post('/api/auth/telegram', async (req, res) => {
     if (!userStr) return res.status(400).json({ error: 'No user data inside initData' });
     
     const tgUser = JSON.parse(userStr);
+    console.log('[API] Authentifiziere User:', tgUser.id);
 
     // Existiert der Nutzer schon in der DB?
     const { data: dbUser, error } = await supabase
@@ -196,7 +204,11 @@ app.post('/api/anmeldung', authenticateToken, async (req, res) => {
       .single();
   }
   
-  if (result.error) return res.status(500).json({ error: result.error.message });
+  if (result.error) {
+    console.error('❌ Supabase Error bei Anmeldung:', result.error);
+    return res.status(500).json({ error: result.error.message });
+  }
+  console.log('✅ Daten gespeichert!', result.data);
   return res.json(result.data);
 });
 
