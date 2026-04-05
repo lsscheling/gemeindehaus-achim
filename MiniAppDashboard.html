@@ -565,7 +565,7 @@ function sendMsg() {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteField, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
@@ -770,12 +770,15 @@ async function loadUserData() {
       cur.setDate(cur.getDate() + 1);
     }
 
-    // Anmeldungen für alle relevanten Tage laden
-    const allDates = [...new Set([...meineTage, ...alleTage].map(t => t.iso))];
+    // Anmeldungen direkt per Dokument-ID laden (kein Query-Index nötig)
     const anmeldungenMap = {}; // "iso_gewerkId" → { [tgId]: name }
-    await Promise.all(allDates.map(async iso => {
-      const snap = await getDocs(query(collection(db, 'einsatzAnmeldungen'), where('date', '==', iso)));
-      snap.forEach(d => { anmeldungenMap[d.id] = d.data().angemeldete || {}; });
+    const docIds = new Set();
+    [...meineTage, ...alleTage].forEach(({ iso, bars }) =>
+      bars.forEach(bar => docIds.add(`${iso}_${bar.gewerkId}`))
+    );
+    await Promise.all([...docIds].map(async docId => {
+      const snap = await getDoc(doc(db, 'einsatzAnmeldungen', docId));
+      anmeldungenMap[docId] = snap.exists() ? (snap.data().angemeldete || {}) : {};
     }));
 
     const myId   = String(tgId);
