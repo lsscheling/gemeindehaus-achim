@@ -215,28 +215,12 @@
       <div class="card-header-icon">👥</div>
       <div class="card-title">Mein Team</div>
       <div class="card-header-meta">
-        <span class="team-badge">Gruppe 1</span>
+        <span class="team-badge" id="team-badge">–</span>
         <span class="card-chevron">▼</span>
       </div>
     </div>
-    <div class="card-body">
-      <div class="info-row">
-        <span class="info-label">Gewerke</span>
-        <div class="gewerk-tags">
-          <span class="gewerk-tag mine">Rohbau</span>
-          <span class="gewerk-tag mine">Mauerwerk</span>
-        </div>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Ansprechpartner</span>
-        <span style="font-size:13px;font-weight:500;flex:1">Hans Berger</span>
-        <button class="icon-btn btn-call" onclick="callPerson('Hans Berger','+4917612345678')">📞</button>
-      </div>
-      <div class="info-row">
-        <span class="info-label"></span>
-        <span style="font-size:13px;font-weight:500;flex:1">Maria Schulz</span>
-        <button class="icon-btn btn-call" onclick="callPerson('Maria Schulz','+4917687654321')">📞</button>
-      </div>
+    <div class="card-body" id="team-body">
+      <div style="color:var(--text-muted);font-size:13px">Wird geladen …</div>
     </div>
   </div>
 
@@ -264,107 +248,8 @@
 
 <!-- ══════════ INFOS ══════════ -->
 <div class="view" id="view-infos">
-
-  <div class="section-title">Bauleitung &amp; Organisation</div>
-  <div class="contact-row">
-    <div class="contact-avatar lead">PW</div>
-    <div class="contact-info"><div class="contact-name">Peter Waldmann</div><div class="contact-role">Bauleitung</div></div>
-    <div class="contact-actions">
-      <button class="icon-btn btn-call" onclick="callPerson('Peter Waldmann','+4917611111111')">📞</button>
-      <button class="icon-btn btn-tg" onclick="tgMessage('Peter Waldmann')">✈️</button>
-    </div>
-  </div>
-  <div class="contact-row">
-    <div class="contact-avatar lead">KH</div>
-    <div class="contact-info"><div class="contact-name">Klaus Hoffmann</div><div class="contact-role">Sicherheitsbeauftragter</div></div>
-    <div class="contact-actions">
-      <button class="icon-btn btn-call" onclick="callPerson('Klaus Hoffmann','+4917622222222')">📞</button>
-      <button class="icon-btn btn-tg" onclick="tgMessage('Klaus Hoffmann')">✈️</button>
-    </div>
-  </div>
-  <div class="contact-row">
-    <div class="contact-avatar lead">AK</div>
-    <div class="contact-info"><div class="contact-name">Anna Klein</div><div class="contact-role">Küche &amp; Verpflegung</div></div>
-    <div class="contact-actions">
-      <button class="icon-btn btn-call" onclick="callPerson('Anna Klein','+4917633333333')">📞</button>
-      <button class="icon-btn btn-tg" onclick="tgMessage('Anna Klein')">✈️</button>
-    </div>
-  </div>
-
-  <div class="section-title">Gewerke</div>
-  <div class="contact-row">
-    <div class="contact-avatar">HB</div>
-    <div class="contact-info"><div class="contact-name">Hans Berger</div><div class="contact-role">Rohbau &amp; Mauerwerk</div></div>
-    <div class="contact-actions">
-      <button class="icon-btn btn-call" onclick="callPerson('Hans Berger','+4917612345678')">📞</button>
-      <button class="icon-btn btn-tg" onclick="tgMessage('Hans Berger')">✈️</button>
-    </div>
-  </div>
-  <div class="contact-row">
-    <div class="contact-avatar">MS</div>
-    <div class="contact-info"><div class="contact-name">Maria Schulz</div><div class="contact-role">Rohbau &amp; Mauerwerk</div></div>
-    <div class="contact-actions">
-      <button class="icon-btn btn-call" onclick="callPerson('Maria Schulz','+4917687654321')">📞</button>
-      <button class="icon-btn btn-tg" onclick="tgMessage('Maria Schulz')">✈️</button>
-    </div>
-  </div>
-  <div class="contact-row">
-    <div class="contact-avatar">TB</div>
-    <div class="contact-info"><div class="contact-name">Thomas Braun</div><div class="contact-role">Dach &amp; Zimmerei</div></div>
-    <div class="contact-actions">
-      <button class="icon-btn btn-call" onclick="callPerson('Thomas Braun','+4917644444444')">📞</button>
-      <button class="icon-btn btn-tg" onclick="tgMessage('Thomas Braun')">✈️</button>
-    </div>
-  </div>
-  <div class="contact-row">
-    <div class="contact-avatar">SR</div>
-    <div class="contact-info"><div class="contact-name">Stefan Richter</div><div class="contact-role">Dach &amp; Zimmerei</div></div>
-    <div class="contact-actions">
-      <button class="icon-btn btn-call" onclick="callPerson('Stefan Richter','+4917655555555')">📞</button>
-      <button class="icon-btn btn-tg" onclick="tgMessage('Stefan Richter')">✈️</button>
-    </div>
-  </div>
-  <div class="contact-row">
-    <div class="contact-avatar">FK</div>
-    <div class="contact-info"><div class="contact-name">Frank Koch</div><div class="contact-role">Elektrik</div></div>
-    <div class="contact-actions">
-      <button class="icon-btn btn-call" onclick="callPerson('Frank Koch','+4917666666666')">📞</button>
-      <button class="icon-btn btn-tg" onclick="tgMessage('Frank Koch')">✈️</button>
-    </div>
-  </div>
-  <div class="contact-row">
-    <div class="contact-avatar">MW</div>
-    <div class="contact-info"><div class="contact-name">Michael Weber</div><div class="contact-role">Sanitär</div></div>
-    <div class="contact-actions">
-      <button class="icon-btn btn-call" onclick="callPerson('Michael Weber','+4917677777777')">📞</button>
-      <button class="icon-btn btn-tg" onclick="tgMessage('Michael Weber')">✈️</button>
-    </div>
-  </div>
-  <div class="contact-row">
-    <div class="contact-avatar">JL</div>
-    <div class="contact-info"><div class="contact-name">Jürgen Lang</div><div class="contact-role">Sanitär</div></div>
-    <div class="contact-actions">
-      <button class="icon-btn btn-call" onclick="callPerson('Jürgen Lang','+4917688888888')">📞</button>
-      <button class="icon-btn btn-tg" onclick="tgMessage('Jürgen Lang')">✈️</button>
-    </div>
-  </div>
-  <div class="contact-row">
-    <div class="contact-avatar">GM</div>
-    <div class="contact-info"><div class="contact-name">Gerhard Müller</div><div class="contact-role">Innenausbau</div></div>
-    <div class="contact-actions">
-      <button class="icon-btn btn-call" onclick="callPerson('Gerhard Müller','+4917699999999')">📞</button>
-      <button class="icon-btn btn-tg" onclick="tgMessage('Gerhard Müller')">✈️</button>
-    </div>
-  </div>
-  <div class="contact-row" style="margin-bottom:0">
-    <div class="contact-avatar">BE</div>
-    <div class="contact-info"><div class="contact-name">Brigitte Ernst</div><div class="contact-role">Innenausbau</div></div>
-    <div class="contact-actions">
-      <button class="icon-btn btn-call" onclick="callPerson('Brigitte Ernst','+4917611112222')">📞</button>
-      <button class="icon-btn btn-tg" onclick="tgMessage('Brigitte Ernst')">✈️</button>
-    </div>
-  </div>
-
+  <div class="section-title">Teamleiter</div>
+  <div id="teamleiter-list"><div style="color:var(--text-muted);font-size:13px;padding:8px 0">Wird geladen …</div></div>
 </div>
 
 <!-- ══════════ BAUSTATUS ══════════ -->
@@ -576,6 +461,14 @@ function tgMessage(name) {
     }, ()=>{});
   } else alert('Telegram: '+name);
 }
+function tgOpen(userId) {
+  const url = 'tg://user?id=' + userId;
+  if (window.Telegram && window.Telegram.WebApp) {
+    Telegram.WebApp.openLink(url);
+  } else {
+    window.location.href = url;
+  }
+}
 
 // ── Render helper ──
 function renderDayList(containerId, filterMine) {
@@ -609,7 +502,6 @@ function renderDayList(containerId, filterMine) {
   body.innerHTML = html;
 }
 
-renderDayList('einsaetze-body', true);
 renderDayList('helfer-body', false);
 
 function join(key, ti, gName, src) {
@@ -669,6 +561,240 @@ function sendMsg() {
   b.textContent='✓ Gesendet'; b.classList.add('sent'); b.disabled=true; f.disabled=true;
   setTimeout(()=>{ b.textContent='Nachricht senden'; b.classList.remove('sent'); b.disabled=false; f.disabled=false; f.value=''; }, 3000);
 }
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
+  authDomain: "gemeindehaus-achim.firebaseapp.com",
+  projectId: "gemeindehaus-achim",
+  storageBucket: "gemeindehaus-achim.firebasestorage.app",
+  messagingSenderId: "272798328583",
+  appId: "1:272798328583:web:388aa8db19886e9be507a2"
+});
+const db = getFirestore(app);
+
+function initials(vorname, nachname) {
+  return ((vorname||'').charAt(0) + (nachname||'').charAt(0)).toUpperCase();
+}
+
+async function loadTeamleiter() {
+  const list = document.getElementById('teamleiter-list');
+  try {
+    // Load gewerke names
+    const gwSnap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
+    const gewerkeMap = {};
+    if (gwSnap.exists()) {
+      (gwSnap.data().gewerke || []).forEach(g => { gewerkeMap[g.id] = g.name; });
+    }
+
+    // Load teamleiter
+    const snap = await getDocs(query(collection(db, 'anmeldungen'), where('rolle', '==', 'teamleiter')));
+    const teamleiter = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.vorname + a.nachname).localeCompare(b.vorname + b.nachname, 'de'));
+
+    if (!teamleiter.length) {
+      list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Noch keine Teamleiter eingetragen.</div>';
+      return;
+    }
+
+    list.addEventListener('click', e => {
+      const callBtn = e.target.closest('.tl-call-btn');
+      const tgBtn   = e.target.closest('.tl-tg-btn');
+      if (callBtn) callPerson(callBtn.dataset.name, callBtn.dataset.tel);
+      if (tgBtn)   tgOpen(tgBtn.dataset.tgid);
+    });
+    list.innerHTML = teamleiter.map((d, i) => {
+      const ini = initials(d.vorname, d.nachname);
+      const name = ((d.vorname || '') + ' ' + (d.nachname || '')).trim();
+      const gewerke = (d.teamleiterGewerke || []).map(id => gewerkeMap[id] || id).join(' & ') || 'Teamleiter';
+      const tel = d.telefon || '';
+      const tgId = d.telegram_id || '';
+      const isLast = i === teamleiter.length - 1;
+      return `<div class="contact-row" ${isLast ? 'style="margin-bottom:0"' : ''}>
+        <div class="contact-avatar lead">${ini}</div>
+        <div class="contact-info">
+          <div class="contact-name">${name}</div>
+          <div class="contact-role">${gewerke}</div>
+        </div>
+        <div class="contact-actions">
+          ${tel  ? `<button class="icon-btn btn-call tl-call-btn" data-name="${name.replace(/"/g,'&quot;')}" data-tel="${tel}">📞</button>` : ''}
+          ${tgId ? `<button class="icon-btn btn-tg tl-tg-btn" data-tgid="${tgId}" title="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="#1976D2"/><path d="M5.5 11.9l2.9 1.1 1.1 3.5c.1.2.3.3.5.1l1.6-1.3 3.1 2.3c.3.2.7.1.8-.3l2.5-10c.1-.4-.3-.7-.6-.5L5.3 11.2c-.4.1-.4.6.2.7z" fill="white"/><path d="M8.4 13l.5 3.2.8-2.5 4.8-4.4c.2-.2 0-.5-.3-.3L8.4 13z" fill="rgba(255,255,255,0.5)"/></svg></button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Fehler beim Laden.</div>';
+    console.error(e);
+  }
+}
+
+loadTeamleiter();
+
+// ── Helpers ──
+function parseLocalDate(str) {
+  const p = str.split('-');
+  return new Date(+p[0], +p[1]-1, +p[2]);
+}
+function isoWeek(d) {
+  const tmp = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  tmp.setDate(tmp.getDate() + 4 - (tmp.getDay() || 7));
+  const y1 = new Date(tmp.getFullYear(), 0, 1);
+  return Math.ceil(((tmp - y1) / 86400000 + 1) / 7);
+}
+function gruppeAktivInKW(gruppe, kw) {
+  const r = ((kw - 1) % 3) + 1;
+  const aktiv = r === 1 ? [1,2] : r === 2 ? [2,3] : [1,3];
+  return aktiv.includes(gruppe);
+}
+function fmtDateDE(d) {
+  return d.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit' });
+}
+
+async function loadUserData() {
+  const einsaetzeBody = document.getElementById('einsaetze-body');
+  const teamBody      = document.getElementById('team-body');
+  const teamBadge     = document.getElementById('team-badge');
+  einsaetzeBody.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Wird geladen …</div>';
+
+  try {
+    // 1. User per telegram_id identifizieren
+    const tgId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null;
+    let userDoc = null;
+    if (tgId) {
+      const snap = await getDocs(query(collection(db, 'anmeldungen'), where('telegram_id', '==', tgId)));
+      if (!snap.empty) userDoc = snap.docs[0].data();
+    }
+
+    const gruppe  = userDoc?.gruppe  || null;
+    const gewerke = userDoc?.gewerke_zugewiesen || [];
+
+    // 2. Gewerk-Namen laden
+    const gwSnap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
+    const gewerkeMap = {};
+    (gwSnap.exists() ? gwSnap.data().gewerke || [] : []).forEach(g => { gewerkeMap[g.id] = g; });
+
+    // ── Mein Team ──
+    if (!gruppe || !gewerke.length) {
+      teamBadge.textContent = '–';
+      teamBody.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:4px 0">Noch keine Gruppe oder Gewerk zugewiesen.</div>';
+    } else {
+      teamBadge.textContent = 'Gruppe ' + gruppe;
+
+      // Gewerk-Tags
+      const gwTags = gewerke.map(id => {
+        const g = gewerkeMap[id];
+        return `<span class="gewerk-tag mine">${g ? g.name : id}</span>`;
+      }).join('');
+
+      // Teamkollegen: gleiche Gruppe + mind. ein gemeinsames Gewerk
+      const allSnap = await getDocs(query(collection(db, 'anmeldungen'), where('gruppe', '==', gruppe)));
+      const kollegen = allSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(d => {
+          if (d.telegram_id === tgId) return false; // nicht sich selbst
+          const dGewerke = d.gewerke_zugewiesen || [];
+          return gewerke.some(g => dGewerke.includes(g));
+        })
+        .sort((a, b) => (a.vorname + a.nachname).localeCompare(b.vorname + b.nachname, 'de'));
+
+      // Teamleiter der eigenen Gewerke
+      const tlSnap = await getDocs(query(collection(db, 'anmeldungen'), where('rolle', '==', 'teamleiter')));
+      const teamleiter = tlSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(d => (d.teamleiterGewerke || []).some(g => gewerke.includes(g)))
+        .sort((a, b) => (a.vorname + a.nachname).localeCompare(b.vorname + b.nachname, 'de'));
+
+      const personRow = (d, label) => {
+        const name = ((d.vorname || '') + ' ' + (d.nachname || '')).trim();
+        const tel  = d.telefon || '';
+        const tgid = d.telegram_id || '';
+        return `<div class="info-row">
+          <span class="info-label">${label}</span>
+          <span style="font-size:13px;font-weight:500;flex:1">${name}</span>
+          <div style="display:flex;gap:4px">
+            ${tel  ? `<button class="icon-btn btn-call tl-call-btn" data-name="${name.replace(/"/g,'&quot;')}" data-tel="${tel}">📞</button>` : ''}
+            ${tgid ? `<button class="icon-btn btn-tg tl-tg-btn" data-tgid="${tgid}" title="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="#1976D2"/><path d="M5.5 11.9l2.9 1.1 1.1 3.5c.1.2.3.3.5.1l1.6-1.3 3.1 2.3c.3.2.7.1.8-.3l2.5-10c.1-.4-.3-.7-.6-.5L5.3 11.2c-.4.1-.4.6.2.7z" fill="white"/><path d="M8.4 13l.5 3.2.8-2.5 4.8-4.4c.2-.2 0-.5-.3-.3L8.4 13z" fill="rgba(255,255,255,0.5)"/></svg></button>` : ''}
+          </div>
+        </div>`;
+      };
+
+      let teamHtml = `<div class="info-row"><span class="info-label">Gewerke</span><div class="gewerk-tags">${gwTags}</div></div>`;
+      teamleiter.forEach((d, i) => { teamHtml += personRow(d, i === 0 ? 'Teamleiter' : ''); });
+      kollegen.forEach((d, i)   => { teamHtml += personRow(d, i === 0 ? 'Kollegen' : ''); });
+      if (!teamleiter.length && !kollegen.length) teamHtml += '<div style="color:var(--text-muted);font-size:12px;padding:6px 0">Noch keine weiteren Teammitglieder.</div>';
+
+      teamBody.innerHTML = teamHtml;
+      teamBody.addEventListener('click', e => {
+        const cb = e.target.closest('.tl-call-btn');
+        const tb = e.target.closest('.tl-tg-btn');
+        if (cb) callPerson(cb.dataset.name, cb.dataset.tel);
+        if (tb) tgOpen(tb.dataset.tgid);
+      });
+    }
+
+    // ── Meine Einsätze ──
+    if (!gruppe || !gewerke.length) {
+      einsaetzeBody.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Noch keine Gruppe oder Gewerk zugewiesen.</div>';
+      return;
+    }
+
+    const ganttSnap = await getDoc(doc(db, 'planung', 'ganttDaten'));
+    const bars = ganttSnap.exists() ? ganttSnap.data().gewerke || [] : [];
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const in14  = new Date(today); in14.setDate(in14.getDate() + 14);
+
+    const einsaetze = [];
+    bars.forEach(bar => {
+      if (!gewerke.includes(bar.gewerkId)) return;
+      const start = parseLocalDate(bar.start);
+      const end   = parseLocalDate(bar.end);
+      if (end < today || start > in14) return;
+      const visStart = start < today ? today : start;
+      const visEnd   = end   > in14  ? in14  : end;
+      const cur = new Date(visStart);
+      let gruppeAktiv = false;
+      while (cur <= visEnd) {
+        if (gruppeAktivInKW(gruppe, isoWeek(cur))) { gruppeAktiv = true; break; }
+        cur.setDate(cur.getDate() + 7);
+      }
+      if (!gruppeAktiv) return;
+      einsaetze.push({ bar, visStart, visEnd });
+    });
+
+    if (!einsaetze.length) {
+      einsaetzeBody.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einsätze in den nächsten 14 Tagen.</div>';
+      return;
+    }
+
+    einsaetze.sort((a, b) => a.visStart - b.visStart);
+    let html = '', lastKW = '';
+    einsaetze.forEach(({ bar, visStart, visEnd }) => {
+      const kw = 'KW ' + String(isoWeek(visStart)).padStart(2, '0');
+      if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
+      const gw    = gewerkeMap[bar.gewerkId];
+      const color = gw?.color || bar.color || 'var(--clay)';
+      const name  = gw?.name  || bar.name  || bar.gewerkId;
+      html += `<div class="gewerk-row mine-row">
+        <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
+        <span class="gewerk-row-name">${name}</span>
+        <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">${fmtDateDE(visStart)} – ${fmtDateDE(visEnd)}</span>
+      </div>`;
+    });
+    einsaetzeBody.innerHTML = html;
+
+  } catch(e) {
+    einsaetzeBody.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Fehler beim Laden.</div>';
+    console.error(e);
+  }
+}
+
+loadUserData();
 </script>
 </body>
 </html>
