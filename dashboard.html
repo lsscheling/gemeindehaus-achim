@@ -473,27 +473,9 @@ th, td { padding: 8px 10px; }
     <div class="drawer-title" id="drawer-name">–</div>
     <button id="edit-btn" onclick="window.openEditPerson(window._currentDrawerId)" class="admin-only" style="background:var(--accent);color:white;border:none;border-radius:var(--radius);padding:6px 12px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">Bearbeiten</button>
       <button class="drawer-close" onclick="closeDrawer()">✕</button>
-  </div>
-  <div class="drawer-body" id="drawer-body"></div>
-</div>
-
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDoc, getDocs, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
-  authDomain: "gemeindehaus-achim.firebaseapp.com",
-  projectId: "gemeindehaus-achim",
-  storageBucket: "gemeindehaus-achim.firebasestorage.app",
-  messagingSenderId: "272798328583",
-  appId: "1:272798328583:web:388aa8db19886e9be507a2"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+ <script type="module">
+import { apiFetch } from "./js/api.js";
+window.apiFetch = apiFetch;
 
 // ── AKTUELLER NUTZER & ROLLE ──
 let currentUser = null;
@@ -510,37 +492,46 @@ async function doLogin() {
   const errEl = document.getElementById('login-error');
   errEl.style.display = 'none';
   if (!email || !pw) { errEl.textContent = 'Bitte E-Mail und Passwort eingeben.'; errEl.style.display = 'block'; return; }
+  
   try {
-    await signInWithEmailAndPassword(auth, email, pw);
+    const res = await fetch('/api/auth/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pw })
+    });
+    
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err.error || 'Serverfehler');
+    }
+    
+    const data = await res.json();
+    localStorage.setItem('auth_token', data.token);
+    localStorage.setItem('admin_user', JSON.stringify(data.user));
+    
+    checkAuthState();
   } catch(e) {
-    errEl.textContent = 'Anmeldung fehlgeschlagen. E-Mail oder Passwort falsch.';
+    errEl.textContent = e.message || 'Anmeldung fehlgeschlagen.';
     errEl.style.display = 'block';
   }
 }
 
-window.doLogout = async function() {
-  await signOut(auth);
+window.doLogout = function() {
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('admin_user');
+  checkAuthState();
 };
 
 // ── AUTH STATE ──
-onAuthStateChanged(auth, async user => {
-  if (user) {
-    currentUser = user;
-    try {
-      const snap = await getDoc(doc(db, 'users', user.uid));
-      if (snap.exists()) {
-        currentUserRole = snap.data().rolle || 'teamleiter';
-        currentUserTeam = snap.data().team || null;
-      } else {
-        await signOut(auth);
-        const errEl = document.getElementById('login-error');
-        errEl.textContent = 'Kein Zugriff. Bitte einen Admin kontaktieren.';
-        errEl.style.display = 'block';
-        return;
-      }
-    } catch(e) {
-      currentUserRole = 'teamleiter';
-    }
+function checkAuthState() {
+  const token = localStorage.getItem('auth_token');
+  const userStr = localStorage.getItem('admin_user');
+  
+  if (token && userStr) {
+    currentUser = JSON.parse(userStr);
+    currentUserRole = currentUser.role || 'teamleiter';
+    currentUserTeam = currentUser.team || null;
+    
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     applyRoleUI();
@@ -552,7 +543,10 @@ onAuthStateChanged(auth, async user => {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
   }
-});
+}
+
+// Initialer Auth-Check beim Laden
+checkAuthState();
 
 // ── ROLLEN-UI anpassen ──
 function applyRoleUI() {
@@ -561,8 +555,8 @@ function applyRoleUI() {
   const info = document.getElementById('sidebar-user-info');
   if (info) {
     info.innerHTML = `
-      <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:2px">${isAdmin ? '⚙ Admin' : '👤 Teamleiter'}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${currentUser.email}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:2px">\${isAdmin ? '⚙ Admin' : '👤 Teamleiter'}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">\${currentUser.email}</div>
       <button onclick="window.doLogout()" style="margin-top:8px;width:100%;padding:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius);color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer">Abmelden</button>
     `;
   }
@@ -598,12 +592,14 @@ let currentGewerk = '';
 // ── NUTZERVERWALTUNG (Admin) ──
 let allUsers = [];
 
-window.loadUsers = function() {
-  onSnapshot(collection(db, 'users'), snap => {
-    allUsers = [];
-    snap.forEach(d => allUsers.push({ uid: d.id, ...d.data() }));
+window.loadUsers = async function() {
+  try {
+    const users = await window.apiFetch('/admin/users');
+    allUsers = users.map(u => ({ uid: u.id, ...u }));
     renderUsersTable();
-  });
+  } catch(e) {
+    console.error("Nutzerverwaltung Fehler:", e);
+  }
 };
 
 window.renderUsersTable = function() {
@@ -632,12 +628,17 @@ window.renderUsersTable = function() {
 };
 
 window.updateUserRole = async function(uid, rolle, team) {
-  await setDoc(doc(db, 'users', uid), { rolle, team: team || null }, { merge: true });
+  // Das könnte später ebenfalls als API-Aufruf angelegt werden, falls man die Rollen von Admins aus dem Dashboard noch anpassen will.
 };
 
 window.deleteUser = async function(uid) {
   if (!confirm('Nutzer-Zugang wirklich entfernen?')) return;
-  await deleteDoc(doc(db, 'users', uid));
+  try {
+    await window.apiFetch(`/admin/users/${uid}`, { method: 'DELETE' });
+    loadUsers();
+  } catch(e) {
+    alert('Fehler: ' + e.message);
+  }
 };
 
 window.createUser = async function() {
@@ -649,18 +650,19 @@ window.createUser = async function() {
   const errEl = document.getElementById('new-user-error');
   errEl.style.display = 'none';
   try {
-    const secondaryApp = initializeApp(firebaseConfig, 'secondary_' + Date.now());
-    const secondaryAuth = getAuth(secondaryApp);
-    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, pw);
-    await secondaryAuth.signOut();
-    await setDoc(doc(db, 'users', cred.user.uid), { email, rolle, team: team || null });
+    await window.apiFetch('/admin/users', { 
+      method: 'POST', body: JSON.stringify({ email, password: pw, rolle, team }) 
+    });
+    
     document.getElementById('new-user-email').value = '';
     document.getElementById('new-user-pw').value = '';
     document.getElementById('new-user-team').value = '';
     document.getElementById('new-user-success').style.display = 'block';
     setTimeout(() => document.getElementById('new-user-success').style.display = 'none', 2000);
+    
+    loadUsers();
   } catch(e) {
-    errEl.textContent = 'Fehler: ' + (e.code === 'auth/email-already-in-use' ? 'E-Mail bereits vergeben.' : e.message);
+    errEl.textContent = 'Fehler: ' + e.message;
     errEl.style.display = 'block';
   }
 };
@@ -675,15 +677,14 @@ function getgewerkeKonfig() {
 
 window.loadGantt = async function() {
   try {
-    const snap = await getDoc(doc(db, 'planung', 'gantt'));
-    window._ganttGewerke = snap.exists() ? (snap.data().gewerke || []) : [];
+    const res = await window.apiFetch('/admin/gantt');
+    window._ganttGewerke = res.gewerke || [];
   } catch(e) { window._ganttGewerke = []; }
   try {
-    const snap2 = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
-    window._gewerkeKonfig = snap2.exists() ? (snap2.data().gewerke || []) : [];
+    const res2 = await window.apiFetch('/gewerke');
+    window._gewerkeKonfig = res2.gewerke || [];
   } catch(e) { window._gewerkeKonfig = []; }
 
-  // Nach dem Laden der Gewerke: Filter und Modals neu aufbauen
   buildGewerkFilter();
   buildDynamicModals();
 }
@@ -694,12 +695,11 @@ window.buildGewerkFilter = function() {
   allDocs.forEach(d => (d.gewerke || []).forEach(g => gewerkSet.add(g)));
 
   const sel = document.getElementById('gewerk-filter');
+  if (!sel) return;
   const cur = sel.value;
   const list = getgewerkeKonfig();
 
-  // Nur Gewerke anzeigen, die auch tatsächlich in Anmeldungen vorkommen
   const relevantGewerke = list.filter(g => gewerkSet.has(g.id));
-  // Zusätzlich: IDs die in Anmeldungen sind, aber nicht in der Liste → trotzdem anzeigen
   const extraIds = [...gewerkSet].filter(id => !list.find(g => g.id === id));
 
   sel.innerHTML = '<option value="">Alle Gewerke</option>' +
@@ -707,12 +707,11 @@ window.buildGewerkFilter = function() {
     extraIds.map(id => `<option value="${id}" ${id === cur ? 'selected' : ''}>${GEWERK_LABELS[id] || id}</option>`).join('');
 }
 
-// ── DYNAMISCHE MODALS (Manuell eintragen + Bearbeiten) aus DB-Gewerken ──
+// ── DYNAMISCHE MODALS ──
 window.buildDynamicModals = function() {
   const list = getgewerkeKonfig();
   if (list.length === 0) return;
 
-  // Gewerke nach Kategorie gruppieren (falls vorhanden)
   const groups = {};
   list.forEach(g => {
     const cat = g.kategorie || 'Sonstige';
@@ -720,7 +719,6 @@ window.buildDynamicModals = function() {
     groups[cat].push(g);
   });
 
-  // ── Manuell-eintragen Modal: Gewerk-Grid neu aufbauen ──
   const container = document.getElementById('m-gewerk-container');
   if (container) {
     let html = '';
@@ -731,7 +729,6 @@ window.buildDynamicModals = function() {
           <input type="checkbox" name="m-gewerk" value="${g.id}" onchange="mToggleLevel('${g.id}')"> ${g.name}
         </label>`;
       });
-      // Level-Zeilen für alle Gewerke dieser Gruppe
       gewerke.forEach(g => {
         html += `<div class="mlevel" id="ml-${g.id}">
           <span class="mlevel-name">${g.name}:</span>
@@ -742,25 +739,26 @@ window.buildDynamicModals = function() {
     container.innerHTML = html;
   }
 
-  // M_GEWERKE global aktualisieren für initModalPills
   window._dynamicGewerkeIds = list.map(g => g.id);
 }
 
 // ── DATA LADEN ──
-window.loadData = function() {
-  loadGantt();
-  const q = query(collection(db, 'anmeldungen'), orderBy('angemeldet_am', 'desc'));
-  onSnapshot(q, snap => {
-    let docs = [];
-    snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+window.loadData = async function() {
+  await loadGantt();
+  
+  try {
+    let docs = await window.apiFetch('/admin/anmeldungen');
     if (currentUserRole === 'teamleiter' && currentUserTeam) {
-      docs = docs.filter(d => d.gewerk === currentUserTeam || d.team === currentUserTeam);
+      docs = docs.filter(d => (d.gewerke||[]).includes(currentUserTeam) || d.team === currentUserTeam);
     }
     allDocs = docs;
     filteredDocs = [...allDocs];
     window.filteredDocs = filteredDocs;
     renderAll();
-  });
+  } catch(e) {
+    console.warn("Fehler beim Laden der Anmeldungen", e);
+  }
+  
   if (currentUserRole === 'admin') loadUsers();
 }
 
@@ -947,7 +945,8 @@ window.closeDrawer = function() {
 
 window.assignGewerk = async function(id, gewerkId) {
   try {
-    await updateDoc(doc(db, 'anmeldungen', id), { gewerk: gewerkId || null });
+    await window.apiFetch(`/admin/anmeldungen/${id}`, { method: 'PATCH', body: JSON.stringify({ gewerk: gewerkId || null }) });
+    loadData();
   } catch(e) { alert('Fehler: ' + e.message); }
 };
 
@@ -961,16 +960,18 @@ window.addTeamEntry = async function(id) {
   const existing = [...(d.teams || (d.team ? [{team: d.team, von: null, bis: null}] : []))];
   existing.push({ team: teamName, von: von || null, bis: bis || null });
   existing.sort((a,b) => (a.von||'') < (b.von||'') ? -1 : 1);
-  await updateDoc(doc(db, 'anmeldungen', id), { teams: existing, team: existing[0]?.team || null });
-  window.openDrawer(id);
+  
+  await window.apiFetch(`/admin/anmeldungen/${id}`, { method: 'PATCH', body: JSON.stringify({ teams: existing, team: existing[0]?.team || null }) });
+  loadData();
 };
 
 window.removeTeamEntry = async function(id, idx) {
   const d = allDocs.find(x => x.id === id); if (!d) return;
   const existing = [...(d.teams || (d.team ? [{team: d.team, von: null, bis: null}] : []))];
   existing.splice(idx, 1);
-  await updateDoc(doc(db, 'anmeldungen', id), { teams: existing, team: existing[0]?.team || null });
-  window.openDrawer(id);
+  
+  await window.apiFetch(`/admin/anmeldungen/${id}`, { method: 'PATCH', body: JSON.stringify({ teams: existing, team: existing[0]?.team || null }) });
+  loadData();
 };
 
 window.deletePerson = async function(id) {
@@ -979,8 +980,9 @@ window.deletePerson = async function(id) {
   const name = d ? (d.vorname||'') + ' ' + (d.nachname||'') : 'diese Person';
   if (!confirm(name + ' wirklich unwiderruflich löschen?')) return;
   try {
-    await deleteDoc(doc(db, 'anmeldungen', id));
+    await window.apiFetch(`/admin/anmeldungen/${id}`, { method: 'DELETE' });
     closeDrawer();
+    loadData();
   } catch(e) { alert('Fehler: ' + e.message); }
 };
 

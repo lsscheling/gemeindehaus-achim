@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: gemeindehaus_nginx
+    ports:
+      - "80:80"  # Passe dies an, falls Port 80 bereits belegt ist auf Proxmox (z.B. "8080:80")
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./:/usr/share/nginx/html:ro  # Gesamtes Verzeichnis laden (Backend & Co. wird via nginx.conf blockiert)
+    depends_on:
+      - backend
+    restart: always
+
+  backend:
+    build: ./backend
+    container_name: gemeindehaus_backend
+    env_file:
+      - ./backend/.env   # <- Hier sucht Docker nach den Keys (Supabase URL, Service Key, JWT Passwort etc.)
+    restart: always
+
+  bot:
+    build: ./bot
+    container_name: gemeindehaus_bot
+    env_file:
+      - ./bot/.env       # <- Hier sucht Docker nach dem (Bot Token, Backend URL etc.)
+    restart: always

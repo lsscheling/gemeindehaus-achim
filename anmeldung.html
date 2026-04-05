@@ -5,6 +5,7 @@
 <meta name="color-scheme" content="light">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anmeldung – Gemeindehaus Achim</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
 :root { color-scheme: light; }
@@ -468,6 +469,14 @@ async function handleSubmit(e) {
     try {
       await window._saveAnmeldung(payload);
       showToast('Anmeldung eingegangen!', 'success');
+      
+      // Anmelde-App schließen und zum normalen Chat zurückführen!
+      setTimeout(() => {
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+          window.Telegram.WebApp.close();
+        }
+      }, 1500);
+
     } catch(err) {
       showToast('Fehler beim Speichern. Bitte nochmal versuchen.', 'error');
       return;
@@ -494,31 +503,19 @@ async function handleSubmit(e) {
 </script>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, getDoc, addDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
-  authDomain: "gemeindehaus-achim.firebaseapp.com",
-  projectId: "gemeindehaus-achim",
-  storageBucket: "gemeindehaus-achim.firebasestorage.app",
-  messagingSenderId: "272798328583",
-  appId: "1:272798328583:web:388aa8db19886e9be507a2"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+import { apiFetch, authenticateWithTelegram } from "./js/api.js";
 
 // ── Save / upsert Anmeldung ──
+// Wir senden es einfach als POST, unser Backend kümmert sich um Einfügen / Überschreiben
 window._saveAnmeldung = async function(payload) {
-  const draftId = document.getElementById('draft-id').value;
-  if (draftId) {
-    await updateDoc(doc(db, 'anmeldungen', draftId), { ...payload, updatedAt: serverTimestamp() });
-    return { id: draftId };
-  } else {
-    const ref = await addDoc(collection(db, 'anmeldungen'), { ...payload, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-    document.getElementById('draft-id').value = ref.id;
-    return { id: ref.id };
+  try {
+    const result = await apiFetch('/anmeldung', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    return { id: result.id };
+  } catch (e) {
+    console.warn('Fehler beim Autosave via API', e);
   }
 };
 
@@ -527,10 +524,8 @@ async function loadGewerke() {
   const container = document.getElementById('gewerk-grid');
   container.innerHTML = '<div class="gewerk-loading">Gewerke werden geladen …</div>';
   try {
-    const snap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
-    if (!snap.exists()) { container.innerHTML = '<div class="gewerk-error">Keine Daten gefunden.</div>'; return; }
-    const data = snap.data();
-    const gewerke = (data.gewerke || []).filter(g => g.active && g.visibleInForm);
+    const data = await apiFetch('/gewerke');
+    const gewerke = (data.gewerke || []).filter(g => g.active && g.visible_in_form);
     const levels = data.levels || [];
     buildGewerkGrid(gewerke, levels);
   } catch (e) {
@@ -539,7 +534,9 @@ async function loadGewerke() {
   }
 }
 
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', async function() {
+  // Sofortige Telegram Auth beim Booten versuchen
+  await authenticateWithTelegram();
   loadGewerke();
 });
 </script>
