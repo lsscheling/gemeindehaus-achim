@@ -78,7 +78,7 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 .gantt-cell.weekend { background: var(--paper); }
 .gantt-cell.today-col { background: rgba(184,92,42,0.04); }
 .gantt-empty-row { height: 44px; border-bottom: 1px solid var(--border); display: flex; }
-.gantt-bar { position: absolute; top: 11px; height: 36px; border-radius: 4px; display: flex; align-items: center; font-size: 12px; font-weight: 500; color: white; cursor: grab; user-select: none; z-index: 4; overflow: hidden; transition: box-shadow 0.15s; }
+.gantt-bar { position: absolute; top: 11px; height: 36px; border-radius: 4px; display: flex; align-items: center; font-size: 12px; font-weight: 500; color: white; cursor: grab; user-select: none; z-index: 4; overflow: hidden; transition: box-shadow 0.15s; touch-action: none; }
 .gantt-bar:active { cursor: grabbing; }
 .gantt-bar.dragging { opacity: 0.85; z-index: 20; box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
 .gantt-bar.done { opacity: 0.5; }
@@ -481,56 +481,91 @@ function updateProgress() {
 // ── DRAG & DROP ──
 function setupDrag(bar, g) {
   var tooltip = document.getElementById('tooltip');
+  var rowsEl  = document.getElementById('gantt-rows');
+  var wrapEl  = document.querySelector('.gantt-wrap');
 
   function showTip(x, y) {
     tooltip.style.display = 'block';
     tooltip.style.left = (x + 12) + 'px';
-    tooltip.style.top = (y - 34) + 'px';
+    tooltip.style.top  = (y - 34) + 'px';
     tooltip.textContent = fmtDate(g.start) + ' – ' + fmtDate(g.end);
   }
 
-  bar.addEventListener('mousedown', function(e) {
+  // Returns the pixel position within the grid for a given clientX,
+  // correctly accounting for current scroll state.
+  function gridX(clientX) {
+    return clientX - rowsEl.getBoundingClientRect().left;
+  }
+
+  // ── Bar move ──
+  bar.addEventListener('pointerdown', function(e) {
     if (e.target.classList.contains('bar-resize-l') || e.target.classList.contains('bar-resize-r')) return;
     e.preventDefault();
-    var x0 = e.clientX, origS = g.start, origE = g.end;
+    bar.setPointerCapture(e.pointerId);
     bar.classList.add('dragging');
+
+    var origDur = daysBetween(parseDate(g.start), parseDate(g.end)); // duration in days
+
     function move(e) {
-      var delta = Math.round((e.clientX - x0) / COL_W);
-      var ns = new Date(parseDate(origS)); ns.setDate(ns.getDate() + delta);
-      var ne = new Date(parseDate(origE)); ne.setDate(ne.getDate() + delta);
+      // Snap bar's left edge to the column the cursor is currently over
+      var newDay = Math.floor(gridX(e.clientX) / COL_W);
+      newDay = Math.max(0, newDay);
+      var ns = new Date(projStart); ns.setDate(ns.getDate() + newDay);
+      var ne = new Date(ns);        ne.setDate(ne.getDate() + origDur);
       g.start = toDateStr(ns); g.end = toDateStr(ne);
-      bar.style.left = (daysBetween(projStart, ns) * COL_W) + 'px';
+      bar.style.left = (newDay * COL_W) + 'px';
       showTip(e.clientX, e.clientY);
     }
     function up() {
-      bar.classList.remove('dragging'); tooltip.style.display = 'none';
+      bar.classList.remove('dragging');
+      tooltip.style.display = 'none';
       rebuildGantt();
-      document.removeEventListener('mousemove', move);
-      document.removeEventListener('mouseup', up);
+      bar.removeEventListener('pointermove', move);
+      bar.removeEventListener('pointerup',   up);
+      bar.removeEventListener('pointercancel', up);
     }
-    document.addEventListener('mousemove', move);
-    document.addEventListener('mouseup', up);
+    bar.addEventListener('pointermove',   move);
+    bar.addEventListener('pointerup',     up);
+    bar.addEventListener('pointercancel', up);
   });
 
+  // ── Resize handles ──
   bar.querySelectorAll('.bar-resize-l, .bar-resize-r').forEach(function(handle) {
-    handle.addEventListener('mousedown', function(e) {
+    handle.addEventListener('pointerdown', function(e) {
       e.preventDefault(); e.stopPropagation();
-      var side = handle.classList.contains('bar-resize-l') ? 'left' : 'right';
-      var x0 = e.clientX, origS = g.start, origE = g.end;
+      handle.setPointerCapture(e.pointerId);
+      var side  = handle.classList.contains('bar-resize-l') ? 'left' : 'right';
+      var x0    = e.clientX;
+      var origS = g.start, origE = g.end;
+
       function move(e) {
         var delta = Math.round((e.clientX - x0) / COL_W);
         if (side === 'left') {
           var ns = new Date(parseDate(origS)); ns.setDate(ns.getDate() + delta);
-          if (ns < parseDate(g.end)) { g.start = toDateStr(ns); bar.style.left = (daysBetween(projStart, ns) * COL_W) + 'px'; bar.style.width = ((daysBetween(ns, parseDate(g.end)) + 1) * COL_W) + 'px'; }
+          if (ns < parseDate(g.end)) {
+            g.start = toDateStr(ns);
+            bar.style.left  = (daysBetween(projStart, ns) * COL_W) + 'px';
+            bar.style.width = ((daysBetween(ns, parseDate(g.end)) + 1) * COL_W) + 'px';
+          }
         } else {
           var ne = new Date(parseDate(origE)); ne.setDate(ne.getDate() + delta);
-          if (ne > parseDate(g.start)) { g.end = toDateStr(ne); bar.style.width = ((daysBetween(parseDate(g.start), ne) + 1) * COL_W) + 'px'; }
+          if (ne > parseDate(g.start)) {
+            g.end = toDateStr(ne);
+            bar.style.width = ((daysBetween(parseDate(g.start), ne) + 1) * COL_W) + 'px';
+          }
         }
         showTip(e.clientX, e.clientY);
       }
-      function up() { tooltip.style.display = 'none'; rebuildGantt(); document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); }
-      document.addEventListener('mousemove', move);
-      document.addEventListener('mouseup', up);
+      function up() {
+        tooltip.style.display = 'none';
+        rebuildGantt();
+        handle.removeEventListener('pointermove',   move);
+        handle.removeEventListener('pointerup',     up);
+        handle.removeEventListener('pointercancel', up);
+      }
+      handle.addEventListener('pointermove',   move);
+      handle.addEventListener('pointerup',     up);
+      handle.addEventListener('pointercancel', up);
     });
   });
 }
