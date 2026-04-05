@@ -786,16 +786,37 @@ async function loadUserData() {
       // Anmeldungen für TL-relevante Docs laden
       const tlDocIds = new Set();
       tlTage.forEach(({ iso, bars }) => bars.forEach(b => tlDocIds.add(`${iso}_${b.gewerkId}`)));
-      const tlAnmMap = {};
+      const tlAnmMap = {}; // docId → { angemeldete: {}, bedarf: n }
       await Promise.all([...tlDocIds].map(async id => {
         const s = await getDoc(doc(db, 'einsatzAnmeldungen', id));
-        tlAnmMap[id] = s.exists() ? (s.data().angemeldete || {}) : {};
+        tlAnmMap[id] = s.exists() ? s.data() : { angemeldete: {}, bedarf: null };
       }));
+
+      // Bedarf speichern
+      window._setBedarf = async (docId, iso, gwId, val) => {
+        const bedarf = val === '' ? null : Number(val);
+        const existing = tlAnmMap[docId] || {};
+        await setDoc(doc(db, 'einsatzAnmeldungen', docId),
+          { date: iso, gewerkId: gwId, angemeldete: existing.angemeldete || {}, bedarf },
+          { merge: true });
+        tlAnmMap[docId] = { ...existing, bedarf };
+        // Badge aktualisieren
+        const count = Object.keys(existing.angemeldete || {}).length;
+        const badge = document.getElementById('bdgtl-' + docId);
+        if (badge) badge.innerHTML = bedarfBadge(count, bedarf);
+      };
+
+      const bedarfBadge = (count, bedarf) => {
+        if (!bedarf) return `<span class="need-badge${count>0?' ok':''}">${count} angemeldet</span>`;
+        const fehlen = bedarf - count;
+        if (fehlen <= 0) return `<span class="need-badge ok">${count}/${bedarf} ✓</span>`;
+        return `<span class="need-badge">${count}/${bedarf} · ${fehlen} fehlen</span>`;
+      };
 
       // Popup-Funktion
       window._showAnmeldungen = (docId, dayLabel, gwName) => {
-        const anm = tlAnmMap[docId] || {};
-        const namen = Object.values(anm);
+        const data  = tlAnmMap[docId] || {};
+        const namen = Object.values(data.angemeldete || {});
         document.getElementById('anm-title').textContent = gwName;
         document.getElementById('anm-sub').textContent = dayLabel;
         document.getElementById('anm-list').innerHTML = namen.length
@@ -804,7 +825,7 @@ async function loadUserData() {
         document.getElementById('anm-overlay').classList.add('visible');
       };
 
-      // TL-View rendern: gruppiert nach Gewerk, dann nach KW
+      // TL-View rendern
       let tlHtml = '';
       tlGewerke.forEach(gwId => {
         const gw = gewerkeMap[gwId];
@@ -816,17 +837,21 @@ async function loadUserData() {
           <span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block"></span>${gwName}
           <span style="flex:1;height:1px;background:var(--clay-pale)"></span></div>`;
         let lastKW2 = '';
-        gwTage.forEach(({ iso, date, bars }) => {
-          const kw2 = 'KW ' + String(isoWeek(date)).padStart(2,'0');
+        gwTage.forEach(({ iso, date }) => {
+          const kw2    = 'KW ' + String(isoWeek(date)).padStart(2,'0');
           if (kw2 !== lastKW2) { tlHtml += `<div class="kw-sep">${kw2}</div>`; lastKW2 = kw2; }
           const docId2  = `${iso}_${gwId}`;
-          const anm     = tlAnmMap[docId2] || {};
-          const count   = Object.keys(anm).length;
+          const data    = tlAnmMap[docId2] || {};
+          const count   = Object.keys(data.angemeldete || {}).length;
+          const bedarf  = data.bedarf || '';
           const dayLbl  = WD2[date.getDay()] + ', ' + fmtDateDE(date);
-          tlHtml += `<div class="gewerk-row" style="cursor:pointer" onclick="window._showAnmeldungen('${docId2}','${dayLbl}','${gwName}')">
-            <span class="gewerk-row-name">${dayLbl}</span>
-            <span class="need-badge${count>0?' ok':''}">${count} angemeldet</span>
-            <span style="font-size:18px;color:var(--clay-dark)">›</span>
+          tlHtml += `<div class="gewerk-row" style="align-items:center;gap:8px">
+            <span class="gewerk-row-name" style="cursor:pointer;flex:1" onclick="window._showAnmeldungen('${docId2}','${dayLbl}','${gwName}')">${dayLbl}</span>
+            <span id="bdgtl-${docId2}">${bedarfBadge(count, bedarf || null)}</span>
+            <input type="number" min="0" max="99" value="${bedarf}" placeholder="Bedarf"
+              style="width:64px;font-size:12px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none"
+              onchange="window._setBedarf('${docId2}','${iso}','${gwId}',this.value)">
+            <span style="font-size:18px;color:var(--clay-dark);cursor:pointer" onclick="window._showAnmeldungen('${docId2}','${dayLbl}','${gwName}')">›</span>
           </div>`;
         });
       });
