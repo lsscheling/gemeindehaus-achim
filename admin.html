@@ -377,6 +377,12 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
           <select class="filter-select" onchange="filterMatrixLevel(this.value)" id="matrix-level-filter">
             <option value="">Alle Level</option>
           </select>
+          <select class="filter-select" onchange="filterMatrixGruppe(this.value)" id="matrix-gruppe-filter">
+            <option value="">Alle Gruppen</option>
+            <option value="1">Gruppe 1</option>
+            <option value="2">Gruppe 2</option>
+            <option value="3">Gruppe 3</option>
+          </select>
         </div>
         <!-- BULK in planung -->
         <div class="bulk-bar" id="plan-bulk-bar">
@@ -384,8 +390,16 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
           <select id="plan-bulk-gewerk-sel" class="filter-select">
             <option value="">Gewerk zuweisen …</option>
           </select>
-          <button class="btn btn-accent btn-sm" onclick="bulkAssignPlan()">Zuweisen</button>
-          <button class="btn btn-outline btn-sm" onclick="clearPlanSelection()">Auswahl aufheben</button>
+          <button type="button" class="btn btn-accent btn-sm" onclick="bulkAssignPlan()">Zuweisen</button>
+          <span style="width:1px;background:var(--border);align-self:stretch;margin:0 4px"></span>
+          <select id="plan-bulk-gruppe-sel" class="filter-select">
+            <option value="">Gruppe zuweisen …</option>
+            <option value="1">Gruppe 1</option>
+            <option value="2">Gruppe 2</option>
+            <option value="3">Gruppe 3</option>
+          </select>
+          <button type="button" class="btn btn-accent btn-sm" onclick="bulkAssignGruppe()">Gruppe setzen</button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="clearPlanSelection()">Auswahl aufheben</button>
         </div>
         <div class="avail-matrix" id="avail-matrix">
           <div class="avail-matrix-header">
@@ -798,9 +812,10 @@ function selectPlanGewerk(gwId) {
   renderMatrix();
 }
 
-let _matrixFilter = '', _matrixLevel = '';
+let _matrixFilter = '', _matrixLevel = '', _matrixGruppe = '';
 function filterMatrix(val) { _matrixFilter = val.toLowerCase(); renderMatrix(); }
 function filterMatrixLevel(val) { _matrixLevel = val; renderMatrix(); }
+function filterMatrixGruppe(val) { _matrixGruppe = val; renderMatrix(); }
 
 function clearPlanSelection() {
   planSelectedIds.clear();
@@ -823,6 +838,7 @@ function renderMatrix() {
       const lv = (d.erfahrung||{})[activeGewerkId];
       if (lv !== _matrixLevel) return false;
     }
+    if (_matrixGruppe && String(d.gruppe||'') !== _matrixGruppe) return false;
     return true;
   });
 
@@ -848,6 +864,7 @@ function renderMatrix() {
     <th class="matrix-row-cb"><input type="checkbox" id="matrix-select-all" onchange="togglePlanSelectAll(this.checked)" title="Alle auswählen"></th>
     <th>Person</th>
     ${activeGewerkId ? '<th>Level</th>' : ''}
+    <th>Gruppe</th>
     <th>Schichtarbeit</th>
     <th>Zugewiesen</th>
   </tr>`;
@@ -877,6 +894,16 @@ function renderMatrix() {
     const chips = assigned.map(gid => `<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:9px;background:var(--accent-light);border:1px solid var(--accent);color:var(--accent);white-space:nowrap">${getGewerkLabel(gid)}<button onclick="window.removeAssignment('${d.id}','${gid}')" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:11px;line-height:1;padding:0;margin-left:1px">✕</button></span>`).join('');
     const addOpts = '<option value="">+ Gewerk</option>' + gewerkeKonfig.filter(g => !assigned.includes(g.id)).map(g => `<option value="${g.id}">${g.name}</option>`).join('');
 
+    const gruppeVal = d.gruppe ? String(d.gruppe) : '';
+    const gruppeHtml = `<td onclick="event.stopPropagation()">
+      <select onchange="window.assignGruppe('${d.id}',this.value)" style="font-family:'DM Sans',sans-serif;font-size:11px;border:1px solid var(--border);border-radius:var(--radius);padding:3px 6px;background:white;cursor:pointer;outline:none;color:var(--ink)">
+        <option value="" ${!gruppeVal?'selected':''}>–</option>
+        <option value="1" ${gruppeVal==='1'?'selected':''}>1</option>
+        <option value="2" ${gruppeVal==='2'?'selected':''}>2</option>
+        <option value="3" ${gruppeVal==='3'?'selected':''}>3</option>
+      </select>
+    </td>`;
+
     return `<tr class="${isAssigned?'assigned':''} ${isPlanSelected?'selected':''}" onclick="planRowClick(event,'${d.id}')">
       <td class="matrix-row-cb" onclick="event.stopPropagation()">
         <input type="checkbox" ${isPlanSelected?'checked':''} onchange="togglePlanSelect('${d.id}',this.checked)" onclick="event.stopPropagation()">
@@ -885,6 +912,7 @@ function renderMatrix() {
         <span class="pname" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px">${name}</span>
       </td>
       ${levelHtml}
+      ${gruppeHtml}
       <td>${schichtHtml}</td>
       <td class="assign-btn-cell" onclick="event.stopPropagation()">
         <div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">
@@ -935,8 +963,34 @@ async function removeAssignment(personId, gewerkId) {
     await window.updateDoc(window._docFn(window._db,'anmeldungen',personId), { gewerke_zugewiesen: updated });
   } catch(e) { alert('Fehler: ' + e.message); }
 }
+
+async function assignGruppe(personId, gruppe) {
+  const d = allDocs.find(x => x.id === personId); if (!d) return;
+  const val = gruppe ? Number(gruppe) : null;
+  try {
+    await window.updateDoc(window._docFn(window._db,'anmeldungen',personId), { gruppe: val });
+    d.gruppe = val;
+  } catch(e) { alert('Fehler: ' + e.message); }
+}
+
+window.bulkAssignGruppe = async function bulkAssignGruppe() {
+  const gruppe = document.getElementById('plan-bulk-gruppe-sel').value;
+  if (!gruppe) { alert('Bitte eine Gruppe auswählen.'); return; }
+  const val = Number(gruppe);
+  const ids = [...planSelectedIds];
+  try {
+    await Promise.all(ids.map(id => {
+      const d = allDocs.find(x => x.id === id);
+      if (d) d.gruppe = val;
+      return window.updateDoc(window._docFn(window._db,'anmeldungen',id), { gruppe: val });
+    }));
+    document.getElementById('plan-bulk-gruppe-sel').value = '';
+    renderMatrix();
+  } catch(e) { alert('Fehler: ' + e.message); }
+}
 window.addAssignment = addAssignment;
 window.removeAssignment = removeAssignment;
+window.assignGruppe = assignGruppe;
 
 // ═══════════════════════════════════════════════
 // DRAWER
