@@ -825,7 +825,8 @@ async function loadUserData() {
           const istAn   = !!entry[myId];
           const btnId   = `btn-${docId}`;
           const badgeId = `bdg-${docId}`;
-          html += `<div class="gewerk-row ${nurMeine ? 'mine-row' : ''}">
+          const isMine = gewerke.includes(bar.gewerkId);
+          html += `<div class="gewerk-row ${isMine ? 'mine-row' : ''}">
             <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
             <span class="gewerk-row-name" style="font-size:12px">${dayLabel} · ${name}</span>
             <span class="need-badge${count>0?' ok':''}" id="${badgeId}">${count} angemeldet</span>
@@ -843,7 +844,7 @@ async function loadUserData() {
     renderRows(alleTage,  document.getElementById('helfer-body'), false);
 
   } catch(e) {
-    einsaetzeBody.innerHTML = `<div style="color:red;font-size:12px;padding:8px;background:#fff3f3;border-radius:8px;word-break:break-all">${e.message || String(e)}</div>`;
+    einsaetzeBody.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Fehler beim Laden.</div>';
     console.error(e);
   }
 }
