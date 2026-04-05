@@ -748,43 +748,54 @@ async function loadUserData() {
 
     const today = new Date(); today.setHours(0,0,0,0);
     const in14  = new Date(today); in14.setDate(in14.getDate() + 14);
+    const WOCHENTAGE = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 
-    const einsaetze = [];
-    bars.forEach(bar => {
-      if (!gewerke.includes(bar.gewerkId)) return;
-      const start = parseLocalDate(bar.start);
-      const end   = parseLocalDate(bar.end);
-      if (end < today || start > in14) return;
-      const visStart = start < today ? today : start;
-      const visEnd   = end   > in14  ? in14  : end;
-      const cur = new Date(visStart);
-      let gruppeAktiv = false;
-      while (cur <= visEnd) {
-        if (gruppeAktivInKW(gruppe, isoWeek(cur))) { gruppeAktiv = true; break; }
-        cur.setDate(cur.getDate() + 7);
+    // Jeden Tag Mo–Sa der nächsten 14 Tage durchgehen
+    const tageMap = {}; // ISO-Datum → [bar, ...]
+    const cur = new Date(today);
+    while (cur <= in14) {
+      const dow = cur.getDay(); // 0=So,6=Sa
+      if (dow !== 0) { // Sonntag überspringen
+        const kw = isoWeek(cur);
+        if (gruppeAktivInKW(gruppe, kw)) {
+          const iso = cur.toISOString().slice(0,10);
+          bars.forEach(bar => {
+            if (!gewerke.includes(bar.gewerkId)) return;
+            const s = parseLocalDate(bar.start);
+            const e = parseLocalDate(bar.end);
+            if (cur >= s && cur <= e) {
+              if (!tageMap[iso]) tageMap[iso] = { date: new Date(cur), bars: [] };
+              tageMap[iso].bars.push(bar);
+            }
+          });
+        }
       }
-      if (!gruppeAktiv) return;
-      einsaetze.push({ bar, visStart, visEnd });
-    });
+      cur.setDate(cur.getDate() + 1);
+    }
 
-    if (!einsaetze.length) {
+    const tage = Object.values(tageMap).sort((a,b) => a.date - b.date);
+
+    if (!tage.length) {
       einsaetzeBody.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einsätze in den nächsten 14 Tagen.</div>';
       return;
     }
 
-    einsaetze.sort((a, b) => a.visStart - b.visStart);
     let html = '', lastKW = '';
-    einsaetze.forEach(({ bar, visStart, visEnd }) => {
-      const kw = 'KW ' + String(isoWeek(visStart)).padStart(2, '0');
+    tage.forEach(({ date, bars: dayBars }) => {
+      const kw = 'KW ' + String(isoWeek(date)).padStart(2, '0');
       if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
-      const gw    = gewerkeMap[bar.gewerkId];
-      const color = gw?.color || bar.color || 'var(--clay)';
-      const name  = gw?.name  || bar.name  || bar.gewerkId;
-      html += `<div class="gewerk-row mine-row">
-        <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
-        <span class="gewerk-row-name">${name}</span>
-        <span style="font-size:11px;color:var(--text-muted);white-space:nowrap">${fmtDateDE(visStart)} – ${fmtDateDE(visEnd)}</span>
-      </div>`;
+      const dayLabel = WOCHENTAGE[date.getDay()] + ', ' + fmtDateDE(date);
+      html += `<div class="day-block"><div class="day-label">${dayLabel}</div>`;
+      dayBars.forEach(bar => {
+        const gw    = gewerkeMap[bar.gewerkId];
+        const color = gw?.color || bar.color || 'var(--clay)';
+        const name  = gw?.name  || bar.name  || bar.gewerkId;
+        html += `<div class="gewerk-row mine-row">
+          <span style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
+          <span class="gewerk-row-name">${name}</span>
+        </div>`;
+      });
+      html += '</div>';
     });
     einsaetzeBody.innerHTML = html;
 
