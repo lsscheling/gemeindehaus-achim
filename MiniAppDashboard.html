@@ -305,44 +305,22 @@
 <div class="overlay" id="help-overlay" onclick="overlayClose(event,'help-overlay')">
   <div class="sheet">
     <div class="help-header">
-      <div class="help-header-title">Hilfe &amp; Support</div>
-      <div class="help-header-sub">Orga-Team kontaktieren &amp; Infos</div>
+      <div class="help-header-title">Hilfe &amp; Kontakt</div>
+      <div class="help-header-sub">Organisationsteam kontaktieren &amp; Infos</div>
       <button class="sheet-close" onclick="closeOverlay('help-overlay')">✕</button>
     </div>
     <div class="help-content">
 
-      <!-- Orga-Team -->
+      <!-- Organisationsteam -->
       <div class="help-block">
-        <div class="help-block-title">👤 Orga-Team</div>
-        <div class="orga-card">
-          <div class="orga-avatar">LM</div>
-          <div class="orga-info"><div class="orga-name">Lukas Mayer</div><div class="orga-role">Orga-Koordinator</div></div>
-          <div class="orga-actions">
-            <button class="icon-btn btn-call" onclick="callPerson('Lukas Mayer','+4917600000001')">📞</button>
-            <button class="icon-btn btn-tg" onclick="tgMessage('Lukas Mayer')">✈️</button>
-          </div>
-        </div>
-        <div class="orga-card">
-          <div class="orga-avatar">SB</div>
-          <div class="orga-info"><div class="orga-name">Sandra Beck</div><div class="orga-role">Orga &amp; Einteilung</div></div>
-          <div class="orga-actions">
-            <button class="icon-btn btn-call" onclick="callPerson('Sandra Beck','+4917600000002')">📞</button>
-            <button class="icon-btn btn-tg" onclick="tgMessage('Sandra Beck')">✈️</button>
-          </div>
-        </div>
+        <div class="help-block-title">👤 Organisationsteam</div>
+        <div id="orga-list"><div style="color:var(--text-muted);font-size:13px;padding:4px 0">Wird geladen …</div></div>
       </div>
 
       <!-- KW Rhythmus -->
       <div class="help-block">
         <div class="help-block-title">🔄 Gruppen-Rhythmus</div>
         <table class="kw-table" id="kw-table"></table>
-      </div>
-
-      <!-- Nachricht -->
-      <div class="help-block">
-        <div class="help-block-title">✉️ Nachricht ans Orga-Team</div>
-        <textarea class="message-field" id="orga-msg" placeholder="z.B. „Bitte der Gruppe 2 zuordnen – Gewerk Elektrotechnik klingt interessant für mich ...""></textarea>
-        <button class="message-send" id="msg-btn" onclick="sendMsg()">Nachricht senden</button>
       </div>
 
     </div>
@@ -428,16 +406,12 @@ function callPerson(name, num) {
     }, b => { if(b==='c') window.location.href='tel:'+num; });
   } else window.location.href='tel:'+num;
 }
-function tgMessage(name) {
-  if (window.Telegram && window.Telegram.WebApp) {
-    Telegram.WebApp.showPopup({title:'Telegram an '+name,
-      message:'Nachricht öffnen?',
-      buttons:[{id:'s',type:'default',text:'✈️ Öffnen'},{id:'x',type:'cancel',text:'Abbrechen'}]
-    }, ()=>{});
-  } else alert('Telegram: '+name);
-}
 function tgOpen(userId) {
-  window.location.href = 'tg://user?id=' + userId;
+  const url = 'tg://user?id=' + userId;
+  if (window.Telegram?.WebApp?.openTelegramLink) {
+    try { Telegram.WebApp.openTelegramLink(url); return; } catch(e) {}
+  }
+  window.open(url, '_blank');
 }
 
 // ── Render helper ──
@@ -702,6 +676,43 @@ async function loadTeamleiter() {
 }
 
 loadTeamleiter();
+
+async function loadOrga() {
+  const list = document.getElementById('orga-list');
+  try {
+    const snap = await getDocs(query(collection(db, 'anmeldungen'), where('admin', '==', true)));
+    const admins = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.vorname + a.nachname).localeCompare(b.vorname + b.nachname, 'de'));
+    if (!admins.length) {
+      list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:4px 0">Keine Ansprechpartner eingetragen.</div>';
+      return;
+    }
+    list.addEventListener('click', e => {
+      const cb = e.target.closest('.orga-call-btn');
+      const tb = e.target.closest('.orga-tg-btn');
+      if (cb) callPerson(cb.dataset.name, cb.dataset.tel);
+      if (tb) tgOpen(tb.dataset.tgid);
+    });
+    list.innerHTML = admins.map(d => {
+      const name = ((d.vorname || '') + ' ' + (d.nachname || '')).trim();
+      const ini  = initials(d.vorname, d.nachname);
+      const tel  = d.telefon || '';
+      const tgid = d.telegram_id || '';
+      return `<div class="orga-card">
+        <div class="orga-avatar">${ini}</div>
+        <div class="orga-info"><div class="orga-name">${name}</div></div>
+        <div class="orga-actions">
+          ${tel  ? `<button class="icon-btn btn-call orga-call-btn" data-name="${name.replace(/"/g,'&quot;')}" data-tel="${tel}">📞</button>` : ''}
+          ${tgid ? `<button class="icon-btn btn-tg orga-tg-btn" data-tgid="${tgid}" title="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="#1976D2"/><path d="M5.5 11.9l2.9 1.1 1.1 3.5c.1.2.3.3.5.1l1.6-1.3 3.1 2.3c.3.2.7.1.8-.3l2.5-10c.1-.4-.3-.7-.6-.5L5.3 11.2c-.4.1-.4.6.2.7z" fill="white"/><path d="M8.4 13l.5 3.2.8-2.5 4.8-4.4c.2-.2 0-.5-.3-.3L8.4 13z" fill="rgba(255,255,255,0.5)"/></svg></button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:4px 0">Fehler beim Laden.</div>';
+  }
+}
+loadOrga();
 
 // ── Helpers ──
 function parseLocalDate(str) {
