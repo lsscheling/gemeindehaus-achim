@@ -605,6 +605,11 @@ function bedarfBadgeUser(count, bedarf) {
   if (fehlen <= 0) return `<span class="need-badge ok">${count}/${bedarf} ✓</span>`;
   return `<span class="need-badge">${count}/${bedarf} · ${fehlen} fehlen</span>`;
 }
+function bedarfBadgeMine(count, bedarf) {
+  if (!bedarf) return `<span class="need-badge${count>0?' ok':''}">${count} angemeldet</span>`;
+  if (count >= bedarf) return `<span class="need-badge ok">${count}/${bedarf} ✓</span>`;
+  return `<span class="need-badge">${count}/${bedarf}</span>`;
+}
 
 async function loadTeamleiter() {
   const list = document.getElementById('teamleiter-list');
@@ -980,8 +985,14 @@ async function loadUserData() {
       const count = Object.keys(entry).length;
       const btn   = document.getElementById(btnId);
       const badge = document.getElementById(badgeId);
-      if (btn)   { btn.textContent = entry[myId] ? 'Angemeldet ✓' : 'Anmelden'; btn.classList.toggle('done', !!entry[myId]); }
-      if (badge) badge.innerHTML = bedarfBadgeUser(count, rec.bedarf);
+      if (btn) { btn.textContent = entry[myId] ? 'Angemeldet ✓' : 'Anmelden'; btn.classList.toggle('done', !!entry[myId]); }
+      if (badge) badge.innerHTML = bedarfBadgeMine(count, rec.bedarf);
+      // Helfer-Row ausblenden wenn Bedarf jetzt gedeckt
+      if (btn) {
+        const row = btn.closest('.gewerk-row');
+        const inHelfer = !!document.getElementById('helfer-body')?.contains(btn);
+        if (inHelfer && row && rec.bedarf && count >= rec.bedarf) row.style.display = 'none';
+      }
     };
 
     const renderRows = (tageArr, bodyEl, nurMeine) => {
@@ -1004,16 +1015,31 @@ async function loadUserData() {
           const istAn   = !!rec.angemeldete[myId];
           const btnId   = `btn-${docId}`;
           const badgeId = `bdg-${docId}`;
-          const isMine = gewerke.includes(bar.gewerkId);
-          html += `<div class="gewerk-row ${isMine ? 'mine-row' : ''}">
-            <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
-            <span class="gewerk-row-name" style="font-size:12px">${dayLabel} · ${name}</span>
-            <span id="${badgeId}">${bedarfBadgeUser(count, rec.bedarf)}</span>
-            <button class="action-btn btn-join${istAn?' done':''}" id="${btnId}"
-              onclick="window._anmelden('${iso}','${bar.gewerkId}','${btnId}','${badgeId}')">
-              ${istAn ? 'Angemeldet ✓' : 'Anmelden'}
-            </button>
-          </div>`;
+          const isMine  = gewerke.includes(bar.gewerkId);
+
+          if (!nurMeine) {
+            // Helfer benötigt: nur zeigen wenn Bedarf gesetzt und noch nicht gedeckt
+            const fehlen = rec.bedarf ? rec.bedarf - count : 0;
+            if (!rec.bedarf || fehlen <= 0) return;
+            html += `<div class="gewerk-row ${isMine ? 'mine-row' : ''}">
+              <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
+              <span class="gewerk-row-name" style="font-size:12px">${dayLabel} · ${name}</span>
+              <button class="action-btn btn-join${istAn?' done':''}" id="${btnId}"
+                onclick="window._anmelden('${iso}','${bar.gewerkId}','${btnId}','${badgeId}')">
+                ${istAn ? 'Angemeldet ✓' : 'Anmelden'}
+              </button>
+            </div>`;
+          } else {
+            html += `<div class="gewerk-row ${isMine ? 'mine-row' : ''}">
+              <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
+              <span class="gewerk-row-name" style="font-size:12px">${dayLabel} · ${name}</span>
+              <span id="${badgeId}">${bedarfBadgeMine(count, rec.bedarf)}</span>
+              <button class="action-btn btn-join${istAn?' done':''}" id="${btnId}"
+                onclick="window._anmelden('${iso}','${bar.gewerkId}','${btnId}','${badgeId}')">
+                ${istAn ? 'Angemeldet ✓' : 'Anmelden'}
+              </button>
+            </div>`;
+          }
         });
       });
       bodyEl.innerHTML = html;
