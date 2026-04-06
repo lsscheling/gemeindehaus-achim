@@ -186,6 +186,19 @@
   .message-send:active { background: var(--clay-dark); }
   .message-send.sent { background: var(--green); }
 
+  /* EINSATZ CHIPS */
+  .einsatz-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .einsatz-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 10px; background: var(--sand); border: 1.5px solid var(--clay-pale); cursor: pointer; user-select: none; transition: all .15s; -webkit-tap-highlight-color: transparent; }
+  .einsatz-chip.mine { background: var(--mine-light); border-color: rgba(58,107,156,0.25); }
+  .einsatz-chip.signed { background: var(--green-light) !important; border-color: var(--green) !important; }
+  .einsatz-chip:active { transform: scale(.95); }
+  .chip-name { font-size: 12px; font-weight: 600; color: var(--text); }
+  .einsatz-chip.mine .chip-name { color: var(--mine); }
+  .einsatz-chip.signed .chip-name { color: var(--green); }
+  .chip-state { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-left: 1px; }
+  .einsatz-chip.signed .chip-state { color: var(--green); }
+  .einsatz-chip .need-badge { background: none !important; padding: 0; font-size: 10px; font-weight: 700; color: inherit; opacity: .7; }
+
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--clay-light); border-radius: 4px; }
 </style>
@@ -1027,32 +1040,29 @@ async function loadUserData() {
     const myName = userDoc ? ((userDoc.vorname||'') + ' ' + (userDoc.nachname||'')).trim() : 'Unbekannt';
 
     // Anmelden / Abmelden
-    window._anmelden = async (iso, gewerkId, btnId, badgeId) => {
-      const docId  = `${iso}_${gewerkId}`;
-      const ref    = doc(db, 'einsatzAnmeldungen', docId);
-      const rec    = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
-      const entry  = rec.angemeldete;
-      const istAngemeldet = !!entry[myId];
-      if (istAngemeldet) {
-        delete entry[myId];
-      } else {
-        entry[myId] = myName;
-      }
+    window._anmelden = async (iso, gewerkId, chipId, badgeId) => {
+      const docId = `${iso}_${gewerkId}`;
+      const ref   = doc(db, 'einsatzAnmeldungen', docId);
+      const rec   = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
+      const entry = rec.angemeldete;
+      if (entry[myId]) delete entry[myId]; else entry[myId] = myName;
       await setDoc(ref, { date: iso, gewerkId, angemeldete: entry, bedarf: rec.bedarf }, { merge: true });
       anmeldungenMap[docId] = rec;
       const count = Object.keys(entry).length;
-      const btn   = document.getElementById(btnId);
+      const chip  = document.getElementById(chipId);
       const badge = document.getElementById(badgeId);
-      if (btn) { btn.textContent = entry[myId] ? 'Angemeldet ✓' : 'Anmelden'; btn.classList.toggle('done', !!entry[myId]); }
-      if (badge) badge.innerHTML = bedarfBadgeMine(count, rec.bedarf);
-      // Helfer-Row ausblenden wenn Bedarf jetzt gedeckt
-      if (btn) {
-        const row = btn.closest('.gewerk-row');
-        const inHelfer = !!document.getElementById('helfer-body')?.contains(btn);
-        if (inHelfer && row && rec.bedarf && count >= rec.bedarf) row.style.display = 'none';
+      if (chip) {
+        chip.classList.toggle('signed', !!entry[myId]);
+        const s = chip.querySelector('.chip-state');
+        if (s) s.textContent = entry[myId] ? '✓' : '+';
       }
+      if (badge) badge.innerHTML = bedarfBadgeMine(count, rec.bedarf);
+      // Helfer-Chip ausblenden wenn Bedarf gedeckt
+      if (chip && document.getElementById('helfer-body')?.contains(chip) && rec.bedarf && count >= rec.bedarf)
+        chip.style.display = 'none';
     };
 
+    const ns = (nurMeine) => nurMeine ? 'e' : 'h';
     const renderRows = (tageArr, bodyEl, nurMeine) => {
       if (!tageArr.length) {
         bodyEl.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
@@ -1069,37 +1079,30 @@ async function loadUserData() {
 
         const kw = 'KW ' + String(isoWeek(date)).padStart(2,'0');
         if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
+        html += `<div style="font-size:11px;font-weight:600;color:var(--clay-dark);margin:2px 0 5px;padding-left:2px">${WD[date.getDay()]}, ${fmtDateDE(date)}</div>`;
+        html += `<div class="einsatz-chips">`;
 
-        const dayLabel = WD[date.getDay()] + ', ' + fmtDateDE(date);
+        visibleBars.forEach(bar => {
+          const gw     = gewerkeMap[bar.gewerkId];
+          const color  = gw?.color || bar.color || 'var(--clay)';
+          const name   = gw?.name  || bar.name  || bar.gewerkId;
+          const docId  = `${iso}_${bar.gewerkId}`;
+          const rec    = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
+          const count  = Object.keys(rec.angemeldete).length;
+          const istAn  = !!rec.angemeldete[myId];
+          const isMine = gewerke.includes(bar.gewerkId);
+          const chipId = `chip-${nurMeine?'e':'h'}-${docId}`;
+          const badgeId= `bdg-${nurMeine?'e':'h'}-${docId}`;
 
-        visibleBars.forEach((bar, i) => {
-          const gw      = gewerkeMap[bar.gewerkId];
-          const color   = gw?.color || bar.color || 'var(--clay)';
-          const name    = gw?.name  || bar.name  || bar.gewerkId;
-          const docId   = `${iso}_${bar.gewerkId}`;
-          const rec     = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
-          const count   = Object.keys(rec.angemeldete).length;
-          const istAn   = !!rec.angemeldete[myId];
-          const btnId   = `btn-${docId}`;
-          const badgeId = `bdg-${docId}`;
-          const isMine  = gewerke.includes(bar.gewerkId);
-
-          // Datum nur bei erster Zeile des Tages, danach Leerraum als Einzug
-          const dateCell = i === 0
-            ? `<span style="font-size:12px;font-weight:600;color:var(--clay-dark);min-width:72px;flex-shrink:0">${dayLabel}</span>`
-            : `<span style="min-width:72px;flex-shrink:0"></span>`;
-
-          html += `<div class="gewerk-row ${isMine ? 'mine-row' : ''}" style="padding:4px 10px;margin-bottom:2px;gap:6px">
-            ${dateCell}
+          html += `<div class="einsatz-chip${isMine?' mine':''}${istAn?' signed':''}" id="${chipId}"
+            onclick="window._anmelden('${iso}','${bar.gewerkId}','${chipId}','${badgeId}')">
             <span style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
-            <span class="gewerk-row-name" style="font-size:12px">${name}</span>
-            ${nurMeine ? `<span id="${badgeId}">${bedarfBadgeMine(count, rec.bedarf)}</span>` : ''}
-            <button class="action-btn btn-join${istAn?' done':''}" id="${btnId}"
-              onclick="window._anmelden('${iso}','${bar.gewerkId}','${btnId}','${badgeId}')">
-              ${istAn ? 'Angemeldet ✓' : 'Anmelden'}
-            </button>
+            <span class="chip-name">${name}</span>
+            ${nurMeine ? `<span id="${badgeId}" style="font-size:10px;font-weight:700;color:inherit;opacity:.75">${bedarfBadgeMine(count,rec.bedarf)}</span>` : ''}
+            <span class="chip-state">${istAn?'✓':'+'}</span>
           </div>`;
         });
+        html += `</div>`;
       });
       bodyEl.innerHTML = html || '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
     };
