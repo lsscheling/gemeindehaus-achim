@@ -337,6 +337,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
               <th>Name</th>
               <th>Gewerk(e) & Level</th>
               <th>Schichtarbeit</th>
+              <th>Gruppe</th>
               <th>Zugewiesen</th>
               <th></th>
             </tr>
@@ -646,11 +647,20 @@ function renderTable() {
     }).join('') || '–';
     const schichtHtml = d.schichtarbeit ? '<span class="badge badge-green">Ja</span>' : '<span class="badge badge-gray">–</span>';
     const assignedGw = getAssigned(d).length > 0 ? getAssigned(d).map(g => `<span class="badge badge-green">${getGewerkLabel(g)}</span>`).join(' ') : '<span class="badge badge-gray">–</span>';
+    const gruppeVal = d.gruppe ? String(d.gruppe) : '';
+    const gruppeSelect = `<select onchange="window.assignGruppe('${d.id}',this.value)" onclick="event.stopPropagation()"
+      style="font-family:'DM Sans',sans-serif;font-size:11px;border:1px solid var(--border);border-radius:var(--radius);padding:3px 6px;background:white;cursor:pointer;outline:none;color:var(--ink)">
+      <option value="" ${!gruppeVal?'selected':''}>–</option>
+      <option value="1" ${gruppeVal==='1'?'selected':''}>1</option>
+      <option value="2" ${gruppeVal==='2'?'selected':''}>2</option>
+      <option value="3" ${gruppeVal==='3'?'selected':''}>3</option>
+    </select>`;
     return `<tr class="${isSelected ? 'selected' : ''}" onclick="rowClick(event,'${d.id}')">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${isSelected?'checked':''} onchange="toggleSelect('${d.id}',this.checked)" onclick="event.stopPropagation()"></td>
       <td><strong>${name}</strong><br><span style="font-size:11px;color:var(--muted)">${d.email||''}</span></td>
       <td>${gewerkeHtml}</td>
       <td>${schichtHtml}</td>
+      <td onclick="event.stopPropagation()">${gruppeSelect}</td>
       <td>${assignedGw}</td>
       <td onclick="event.stopPropagation()"><button class="btn btn-outline btn-sm" onclick="openDrawer('${d.id}')">Details</button></td>
     </tr>`;
