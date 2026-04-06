@@ -400,18 +400,27 @@ function closeOverlay(id) { document.getElementById(id).classList.remove('visibl
 function overlayClose(e,id) { if (e.target===document.getElementById(id)) closeOverlay(id); }
 
 function callPerson(name, num) {
-  if (window.Telegram && window.Telegram.WebApp) {
-    Telegram.WebApp.showPopup({title:'Anrufen',message:name+'\n'+num,
-      buttons:[{id:'c',type:'default',text:'📞 Anrufen'},{id:'x',type:'cancel',text:'Abbrechen'}]
-    }, b => { if(b==='c') window.location.href='tel:'+num; });
-  } else window.location.href='tel:'+num;
-}
-function tgOpen(userId) {
-  const url = 'tg://user?id=' + userId;
-  if (window.Telegram?.WebApp?.openTelegramLink) {
-    try { Telegram.WebApp.openTelegramLink(url); return; } catch(e) {}
+  const url = 'tel:' + num.replace(/\s/g, '');
+  if (window.Telegram?.WebApp?.openLink) {
+    try { Telegram.WebApp.openLink(url); return; } catch(e) {}
   }
-  window.open(url, '_blank');
+  window.location.href = url;
+}
+function tgSvg() {
+  return `<svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="#1976D2"/><path d="M5.5 11.9l2.9 1.1 1.1 3.5c.1.2.3.3.5.1l1.6-1.3 3.1 2.3c.3.2.7.1.8-.3l2.5-10c.1-.4-.3-.7-.6-.5L5.3 11.2c-.4.1-.4.6.2.7z" fill="white"/><path d="M8.4 13l.5 3.2.8-2.5 4.8-4.4c.2-.2 0-.5-.3-.3L8.4 13z" fill="rgba(255,255,255,0.5)"/></svg>`;
+}
+function tgOpen(userId, username) {
+  if (username) {
+    // Username-Link: zuverlässigste Methode
+    const url = 'https://t.me/' + username;
+    if (window.Telegram?.WebApp?.openTelegramLink) {
+      try { Telegram.WebApp.openTelegramLink(url); return; } catch(e) {}
+    }
+    window.location.href = url;
+  } else if (userId) {
+    // Nur ID: window.location.href wird im Telegram-WebView intern abgefangen
+    window.location.href = 'tg://user?id=' + userId;
+  }
 }
 
 // ── Render helper ──
@@ -648,14 +657,15 @@ async function loadTeamleiter() {
       const callBtn = e.target.closest('.tl-call-btn');
       const tgBtn   = e.target.closest('.tl-tg-btn');
       if (callBtn) callPerson(callBtn.dataset.name, callBtn.dataset.tel);
-      if (tgBtn)   tgOpen(tgBtn.dataset.tgid);
+      if (tgBtn)   tgOpen(tgBtn.dataset.tgid, tgBtn.dataset.tguser);
     });
     list.innerHTML = teamleiter.map((d, i) => {
       const ini = initials(d.vorname, d.nachname);
       const name = ((d.vorname || '') + ' ' + (d.nachname || '')).trim();
       const gewerke = (d.teamleiterGewerke || []).map(id => gewerkeMap[id] || id).join(' & ') || 'Teamleiter';
-      const tel = d.telefon || '';
-      const tgId = d.telegram_id || '';
+      const tel    = d.telefon || '';
+      const tgId   = d.telegram_id || '';
+      const tgUser = d.telegram_username || '';
       const isLast = i === teamleiter.length - 1;
       return `<div class="contact-row" ${isLast ? 'style="margin-bottom:0"' : ''}>
         <div class="contact-avatar lead">${ini}</div>
@@ -664,8 +674,8 @@ async function loadTeamleiter() {
           <div class="contact-role">${gewerke}</div>
         </div>
         <div class="contact-actions">
-          ${tel  ? `<button class="icon-btn btn-call tl-call-btn" data-name="${name.replace(/"/g,'&quot;')}" data-tel="${tel}">📞</button>` : ''}
-          ${tgId ? `<button class="icon-btn btn-tg tl-tg-btn" data-tgid="${tgId}" title="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="#1976D2"/><path d="M5.5 11.9l2.9 1.1 1.1 3.5c.1.2.3.3.5.1l1.6-1.3 3.1 2.3c.3.2.7.1.8-.3l2.5-10c.1-.4-.3-.7-.6-.5L5.3 11.2c-.4.1-.4.6.2.7z" fill="white"/><path d="M8.4 13l.5 3.2.8-2.5 4.8-4.4c.2-.2 0-.5-.3-.3L8.4 13z" fill="rgba(255,255,255,0.5)"/></svg></button>` : ''}
+          ${tel    ? `<button class="icon-btn btn-call tl-call-btn" data-name="${name.replace(/"/g,'&quot;')}" data-tel="${tel}">📞</button>` : ''}
+          ${(tgId||tgUser) ? `<button class="icon-btn btn-tg tl-tg-btn" data-tgid="${tgId}" data-tguser="${tgUser}" title="Telegram">${tgSvg()}</button>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -692,19 +702,20 @@ async function loadOrga() {
       const cb = e.target.closest('.orga-call-btn');
       const tb = e.target.closest('.orga-tg-btn');
       if (cb) callPerson(cb.dataset.name, cb.dataset.tel);
-      if (tb) tgOpen(tb.dataset.tgid);
+      if (tb) tgOpen(tb.dataset.tgid, tb.dataset.tguser);
     });
     list.innerHTML = admins.map(d => {
-      const name = ((d.vorname || '') + ' ' + (d.nachname || '')).trim();
-      const ini  = initials(d.vorname, d.nachname);
-      const tel  = d.telefon || '';
-      const tgid = d.telegram_id || '';
+      const name   = ((d.vorname || '') + ' ' + (d.nachname || '')).trim();
+      const ini    = initials(d.vorname, d.nachname);
+      const tel    = d.telefon || '';
+      const tgid   = d.telegram_id || '';
+      const tguser = d.telegram_username || '';
       return `<div class="orga-card">
         <div class="orga-avatar">${ini}</div>
         <div class="orga-info"><div class="orga-name">${name}</div></div>
         <div class="orga-actions">
-          ${tel  ? `<button class="icon-btn btn-call orga-call-btn" data-name="${name.replace(/"/g,'&quot;')}" data-tel="${tel}">📞</button>` : ''}
-          ${tgid ? `<button class="icon-btn btn-tg orga-tg-btn" data-tgid="${tgid}" title="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="#1976D2"/><path d="M5.5 11.9l2.9 1.1 1.1 3.5c.1.2.3.3.5.1l1.6-1.3 3.1 2.3c.3.2.7.1.8-.3l2.5-10c.1-.4-.3-.7-.6-.5L5.3 11.2c-.4.1-.4.6.2.7z" fill="white"/><path d="M8.4 13l.5 3.2.8-2.5 4.8-4.4c.2-.2 0-.5-.3-.3L8.4 13z" fill="rgba(255,255,255,0.5)"/></svg></button>` : ''}
+          ${tel         ? `<button class="icon-btn btn-call orga-call-btn" data-name="${name.replace(/"/g,'&quot;')}" data-tel="${tel}">📞</button>` : ''}
+          ${(tgid||tguser) ? `<button class="icon-btn btn-tg orga-tg-btn" data-tgid="${tgid}" data-tguser="${tguser}" title="Telegram">${tgSvg()}</button>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -797,15 +808,16 @@ async function loadUserData() {
         });
 
       const personRow = (d, label) => {
-        const name = ((d.vorname || '') + ' ' + (d.nachname || '')).trim();
-        const tel  = d.telefon || '';
-        const tgid = d.telegram_id || '';
+        const name   = ((d.vorname || '') + ' ' + (d.nachname || '')).trim();
+        const tel    = d.telefon || '';
+        const tgid   = d.telegram_id || '';
+        const tguser = d.telegram_username || '';
         return `<div class="info-row">
           <span class="info-label" style="color:var(--clay-dark);font-size:10px">${label}</span>
           <span style="font-size:13px;font-weight:500;flex:1">${name}</span>
           <div style="display:flex;gap:4px">
             ${tel  ? `<button class="icon-btn btn-call tl-call-btn" data-name="${name.replace(/"/g,'&quot;')}" data-tel="${tel}">📞</button>` : ''}
-            ${tgid ? `<button class="icon-btn btn-tg tl-tg-btn" data-tgid="${tgid}" title="Telegram"><svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="#1976D2"/><path d="M5.5 11.9l2.9 1.1 1.1 3.5c.1.2.3.3.5.1l1.6-1.3 3.1 2.3c.3.2.7.1.8-.3l2.5-10c.1-.4-.3-.7-.6-.5L5.3 11.2c-.4.1-.4.6.2.7z" fill="white"/><path d="M8.4 13l.5 3.2.8-2.5 4.8-4.4c.2-.2 0-.5-.3-.3L8.4 13z" fill="rgba(255,255,255,0.5)"/></svg></button>` : ''}
+            ${(tgid||tguser) ? `<button class="icon-btn btn-tg tl-tg-btn" data-tgid="${tgid}" data-tguser="${tguser}" title="Telegram">${tgSvg()}</button>` : ''}
           </div>
         </div>`;
       };
@@ -829,7 +841,7 @@ async function loadUserData() {
         const cb = e.target.closest('.tl-call-btn');
         const tb = e.target.closest('.tl-tg-btn');
         if (cb) callPerson(cb.dataset.name, cb.dataset.tel);
-        if (tb) tgOpen(tb.dataset.tgid);
+        if (tb) tgOpen(tb.dataset.tgid, tb.dataset.tguser);
       });
     }
 
