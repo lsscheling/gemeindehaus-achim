@@ -1088,6 +1088,7 @@ async function loadUserData() {
               </button>
             </div>`;
           } else {
+            if (!rec.bedarf) return; // kein Bedarf gesetzt → nicht anzeigen
             html += `<div class="gewerk-row ${isMine ? 'mine-row' : ''}">
               <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
               <span class="gewerk-row-name" style="font-size:12px">${dayLabel} · ${name}</span>
