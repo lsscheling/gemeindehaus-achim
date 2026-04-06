@@ -402,17 +402,6 @@ function overlayClose(e,id) { if (e.target===document.getElementById(id)) closeO
 function tgSvg() {
   return `<svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="12" fill="#1976D2"/><path d="M5.5 11.9l2.9 1.1 1.1 3.5c.1.2.3.3.5.1l1.6-1.3 3.1 2.3c.3.2.7.1.8-.3l2.5-10c.1-.4-.3-.7-.6-.5L5.3 11.2c-.4.1-.4.6.2.7z" fill="white"/><path d="M8.4 13l.5 3.2.8-2.5 4.8-4.4c.2-.2 0-.5-.3-.3L8.4 13z" fill="rgba(255,255,255,0.5)"/></svg>`;
 }
-function tgOpen(userId, username) {
-  const url = username ? 'https://t.me/' + username : (userId ? 'tg://user?id=' + userId : null);
-  if (!url) return;
-  const a = document.createElement('a');
-  a.href = url;
-  a.target = '_blank';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => document.body.removeChild(a), 300);
-}
 
 // ── Render helper ──
 function renderDayList(containerId, filterMine) {
@@ -652,7 +641,7 @@ async function loadTeamleiter() {
       const tgUser = d.telegram_username || '';
       const tgId   = d.telegram_id || '';
       const isLast = i === teamleiter.length - 1;
-      const tgHref = tgUser ? 'https://t.me/'+tgUser : (tgId ? 'tg://user?id='+tgId : '');
+      const tgHref = tgUser ? 'https://t.me/'+tgUser : '';
       return `<div class="contact-row" ${isLast ? 'style="margin-bottom:0"' : ''}>
         <div class="contact-avatar lead">${ini}</div>
         <div class="contact-info">
@@ -660,7 +649,6 @@ async function loadTeamleiter() {
           <div class="contact-role">${gewerke}</div>
         </div>
         <div class="contact-actions">
-          ${tel    ? `<a href="tel:${tel.replace(/\s/g,'')}" style="font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:5px 10px;border-radius:10px;text-decoration:none;white-space:nowrap">📞 ${tel}</a>` : ''}
           ${tgHref ? `<a href="${tgHref}" target="_blank" class="icon-btn btn-tg" title="Telegram">${tgSvg()}</a>` : ''}
         </div>
       </div>`;
@@ -690,12 +678,11 @@ async function loadOrga() {
       const tel    = d.telefon || '';
       const tguser = d.telegram_username || '';
       const tgid   = d.telegram_id || '';
-      const tgHref = tguser ? 'https://t.me/'+tguser : (tgid ? 'tg://user?id='+tgid : '');
+      const tgHref = tguser ? 'https://t.me/'+tguser : '';
       return `<div class="orga-card">
         <div class="orga-avatar">${ini}</div>
         <div class="orga-info"><div class="orga-name">${name}</div></div>
         <div class="orga-actions">
-          ${tel    ? `<a href="tel:${tel.replace(/\s/g,'')}" style="font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:5px 10px;border-radius:10px;text-decoration:none;white-space:nowrap">📞 ${tel}</a>` : ''}
           ${tgHref ? `<a href="${tgHref}" target="_blank" class="icon-btn btn-tg" title="Telegram">${tgSvg()}</a>` : ''}
         </div>
       </div>`;
@@ -793,13 +780,12 @@ async function loadUserData() {
         const tel    = d.telefon || '';
         const tguser = d.telegram_username || '';
         const tgid   = d.telegram_id || '';
-        const tgHref = tguser ? 'https://t.me/'+tguser : (tgid ? 'tg://user?id='+tgid : '');
+        const tgHref = tguser ? 'https://t.me/'+tguser : '';
         return `<div class="info-row">
           <span class="info-label" style="color:var(--clay-dark);font-size:10px">${label}</span>
           <span style="font-size:13px;font-weight:500;flex:1">${name}</span>
           <div style="display:flex;gap:4px">
-            ${tel    ? `<a href="tel:${tel.replace(/\s/g,'')}" style="font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:5px 10px;border-radius:10px;text-decoration:none;white-space:nowrap">📞 ${tel}</a>` : ''}
-            ${tgHref ? `<a href="${tgHref}" target="_blank" class="icon-btn btn-tg" title="Telegram">${tgSvg()}</a>` : ''}
+              ${tgHref ? `<a href="${tgHref}" target="_blank" class="icon-btn btn-tg" title="Telegram">${tgSvg()}</a>` : ''}
           </div>
         </div>`;
       };
