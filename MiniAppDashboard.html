@@ -599,6 +599,13 @@ function initials(vorname, nachname) {
   return ((vorname||'').charAt(0) + (nachname||'').charAt(0)).toUpperCase();
 }
 
+function bedarfBadgeUser(count, bedarf) {
+  if (!bedarf) return `<span class="need-badge${count>0?' ok':''}">${count} angemeldet</span>`;
+  const fehlen = bedarf - count;
+  if (fehlen <= 0) return `<span class="need-badge ok">${count}/${bedarf} ✓</span>`;
+  return `<span class="need-badge">${count}/${bedarf} · ${fehlen} fehlen</span>`;
+}
+
 async function loadTeamleiter() {
   const list = document.getElementById('teamleiter-list');
   try {
@@ -806,12 +813,7 @@ async function loadUserData() {
         if (badge) badge.innerHTML = bedarfBadge(count, bedarf);
       };
 
-      const bedarfBadge = (count, bedarf) => {
-        if (!bedarf) return `<span class="need-badge${count>0?' ok':''}">${count} angemeldet</span>`;
-        const fehlen = bedarf - count;
-        if (fehlen <= 0) return `<span class="need-badge ok">${count}/${bedarf} ✓</span>`;
-        return `<span class="need-badge">${count}/${bedarf} · ${fehlen} fehlen</span>`;
-      };
+      const bedarfBadge = (count, bedarf) => bedarfBadgeUser(count, bedarf);
 
       // Popup-Funktion
       window._showAnmeldungen = (docId, dayLabel, gwName) => {
@@ -825,6 +827,27 @@ async function loadUserData() {
         document.getElementById('anm-overlay').classList.add('visible');
       };
 
+      // Standard-Bedarf für alle Tage eines Gewerks setzen
+      window._setStandardBedarf = async (gwId, inputId) => {
+        const val = document.getElementById(inputId)?.value;
+        if (val === '' || val === null) return;
+        const bedarf = Number(val);
+        const tageForGw = tlTage.filter(t => t.bars.some(b => b.gewerkId === gwId));
+        await Promise.all(tageForGw.map(async ({ iso }) => {
+          const docId = `${iso}_${gwId}`;
+          const existing = tlAnmMap[docId] || {};
+          await setDoc(doc(db, 'einsatzAnmeldungen', docId),
+            { date: iso, gewerkId: gwId, angemeldete: existing.angemeldete || {}, bedarf },
+            { merge: true });
+          tlAnmMap[docId] = { ...existing, bedarf };
+          const count = Object.keys(existing.angemeldete || {}).length;
+          const badge = document.getElementById('bdgtl-' + docId);
+          if (badge) badge.innerHTML = bedarfBadge(count, bedarf);
+          const inp = document.getElementById('inp-' + docId);
+          if (inp) inp.value = bedarf;
+        }));
+      };
+
       // TL-View rendern
       let tlHtml = '';
       tlGewerke.forEach(gwId => {
@@ -833,9 +856,19 @@ async function loadUserData() {
         const color  = gw?.color || 'var(--clay)';
         const gwTage = tlTage.filter(t => t.bars.some(b => b.gewerkId === gwId));
         if (!gwTage.length) return;
+        const stdInputId = `std-bedarf-${gwId}`;
         tlHtml += `<div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin:16px 0 8px;display:flex;align-items:center;gap:6px">
           <span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block"></span>${gwName}
-          <span style="flex:1;height:1px;background:var(--clay-pale)"></span></div>`;
+          <span style="flex:1;height:1px;background:var(--clay-pale)"></span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 12px;background:var(--sand);border-radius:10px">
+          <span style="font-size:12px;color:var(--text-muted);flex:1">Standard-Bedarf ab heute</span>
+          <input id="${stdInputId}" type="number" min="0" max="99" placeholder="–"
+            style="width:56px;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none">
+          <button onclick="window._setStandardBedarf('${gwId}','${stdInputId}')"
+            style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+            Setzen
+          </button>
+        </div>`;
         let lastKW2 = '';
         gwTage.forEach(({ iso, date }) => {
           const kw2    = 'KW ' + String(isoWeek(date)).padStart(2,'0');
@@ -889,14 +922,16 @@ async function loadUserData() {
     }
 
     // Anmeldungen direkt per Dokument-ID laden (kein Query-Index nötig)
-    const anmeldungenMap = {}; // "iso_gewerkId" → { [tgId]: name }
+    const anmeldungenMap = {}; // "iso_gewerkId" → { angemeldete: {[tgId]: name}, bedarf: n|null }
     const docIds = new Set();
     [...meineTage, ...alleTage].forEach(({ iso, bars }) =>
       bars.forEach(bar => docIds.add(`${iso}_${bar.gewerkId}`))
     );
     await Promise.all([...docIds].map(async docId => {
       const snap = await getDoc(doc(db, 'einsatzAnmeldungen', docId));
-      anmeldungenMap[docId] = snap.exists() ? (snap.data().angemeldete || {}) : {};
+      anmeldungenMap[docId] = snap.exists()
+        ? { angemeldete: snap.data().angemeldete || {}, bedarf: snap.data().bedarf ?? null }
+        : { angemeldete: {}, bedarf: null };
     }));
 
     const myId   = String(tgId);
@@ -906,21 +941,21 @@ async function loadUserData() {
     window._anmelden = async (iso, gewerkId, btnId, badgeId) => {
       const docId  = `${iso}_${gewerkId}`;
       const ref    = doc(db, 'einsatzAnmeldungen', docId);
-      const entry  = anmeldungenMap[docId] || {};
+      const rec    = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
+      const entry  = rec.angemeldete;
       const istAngemeldet = !!entry[myId];
       if (istAngemeldet) {
         delete entry[myId];
-        await setDoc(ref, { date: iso, gewerkId, angemeldete: entry });
       } else {
         entry[myId] = myName;
-        await setDoc(ref, { date: iso, gewerkId, angemeldete: entry });
       }
-      anmeldungenMap[docId] = entry;
+      await setDoc(ref, { date: iso, gewerkId, angemeldete: entry, bedarf: rec.bedarf }, { merge: true });
+      anmeldungenMap[docId] = rec;
       const count = Object.keys(entry).length;
       const btn   = document.getElementById(btnId);
       const badge = document.getElementById(badgeId);
       if (btn)   { btn.textContent = entry[myId] ? 'Angemeldet ✓' : 'Anmelden'; btn.classList.toggle('done', !!entry[myId]); }
-      if (badge) { badge.textContent = count + ' angemeldet'; badge.className = 'need-badge' + (count > 0 ? ' ok' : ''); }
+      if (badge) badge.innerHTML = bedarfBadgeUser(count, rec.bedarf);
     };
 
     const renderRows = (tageArr, bodyEl, nurMeine) => {
@@ -938,16 +973,16 @@ async function loadUserData() {
           const color   = gw?.color || bar.color || 'var(--clay)';
           const name    = gw?.name  || bar.name  || bar.gewerkId;
           const docId   = `${iso}_${bar.gewerkId}`;
-          const entry   = anmeldungenMap[docId] || {};
-          const count   = Object.keys(entry).length;
-          const istAn   = !!entry[myId];
+          const rec     = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
+          const count   = Object.keys(rec.angemeldete).length;
+          const istAn   = !!rec.angemeldete[myId];
           const btnId   = `btn-${docId}`;
           const badgeId = `bdg-${docId}`;
           const isMine = gewerke.includes(bar.gewerkId);
           html += `<div class="gewerk-row ${isMine ? 'mine-row' : ''}">
             <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
             <span class="gewerk-row-name" style="font-size:12px">${dayLabel} · ${name}</span>
-            <span class="need-badge${count>0?' ok':''}" id="${badgeId}">${count} angemeldet</span>
+            <span id="${badgeId}">${bedarfBadgeUser(count, rec.bedarf)}</span>
             <button class="action-btn btn-join${istAn?' done':''}" id="${btnId}"
               onclick="window._anmelden('${iso}','${bar.gewerkId}','${btnId}','${badgeId}')">
               ${istAn ? 'Angemeldet ✓' : 'Anmelden'}
