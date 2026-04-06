@@ -195,7 +195,6 @@
 <nav class="nav">
   <button class="nav-btn active" onclick="showView('dashboard',this)">Dashboard</button>
   <button class="nav-btn" onclick="showView('infos',this)">Infos</button>
-  <button class="nav-btn" onclick="showView('baustatus',this)">Baustatus</button>
   <button class="nav-btn" id="nav-tl"  style="display:none" onclick="showView('teamleiter',this)">Teamleiter</button>
   <button class="nav-btn" id="nav-adm" style="display:none" onclick="showView('admin',this)">Admin</button>
   <button class="help-btn" onclick="openHelp()">?</button>
@@ -206,8 +205,7 @@
 
   <div class="news-pill" onclick="openNews()">
     <div class="news-pill-dot"></div>
-    <div class="news-pill-text">Neuigkeiten vom Orga-Team</div>
-    <div class="news-pill-count">3 neu</div>
+    <div class="news-pill-text">Neuigkeiten / Informationen</div>
     <div class="news-pill-arrow">›</div>
   </div>
 
@@ -254,63 +252,6 @@
   <div id="teamleiter-list"><div style="color:var(--text-muted);font-size:13px;padding:8px 0">Wird geladen …</div></div>
 </div>
 
-<!-- ══════════ BAUSTATUS ══════════ -->
-<div class="view" id="view-baustatus">
-  <div class="bau-hero">
-    <div class="bau-pct" id="pct-display">0%</div>
-    <div class="bau-sub">Gesamtfortschritt Gemeindehaus</div>
-    <div class="bau-bar-wrap"><div class="bau-bar-fill" id="progress-fill"></div></div>
-  </div>
-  <div class="building-stage">
-    <div class="block-title">Baufortschritt Visualisierung</div>
-    <div class="building-svg-wrap">
-      <svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E8F2F5"/><stop offset="100%" stop-color="#F7F0E8"/></linearGradient>
-          <linearGradient id="wall-d" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#D4956A"/><stop offset="100%" stop-color="#C4855A"/></linearGradient>
-          <linearGradient id="roof-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#8B5E3C"/><stop offset="100%" stop-color="#C4855A"/></linearGradient>
-        </defs>
-        <rect width="300" height="180" fill="url(#sky)"/>
-        <rect x="0" y="162" width="300" height="18" fill="#D4C4B0" rx="2"/>
-        <rect x="20" y="130" width="6" height="32" fill="#8B7355"/>
-        <ellipse cx="23" cy="125" rx="14" ry="17" fill="#4A7C59" opacity="0.7"/>
-        <rect x="268" y="135" width="5" height="27" fill="#8B7355"/>
-        <ellipse cx="270" cy="130" rx="12" ry="15" fill="#4A7C59" opacity="0.6"/>
-        <rect x="60" y="155" width="180" height="8" fill="#A08060" rx="2"/>
-        <rect id="b-eg" x="65" y="115" width="170" height="42" fill="url(#wall-d)" rx="2" opacity="0"/>
-        <rect id="b-ew1" x="82" y="126" width="24" height="20" fill="#BDD9E8" rx="3" opacity="0"/>
-        <rect id="b-ew2" x="138" y="126" width="24" height="20" fill="#BDD9E8" rx="3" opacity="0"/>
-        <rect id="b-ew3" x="194" y="126" width="24" height="20" fill="#BDD9E8" rx="3" opacity="0"/>
-        <rect id="b-door" x="130" y="135" width="20" height="22" fill="#A06840" rx="2" opacity="0"/>
-        <rect id="b-og" x="70" y="78" width="160" height="40" fill="url(#wall-d)" rx="2" opacity="0"/>
-        <rect id="b-ow1" x="86" y="88" width="22" height="18" fill="#BDD9E8" rx="3" opacity="0"/>
-        <rect id="b-ow2" x="139" y="88" width="22" height="18" fill="#BDD9E8" rx="3" opacity="0"/>
-        <rect id="b-ow3" x="192" y="88" width="22" height="18" fill="#BDD9E8" rx="3" opacity="0"/>
-        <polygon id="b-roof-o" points="55,80 150,30 245,80" fill="none" stroke="#C4855A" stroke-width="2" stroke-dasharray="6,4" opacity="0"/>
-        <polygon id="b-roof-f" points="55,80 150,30 245,80" fill="url(#roof-g)" opacity="0"/>
-        <g id="b-tiles" opacity="0">
-          <line x1="102" y1="62" x2="108" y2="56" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
-          <line x1="120" y1="50" x2="126" y2="44" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
-          <line x1="150" y1="38" x2="156" y2="32" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
-          <line x1="174" y1="50" x2="180" y2="44" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
-          <line x1="194" y1="62" x2="200" y2="56" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
-        </g>
-        <g id="b-scaf" opacity="0">
-          <rect x="243" y="60" width="3" height="22" fill="#B8A898"/>
-          <rect x="252" y="60" width="3" height="22" fill="#B8A898"/>
-          <rect x="243" y="63" width="12" height="2" fill="#B8A898"/>
-          <rect x="243" y="73" width="12" height="2" fill="#B8A898"/>
-        </g>
-        <text id="b-lbl" x="150" y="172" text-anchor="middle" font-size="10" fill="#7A6555" font-family="DM Sans,sans-serif" opacity="0"></text>
-      </svg>
-    </div>
-  </div>
-  <div class="milestone-timeline">
-    <div class="block-title">Meilensteine</div>
-    <div class="tl-items" id="tl-items"></div>
-  </div>
-</div>
-
 <!-- ══════════ TEAMLEITER VIEW ══════════ -->
 <div class="view" id="view-teamleiter">
   <div id="tl-view-body"><div style="color:var(--text-muted);font-size:13px">Wird geladen …</div></div>
@@ -337,14 +278,12 @@
 <div class="overlay" id="news-overlay" onclick="overlayClose(event,'news-overlay')">
   <div class="sheet">
     <div class="news-header">
-      <div class="news-header-title">Newsticker</div>
-      <div class="news-header-sub">Gemeindebau Projekt · Updates vom Orga-Team</div>
+      <div class="news-header-title">Neuigkeiten / Informationen</div>
+      <div class="news-header-sub">Gemeindebau Achim</div>
       <button class="sheet-close" onclick="closeOverlay('news-overlay')">✕</button>
     </div>
-    <div class="news-list">
-      <div class="news-card"><div class="news-date">28. März 2026</div><div class="news-text">🎉 Richtfest geplant für KW18! Bitte alle verfügbaren Helfer bereits ab 7:00 Uhr auf der Baustelle einfinden.</div></div>
-      <div class="news-card"><div class="news-date">25. März 2026</div><div class="news-text">📦 Materiallieferung (Dachziegel) kommt Dienstag, 31. März. Gruppe 3 bitte für Entladung einplanen.</div></div>
-      <div class="news-card"><div class="news-date">20. März 2026</div><div class="news-text">✅ Rohbau Erdgeschoss fertiggestellt – großartiger Einsatz aller Teams in KW12!</div></div>
+    <div class="news-list" id="news-list-body">
+      <div style="color:var(--text-muted);font-size:13px;padding:8px 0">Wird geladen …</div>
     </div>
   </div>
 </div>
@@ -462,10 +401,9 @@ function showView(id, btn) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('view-'+id).classList.add('active');
   if (btn) btn.classList.add('active');
-  if (id === 'baustatus') initProgress();
 }
 function toggleCard(id) { document.getElementById(id).classList.toggle('collapsed'); }
-function openNews()  { document.getElementById('news-overlay').classList.add('visible'); }
+function openNews()  { document.getElementById('news-overlay').classList.add('visible'); localStorage.setItem('lastSeenNewsTs', String(Date.now())); }
 function openHelp()  { document.getElementById('help-overlay').classList.add('visible'); }
 function closeOverlay(id) { document.getElementById(id).classList.remove('visible'); }
 function overlayClose(e,id) { if (e.target===document.getElementById(id)) closeOverlay(id); }
@@ -543,40 +481,6 @@ function join(key, ti, gName, src) {
   }
 }
 
-// ── Timeline ──
-document.getElementById('tl-items').innerHTML = meilensteine.map(m => {
-  const lbl = m.s==='done'?'Abgeschlossen':m.s==='active'?'In Arbeit':'Geplant';
-  return `<div class="tl-item"><div class="tl-dot ${m.s}">${m.i}</div>
-    <div class="tl-name">${m.name}</div>
-    <div class="tl-date">${m.date}</div>
-    <span class="tl-tag tag-${m.s}">${lbl}</span></div>`;
-}).join('');
-
-// ── Progress ──
-let pInit = false;
-function initProgress() {
-  if (pInit) return; pInit = true;
-  const target = 52;
-  document.getElementById('progress-fill').style.width = target+'%';
-  let c = 0; const d = document.getElementById('pct-display');
-  const s = () => { c=Math.min(c+1,target); d.textContent=c+'%'; if(c<target) requestAnimationFrame(s); };
-  requestAnimationFrame(s);
-  [
-    {ids:['b-eg','b-ew1','b-ew2','b-ew3','b-door'],delay:200,op:1},
-    {ids:['b-og','b-ow1','b-ow2','b-ow3'],         delay:500,op:1},
-    {ids:['b-roof-o'],                              delay:800,op:1},
-    {ids:['b-roof-f'],                              delay:1000,op:.55},
-    {ids:['b-tiles'],                               delay:1200,op:.6},
-    {ids:['b-scaf'],                                delay:1400,op:.8},
-    {ids:['b-lbl'],                                 delay:1600,op:1,txt:'Dachstuhl im Bau …'},
-  ].forEach(p => setTimeout(()=>{
-    p.ids.forEach(id=>{
-      const el=document.getElementById(id); if(!el) return;
-      el.style.transition='opacity 0.6s ease'; el.style.opacity=p.op;
-      if(p.txt) el.textContent=p.txt;
-    });
-  }, p.delay));
-}
 
 // ── Nachricht ──
 function sendMsg() {
@@ -589,7 +493,7 @@ function sendMsg() {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, addDoc, deleteDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
@@ -603,6 +507,41 @@ const db = getFirestore(app);
 
 function initials(vorname, nachname) {
   return ((vorname||'').charAt(0) + (nachname||'').charAt(0)).toUpperCase();
+}
+
+// ── Neuigkeiten ──
+let _newsItems = [];
+
+async function loadNews() {
+  try {
+    const snap = await getDocs(query(collection(db, 'neuigkeiten'), orderBy('ts', 'desc')));
+    _newsItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) {
+    _newsItems = [];
+  }
+  renderNewsOverlay();
+  // Auto-popup: wenn es News gibt die neuer sind als zuletzt gesehen
+  const lastSeen = Number(localStorage.getItem('lastSeenNewsTs') || 0);
+  const hasNew = _newsItems.some(n => (n.ts || 0) > lastSeen);
+  if (hasNew) {
+    document.getElementById('news-overlay').classList.add('visible');
+    localStorage.setItem('lastSeenNewsTs', String(Date.now()));
+  }
+}
+
+function renderNewsOverlay() {
+  const body = document.getElementById('news-list-body');
+  if (!body) return;
+  if (!_newsItems.length) {
+    body.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Noch keine Neuigkeiten.</div>';
+    return;
+  }
+  body.innerHTML = _newsItems.map(n =>
+    `<div class="news-card">
+       <div class="news-date">${n.datum || ''}</div>
+       <div class="news-text">${(n.text || '').replace(/\n/g,'<br>')}</div>
+     </div>`
+  ).join('');
 }
 
 // ── Namespace-Datenspeicher für Bedarf-Tabs ──
@@ -933,12 +872,105 @@ async function loadUserData() {
     }
 
     // ── Admin-Tab ──
-    if (userDoc?.rolle === 'admin') {
+    if (userDoc?.admin === true) {
       document.getElementById('nav-adm').style.display = '';
       const admGewerke = Object.keys(gewerkeMap);
       const { tage: admTage, anmMap: admAnmMap } = await loadBedarfData(admGewerke);
       window._bedarfData['adm'] = { tage: admTage, anmMap: admAnmMap };
-      document.getElementById('adm-view-body').innerHTML = renderBedarfCards('adm', admGewerke, admTage, admAnmMap);
+
+      // News-Verwaltung
+      window._admNewsEditId = null;
+      window._renderAdmNews = () => {
+        document.getElementById('adm-news-list').innerHTML = _newsItems.length
+          ? _newsItems.map(n => `
+            <div style="background:var(--sand);border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:8px">
+              <div style="flex:1">
+                <div style="font-size:11px;font-weight:600;color:var(--clay-dark);margin-bottom:3px">${n.datum||''}</div>
+                <div style="font-size:13px;line-height:1.5">${(n.text||'').replace(/\n/g,'<br>')}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+                <button onclick="window._admNewsEdit('${n.id}')"
+                  style="background:none;border:1px solid var(--clay-pale);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif">✎</button>
+                <button onclick="window._admNewsDel('${n.id}')"
+                  style="background:none;border:1px solid #fca5a5;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;color:#c0392b;font-family:'DM Sans',sans-serif">✕</button>
+              </div>
+            </div>`).join('')
+          : '<div style="color:var(--text-muted);font-size:13px">Noch keine Einträge.</div>';
+      };
+      window._admNewsEdit = (id) => {
+        const n = _newsItems.find(x => x.id === id); if (!n) return;
+        window._admNewsEditId = id;
+        document.getElementById('adm-news-datum').value = n.datum || '';
+        document.getElementById('adm-news-text').value  = n.text  || '';
+        document.getElementById('adm-news-form').style.display = '';
+        document.getElementById('adm-news-form-title').textContent = 'Bearbeiten';
+      };
+      window._admNewsNew = () => {
+        window._admNewsEditId = null;
+        document.getElementById('adm-news-datum').value = new Date().toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'});
+        document.getElementById('adm-news-text').value  = '';
+        document.getElementById('adm-news-form').style.display = '';
+        document.getElementById('adm-news-form-title').textContent = 'Neue Meldung';
+        document.getElementById('adm-news-text').focus();
+      };
+      window._admNewsCancel = () => {
+        document.getElementById('adm-news-form').style.display = 'none';
+      };
+      window._admNewsSave = async () => {
+        const datum = document.getElementById('adm-news-datum').value.trim();
+        const text  = document.getElementById('adm-news-text').value.trim();
+        if (!text) return;
+        const ts = Date.now();
+        if (window._admNewsEditId) {
+          await setDoc(doc(db,'neuigkeiten', window._admNewsEditId), { datum, text, ts }, { merge: true });
+          const idx = _newsItems.findIndex(x => x.id === window._admNewsEditId);
+          if (idx >= 0) _newsItems[idx] = { ..._newsItems[idx], datum, text, ts };
+        } else {
+          const ref = await addDoc(collection(db,'neuigkeiten'), { datum, text, ts });
+          _newsItems.unshift({ id: ref.id, datum, text, ts });
+        }
+        window._admNewsCancel();
+        window._renderAdmNews();
+        renderNewsOverlay();
+      };
+      window._admNewsDel = async (id) => {
+        if (!confirm('Meldung löschen?')) return;
+        await deleteDoc(doc(db,'neuigkeiten', id));
+        _newsItems = _newsItems.filter(x => x.id !== id);
+        window._renderAdmNews();
+        renderNewsOverlay();
+      };
+
+      const inputStyle = 'width:100%;font-family:"DM Sans",sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:8px 10px;outline:none;background:white;box-sizing:border-box';
+      document.getElementById('adm-view-body').innerHTML = `
+        <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+          <span>Neuigkeiten / Informationen</span>
+          <button onclick="window._admNewsNew()"
+            style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+            + Neu
+          </button>
+        </div>
+        <div id="adm-news-form" style="display:none;background:var(--sand);border-radius:10px;padding:12px;margin-bottom:10px">
+          <div style="font-size:12px;font-weight:600;margin-bottom:8px" id="adm-news-form-title">Neue Meldung</div>
+          <input id="adm-news-datum" type="text" placeholder="Datum (z.B. 7. April 2026)" style="${inputStyle};margin-bottom:8px">
+          <textarea id="adm-news-text" rows="3" placeholder="Text der Meldung …"
+            style="${inputStyle};resize:vertical;min-height:70px;margin-bottom:10px"></textarea>
+          <div style="display:flex;gap:8px">
+            <button onclick="window._admNewsSave()"
+              style="background:var(--clay);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+              Speichern
+            </button>
+            <button onclick="window._admNewsCancel()"
+              style="background:none;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 12px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer">
+              Abbrechen
+            </button>
+          </div>
+        </div>
+        <div id="adm-news-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px"></div>
+        <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">Bedarf verwalten</div>
+        ${renderBedarfCards('adm', admGewerke, admTage, admAnmMap)}
+      `;
+      window._renderAdmNews();
     }
 
     // ── Meine Einsätze ──
@@ -1073,6 +1105,7 @@ async function loadUserData() {
   }
 }
 
+loadNews();
 loadUserData();
 </script>
 </body>
