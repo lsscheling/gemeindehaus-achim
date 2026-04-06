@@ -811,6 +811,8 @@ async function loadUserData() {
         const count = Object.keys(existing.angemeldete || {}).length;
         const badge = document.getElementById('bdgtl-' + docId);
         if (badge) badge.innerHTML = bedarfBadge(count, bedarf);
+        const inp = document.getElementById('inp-' + docId);
+        if (inp) { inp.value = ''; inp.placeholder = bedarf != null ? String(bedarf) : '–'; }
       };
 
       const bedarfBadge = (count, bedarf) => bedarfBadgeUser(count, bedarf);
@@ -845,7 +847,7 @@ async function loadUserData() {
           const badge = document.getElementById('bdgtl-' + docId);
           if (badge) badge.innerHTML = bedarfBadge(count, bedarf);
           const inp = document.getElementById('inp-' + docId);
-          if (inp) inp.value = bedarf;
+          if (inp) { inp.value = ''; inp.placeholder = String(bedarf); }
         }));
         // Eingabefeld leeren, Placeholder auf neuen Wert setzen
         if (inputEl) { inputEl.value = ''; inputEl.placeholder = String(bedarf); }
@@ -902,7 +904,7 @@ async function loadUserData() {
           tlHtml += `<div class="gewerk-row" style="align-items:center;gap:8px">
             <span class="gewerk-row-name" style="cursor:pointer;flex:1" onclick="window._showAnmeldungen('${docId2}','${dayLbl}','${gwName}')">${dayLbl}</span>
             <span id="bdgtl-${docId2}">${bedarfBadge(count, bedarf || null)}</span>
-            <input id="inp-${docId2}" type="number" inputmode="numeric" min="0" max="99" value="${bedarf}" placeholder="–"
+            <input id="inp-${docId2}" type="number" inputmode="numeric" min="0" max="99" placeholder="${bedarf !== '' ? bedarf : '–'}"
               style="width:52px;font-size:12px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none"
               onkeydown="if(event.key==='Enter'){event.preventDefault();window._setBedarf('${docId2}','${iso}','${gwId}',this.value);this.blur()}"
               onchange="window._setBedarf('${docId2}','${iso}','${gwId}',this.value)">
