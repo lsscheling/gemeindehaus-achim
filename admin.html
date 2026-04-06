@@ -1324,7 +1324,7 @@ function renderUsersTable() {
   // Admins
   const adminList = document.getElementById('admin-list');
   if (adminList) {
-    const admins = allDocs.filter(d => d.rolle === 'admin')
+    const admins = allDocs.filter(d => d.admin === true)
       .sort((a,b) => (a.vorname+a.nachname).localeCompare(b.vorname+b.nachname,'de'));
     adminList.innerHTML = admins.length
       ? admins.map(d => `
@@ -1415,7 +1415,7 @@ window.showAddAdminForm = function() {
   const form = document.getElementById('admin-add-form');
   form.style.display = 'block';
   const sel = document.getElementById('admin-person-select');
-  const available = allDocs.filter(d => d.rolle !== 'admin' && d.rolle !== 'teamleiter')
+  const available = allDocs.filter(d => d.admin !== true)
     .sort((a,b) => (a.vorname+a.nachname).localeCompare(b.vorname+b.nachname,'de'));
   sel.innerHTML = '<option value="">– Person auswählen –</option>' +
     available.map(d => `<option value="${d.id}">${d.vorname||''} ${d.nachname||''}</option>`).join('');
@@ -1428,13 +1428,15 @@ window.hideAddAdminForm = function() {
 window.saveNewAdmin = async function() {
   const personId = document.getElementById('admin-person-select').value;
   if (!personId) { alert('Bitte eine Person auswählen.'); return; }
-  await updateDoc(doc(db,'anmeldungen',personId), { rolle: 'admin' });
+  // Bestehende Rolle beibehalten wenn teamleiter, zusätzlich admin über rollen-Array oder separates Feld
+  const person = allDocs.find(d => d.id === personId);
+  await updateDoc(doc(db,'anmeldungen',personId), { admin: true });
   window.hideAddAdminForm();
 };
 
 window.removeAdmin = async (id) => {
   if (!confirm('Admin-Rolle entfernen?')) return;
-  await updateDoc(doc(db,'anmeldungen',id), { rolle: null });
+  await updateDoc(doc(db,'anmeldungen',id), { admin: false });
 };
 
 window.removeTeamleiterGewerk = async (id, gewerkId) => {
