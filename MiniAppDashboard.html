@@ -919,19 +919,26 @@ async function loadUserData() {
       window._admNewsSave = async () => {
         const datum = document.getElementById('adm-news-datum').value.trim();
         const text  = document.getElementById('adm-news-text').value.trim();
-        if (!text) return;
-        const ts = Date.now();
-        if (window._admNewsEditId) {
-          await setDoc(doc(db,'neuigkeiten', window._admNewsEditId), { datum, text, ts }, { merge: true });
-          const idx = _newsItems.findIndex(x => x.id === window._admNewsEditId);
-          if (idx >= 0) _newsItems[idx] = { ..._newsItems[idx], datum, text, ts };
-        } else {
-          const ref = await addDoc(collection(db,'neuigkeiten'), { datum, text, ts });
-          _newsItems.unshift({ id: ref.id, datum, text, ts });
+        if (!text) { alert('Bitte einen Text eingeben.'); return; }
+        const saveBtn = document.querySelector('#adm-news-form button');
+        if (saveBtn) { saveBtn.textContent = '…'; saveBtn.disabled = true; }
+        try {
+          const ts = Date.now();
+          if (window._admNewsEditId) {
+            await setDoc(doc(db,'neuigkeiten', window._admNewsEditId), { datum, text, ts }, { merge: true });
+            const idx = _newsItems.findIndex(x => x.id === window._admNewsEditId);
+            if (idx >= 0) _newsItems[idx] = { ..._newsItems[idx], datum, text, ts };
+          } else {
+            const ref = await addDoc(collection(db,'neuigkeiten'), { datum, text, ts });
+            _newsItems.unshift({ id: ref.id, datum, text, ts });
+          }
+          window._admNewsCancel();
+          window._renderAdmNews();
+          renderNewsOverlay();
+        } catch(e) {
+          alert('Fehler beim Speichern: ' + e.message);
+          if (saveBtn) { saveBtn.textContent = 'Speichern'; saveBtn.disabled = false; }
         }
-        window._admNewsCancel();
-        window._renderAdmNews();
-        renderNewsOverlay();
       };
       window._admNewsDel = async (id) => {
         if (!confirm('Meldung löschen?')) return;
