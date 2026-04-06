@@ -35,14 +35,23 @@ CREATE TABLE gewerke_konfig (
   active           BOOLEAN DEFAULT true,
   visible_in_form  BOOLEAN DEFAULT true,
   kategorie        TEXT,
-  sort_order       INT DEFAULT 0
+  sort_order       INT DEFAULT 0,
+  color            TEXT,                   -- Hex-Farbe, z.B. '#2d6a4f'
+  min_persons      INT DEFAULT 1
 );
 
 -- 4. Tabelle für Level (Erfahrungsstufen)
 CREATE TABLE levels (
   id    TEXT PRIMARY KEY,
-  name  TEXT NOT NULL
+  name  TEXT NOT NULL,
+  color TEXT                               -- Hex-Farbe, z.B. '#2d6a4f'
 );
+
+-- ── Migration für bestehende Datenbanken ──
+-- (Nur ausführen wenn die Tabelle bereits existiert!)
+-- ALTER TABLE gewerke_konfig ADD COLUMN IF NOT EXISTS color TEXT;
+-- ALTER TABLE gewerke_konfig ADD COLUMN IF NOT EXISTS min_persons INT DEFAULT 1;
+-- ALTER TABLE levels         ADD COLUMN IF NOT EXISTS color TEXT;
 
 -- Row Level Security (RLS) aktivieren
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;

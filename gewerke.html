@@ -259,24 +259,8 @@ function closeSidebar() {
 }
 </script>
 
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
-  authDomain: "gemeindehaus-achim.firebaseapp.com",
-  projectId: "gemeindehaus-achim",
-  storageBucket: "gemeindehaus-achim.firebasestorage.app",
-  messagingSenderId: "272798328583",
-  appId: "1:272798328583:web:388aa8db19886e9be507a2"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
+<script>
+// ── KONFIGURATION ──
 const COLORS = ['#7a3a12','#2d6a4f','#185fa5','#633806','#534AB7','#993C1D','#854F0B','#3B6D11','#0F6E56','#993556','#5F5E5A','#A32D2D'];
 const BASIS = [
   'Maurer / -in','Zimmerer / -in','Betonbauer / -in','Stahlbau',
@@ -299,27 +283,68 @@ let levels  = [];
 let editingId = null;
 let selColor  = COLORS[0];
 
+// ── AUTH: Token aus LocalStorage (gleiche Logik wie dashboard.html) ──
+function getToken() {
+  return localStorage.getItem('auth_token');
+}
+
+function checkAuth() {
+  if (!getToken()) {
+    location.href = 'dashboard.html';
+    return false;
+  }
+  return true;
+}
+
+// ── API HELPER ──
+async function apiFetch(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  const token = getToken();
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch('/api' + path, { ...options, headers });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    if (res.status === 401 || res.status === 403) {
+      localStorage.removeItem('auth_token');
+      location.href = 'dashboard.html';
+      return;
+    }
+    throw new Error(err.error || 'HTTP ' + res.status);
+  }
+  return res.json();
+}
+
 // ── INIT ──
-onAuthStateChanged(auth, async user => {
-  if (!user) { location.href = 'dashboard.html'; return; }
+(async function init() {
+  if (!checkAuth()) return;
   await load();
   render();
-});
+})();
 
+// ── DATEN LADEN (GET /api/gewerke) ──
 async function load() {
   try {
-    const snap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
-    if (snap.exists() && snap.data().gewerke?.length) {
-      gewerke = snap.data().gewerke;
-      // Migrate old data: if visibleInForm is missing, default to value of active
-      gewerke.forEach(g => {
-        if (g.visibleInForm === undefined) g.visibleInForm = g.active ?? true;
-      });
-      levels = snap.data().levels || defaultLevels();
+    const data = await apiFetch('/gewerke');
+    if (data.gewerke && data.gewerke.length > 0) {
+      // Supabase-Spaltennamen → JS-Format
+      gewerke = data.gewerke.map(g => ({
+        id:           g.id,
+        name:         g.name,
+        active:       g.active ?? true,
+        visibleInForm: g.visible_in_form ?? true,
+        minPersons:   g.min_persons || 1,
+        color:        g.color || COLORS[0],
+        levels:       g.levels || [],
+        kategorie:    g.kategorie || null,
+      }));
+      levels = data.levels && data.levels.length > 0
+        ? data.levels.map(l => ({ id: l.id, name: l.name, color: l.color || '#888' }))
+        : defaultLevels();
     } else {
       buildDefaults();
     }
   } catch(e) {
+    console.warn('Fehler beim Laden, nutze Standardwerte:', e);
     buildDefaults();
   }
 }
@@ -329,8 +354,8 @@ function buildDefaults() {
   const allLvIds  = defLevels.map(l => l.id);
   gewerke = BASIS.map((name, i) => ({
     id: 'gw_' + i, name,
-    active: true,          // nicht archiviert
-    visibleInForm: true,   // in Anmeldung sichtbar
+    active: true,
+    visibleInForm: true,
     minPersons: 1,
     color: COLORS[i % COLORS.length],
     levels: name === 'Allgemeiner Helfer / -in' ? [] : allLvIds
@@ -338,23 +363,34 @@ function buildDefaults() {
   levels = defLevels;
 }
 
+// ── DATEN SPEICHERN (PUT /api/admin/gewerke) ──
 async function saveToDb() {
-  // Flush inline level-name edits
+  // Inline Level-Namen übernehmen
   levels.forEach(lv => {
     const el = document.getElementById('lv-inp-' + lv.id);
     if (el) lv.name = el.value.trim() || lv.name;
   });
-  await setDoc(doc(db, 'planung', 'gewerkeKonfig'), {
-    gewerke, levels, savedAt: new Date().toISOString()
+  await apiFetch('/admin/gewerke', {
+    method: 'PUT',
+    body: JSON.stringify({ gewerke, levels })
   });
 }
 
 window.saveAll = async function() {
-  gewerke.sort((a, b) => a.name.localeCompare(b.name, 'de'));
-  await saveToDb();
   const t = document.getElementById('toast');
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  try {
+    gewerke.sort((a, b) => a.name.localeCompare(b.name, 'de'));
+    await saveToDb();
+    t.textContent = '✓ Gespeichert';
+    t.style.background = '';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  } catch(e) {
+    t.textContent = '✗ Fehler: ' + e.message;
+    t.style.background = '#991b1b';
+    t.classList.add('show');
+    setTimeout(() => { t.classList.remove('show'); t.style.background = ''; }, 4000);
+  }
 };
 
 // ── RENDER ──

@@ -220,6 +220,50 @@ app.get('/api/gewerke', async (req, res) => {
 });
 
 // ==========================================
+// GEWERKE ADMIN ROUTEN
+// ==========================================
+
+// 5b. Gewerke speichern (Admin) – ersetzt die gesamte Liste per Upsert
+app.put('/api/admin/gewerke', authenticateAdmin, async (req, res) => {
+  const { gewerke, levels } = req.body;
+  if (!Array.isArray(gewerke) || !Array.isArray(levels)) {
+    return res.status(400).json({ error: 'gewerke und levels müssen Arrays sein' });
+  }
+
+  // Gewerke: alle vorhandenen löschen und neu einfügen
+  const { error: delGwErr } = await supabase.from('gewerke_konfig').delete().neq('id', '__never__');
+  if (delGwErr) return res.status(500).json({ error: delGwErr.message });
+
+  if (gewerke.length > 0) {
+    const rows = gewerke.map((g, i) => ({
+      id:              g.id,
+      name:            g.name,
+      active:          g.active ?? true,
+      visible_in_form: g.visibleInForm ?? true,
+      kategorie:       g.kategorie || null,
+      sort_order:      g.sortOrder ?? i,
+      levels:          g.levels || [],
+      color:           g.color || null,
+      min_persons:     g.minPersons || 1,
+    }));
+    const { error: insGwErr } = await supabase.from('gewerke_konfig').insert(rows);
+    if (insGwErr) return res.status(500).json({ error: insGwErr.message });
+  }
+
+  // Levels: alle vorhandenen löschen und neu einfügen
+  const { error: delLvErr } = await supabase.from('levels').delete().neq('id', '__never__');
+  if (delLvErr) return res.status(500).json({ error: delLvErr.message });
+
+  if (levels.length > 0) {
+    const lvRows = levels.map(l => ({ id: l.id, name: l.name, color: l.color || null }));
+    const { error: insLvErr } = await supabase.from('levels').insert(lvRows);
+    if (insLvErr) return res.status(500).json({ error: insLvErr.message });
+  }
+
+  return res.json({ success: true });
+});
+
+// ==========================================
 // ADMIN ROUTEN (für das Dashboard)
 // ==========================================
 
