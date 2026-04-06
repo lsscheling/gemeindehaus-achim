@@ -268,7 +268,7 @@ app.put('/api/admin/gewerke', authenticateAdmin, async (req, res) => {
 // ==========================================
 
 // Token Middleware für Admins
-const authenticateAdmin = (req, res, next) => {
+function authenticateAdmin(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -279,7 +279,7 @@ const authenticateAdmin = (req, res, next) => {
     req.user = user;
     next();
   });
-};
+}
 
 // 6. Admin Login
 app.post('/api/auth/admin', async (req, res) => {
