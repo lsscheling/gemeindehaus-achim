@@ -207,7 +207,7 @@
 
 <nav class="nav">
   <button class="nav-btn active" onclick="showView('dashboard',this)">Dashboard</button>
-  <button class="nav-btn" onclick="showView('infos',this)">Infos</button>
+  <button class="nav-btn" onclick="showView('infos',this)">Ansprechpartner</button>
   <button class="nav-btn" id="nav-tl"  style="display:none" onclick="showView('teamleiter',this)">Teamleiter</button>
   <button class="nav-btn" id="nav-adm" style="display:none" onclick="showView('admin',this)">Admin</button>
   <button class="help-btn" onclick="openHelp()">?</button>
@@ -637,7 +637,7 @@ async function loadTeamleiter() {
     const snap = await getDocs(query(collection(db, 'anmeldungen'), where('rolle', '==', 'teamleiter')));
     const teamleiter = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (a.vorname + a.nachname).localeCompare(b.vorname + b.nachname, 'de'));
+      .sort((a, b) => (a.nachname || '').localeCompare(b.nachname || '', 'de') || (a.vorname || '').localeCompare(b.vorname || '', 'de'));
 
     if (!teamleiter.length) {
       list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Noch keine Teamleiter eingetragen.</div>';
@@ -683,7 +683,7 @@ async function loadOrga() {
     const snap = await getDocs(query(collection(db, 'anmeldungen'), where('admin', '==', true)));
     const admins = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (a.vorname + a.nachname).localeCompare(b.vorname + b.nachname, 'de'));
+      .sort((a, b) => (a.nachname || '').localeCompare(b.nachname || '', 'de') || (a.vorname || '').localeCompare(b.vorname || '', 'de'));
     if (!admins.length) {
       list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:4px 0">Keine Ansprechpartner eingetragen.</div>';
       return;
