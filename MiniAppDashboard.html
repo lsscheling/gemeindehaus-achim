@@ -886,9 +886,9 @@ async function loadUserData() {
               style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;flex-shrink:0">
               Setzen
             </button>
-            <span id="tl-chev-${gwId}" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0">▼</span>
+            <span id="tl-chev-${gwId}" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
           </div>
-          <div id="tl-body-${gwId}" style="margin-top:12px">`;
+          <div id="tl-body-${gwId}" style="margin-top:12px;display:none">`;
 
         let lastKW2 = '';
         gwTage.forEach(({ iso, date }) => {
