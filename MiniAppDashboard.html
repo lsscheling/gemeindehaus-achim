@@ -881,7 +881,7 @@ async function loadUserData() {
           tlHtml += `<div class="gewerk-row" style="align-items:center;gap:8px">
             <span class="gewerk-row-name" style="cursor:pointer;flex:1" onclick="window._showAnmeldungen('${docId2}','${dayLbl}','${gwName}')">${dayLbl}</span>
             <span id="bdgtl-${docId2}">${bedarfBadge(count, bedarf || null)}</span>
-            <input type="number" min="0" max="99" value="${bedarf}" placeholder="Bedarf"
+            <input id="inp-${docId2}" type="number" min="0" max="99" value="${bedarf}" placeholder="Bedarf"
               style="width:64px;font-size:12px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none"
               onchange="window._setBedarf('${docId2}','${iso}','${gwId}',this.value)">
             <span style="font-size:18px;color:var(--clay-dark);cursor:pointer" onclick="window._showAnmeldungen('${docId2}','${dayLbl}','${gwName}')">›</span>
