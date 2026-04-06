@@ -829,7 +829,8 @@ async function loadUserData() {
 
       // Standard-Bedarf für alle Tage eines Gewerks setzen
       window._setStandardBedarf = async (gwId, inputId) => {
-        const val = document.getElementById(inputId)?.value;
+        const inputEl = document.getElementById(inputId);
+        const val = inputEl?.value;
         if (val === '' || val === null) return;
         const bedarf = Number(val);
         const tageForGw = tlTage.filter(t => t.bars.some(b => b.gewerkId === gwId));
@@ -846,6 +847,16 @@ async function loadUserData() {
           const inp = document.getElementById('inp-' + docId);
           if (inp) inp.value = bedarf;
         }));
+        // Eingabefeld leeren, Placeholder auf neuen Wert setzen
+        if (inputEl) { inputEl.value = ''; inputEl.placeholder = String(bedarf); }
+      };
+
+      window._toggleTlCard = (gwId) => {
+        const body = document.getElementById('tl-body-' + gwId);
+        const chev = document.getElementById('tl-chev-' + gwId);
+        const collapsed = body.style.display === 'none';
+        body.style.display = collapsed ? '' : 'none';
+        chev.style.transform = collapsed ? '' : 'rotate(-90deg)';
       };
 
       // TL-View rendern
@@ -856,19 +867,28 @@ async function loadUserData() {
         const color  = gw?.color || 'var(--clay)';
         const gwTage = tlTage.filter(t => t.bars.some(b => b.gewerkId === gwId));
         if (!gwTage.length) return;
+
+        // Aktuell gesetzter Standard-Bedarf: erster nicht-null Wert aus tlAnmMap für dieses Gewerk
         const stdInputId = `std-bedarf-${gwId}`;
-        tlHtml += `<div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin:16px 0 8px;display:flex;align-items:center;gap:6px">
-          <span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block"></span>${gwName}
-          <span style="flex:1;height:1px;background:var(--clay-pale)"></span></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 12px;background:var(--sand);border-radius:10px">
-          <span style="font-size:12px;color:var(--text-muted);flex:1">Standard-Bedarf ab heute</span>
-          <input id="${stdInputId}" type="number" min="0" max="99" placeholder="–"
-            style="width:56px;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none">
-          <button onclick="window._setStandardBedarf('${gwId}','${stdInputId}')"
-            style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
-            Setzen
-          </button>
-        </div>`;
+        const curBedarf = gwTage.map(({ iso }) => tlAnmMap[`${iso}_${gwId}`]?.bedarf).find(v => v != null) ?? '';
+
+        tlHtml += `
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
+               onclick="window._toggleTlCard('${gwId}')">
+            <span style="width:9px;height:9px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
+            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">${gwName}</span>
+            <input id="${stdInputId}" type="number" min="0" max="99" placeholder="${curBedarf !== '' ? curBedarf : '–'}"
+              onclick="event.stopPropagation()"
+              style="width:52px;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none;flex-shrink:0">
+            <button type="button" onclick="event.stopPropagation();window._setStandardBedarf('${gwId}','${stdInputId}')"
+              style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;flex-shrink:0">
+              Setzen
+            </button>
+            <span id="tl-chev-${gwId}" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0">▼</span>
+          </div>
+          <div id="tl-body-${gwId}" style="margin-top:12px">`;
+
         let lastKW2 = '';
         gwTage.forEach(({ iso, date }) => {
           const kw2    = 'KW ' + String(isoWeek(date)).padStart(2,'0');
@@ -887,6 +907,8 @@ async function loadUserData() {
             <span style="font-size:18px;color:var(--clay-dark);cursor:pointer" onclick="window._showAnmeldungen('${docId2}','${dayLbl}','${gwName}')">›</span>
           </div>`;
         });
+
+        tlHtml += `</div></div>`;
       });
       document.getElementById('tl-view-body').innerHTML = tlHtml || '<div style="color:var(--text-muted);font-size:13px">Keine Einsätze in den nächsten 14 Tagen.</div>';
     }
