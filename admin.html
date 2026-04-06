@@ -1098,6 +1098,10 @@ function buildPersonForm(data) {
     <div class="mrow">
       ${field('Telegram ID','telegram-id','text',val('telegram_id') ? String(val('telegram_id')) : '','z.B. 123456789')}
     </div>
+    <div class="msection">Berechtigungen</div>
+    <label class="mcheck" style="max-width:400px">
+      <input type="checkbox" id="mf-admin" ${val('rolle') === 'admin' ? 'checked' : ''}> Admin-Zugang (Dashboard Admin-Tab)
+    </label>
     <div class="msection">Schichtarbeit</div>
     <label class="mcheck" style="max-width:400px">
       <input type="checkbox" id="mf-schichtarbeit" ${val('schichtarbeit') ? 'checked' : ''}> Ich arbeite im Schichtbetrieb
@@ -1158,6 +1162,10 @@ async function savePerson(isEdit) {
   const nachname = document.getElementById('mf-nachname')?.value.trim();
   if (!vorname||!nachname) { alert('Bitte Vor- und Nachname angeben.'); return; }
   const gewerke = [...document.querySelectorAll('input[name="mf-gewerk"]:checked')].map(cb => cb.value);
+  const isAdmin = document.getElementById('mf-admin')?.checked || false;
+  const existingRolle = isEdit && editingId ? (allDocs.find(d => d.id === editingId)?.rolle || null) : null;
+  // Teamleiter-Rolle nicht überschreiben; nur admin ↔ null toggeln
+  const rolle = existingRolle === 'teamleiter' ? 'teamleiter' : (isAdmin ? 'admin' : null);
   const data = {
     vorname, nachname,
     email: document.getElementById('mf-email')?.value.trim()||'',
@@ -1169,6 +1177,7 @@ async function savePerson(isEdit) {
     qualifikationen: document.getElementById('mf-quali')?.value.trim()||'',
     gruppenwunsch: document.getElementById('mf-gruppenwunsch')?.value.trim()||'',
     manuell_eingetragen: true,
+    rolle,
   };
   try {
     if (isEdit && editingId) {
