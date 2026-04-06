@@ -464,6 +464,30 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       </div>
     </div>
     <div id="admin-list" style="display:flex;flex-direction:column;gap:10px"></div>
+
+    <!-- Sonderrollen -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:28px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted)">Sonderrollen</div>
+      <button class="btn btn-accent btn-sm" onclick="window.showAddSonderrolleForm()">+ Zuweisen</button>
+    </div>
+    <div id="sonderrolle-add-form" style="display:none;background:white;border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Rolle</div>
+      <select id="sonderrolle-select" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);width:100%;max-width:340px;cursor:pointer;margin-bottom:12px">
+        <option value="">– Rolle auswählen –</option>
+        <option value="bauleitung">Bauleitung</option>
+        <option value="bauküche">Bau-Küche</option>
+        <option value="sicherheitsbeauftragter">Sicherheitsbeauftragter</option>
+      </select>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Person</div>
+      <select id="sonderrolle-person-select" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);width:100%;max-width:340px;cursor:pointer;margin-bottom:12px">
+        <option value="">– Person auswählen –</option>
+      </select>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-accent" onclick="window.saveNewSonderrolle()">Hinzufügen</button>
+        <button class="btn btn-outline" onclick="window.hideAddSonderrolleForm()">Abbrechen</button>
+      </div>
+    </div>
+    <div id="sonderrolle-list" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 </div>
 
@@ -1348,6 +1372,8 @@ function renderUsersTable() {
       : '<div style="color:var(--muted);font-size:13px;padding:8px 0">Noch keine Admins angelegt.</div>';
   }
 
+  renderSonderrollenList();
+
   // Teamleiter
   const teamleiter = allDocs.filter(d => d.rolle === 'teamleiter')
     .sort((a,b) => (a.vorname+a.nachname).localeCompare(b.vorname+b.nachname,'de'));
@@ -1450,6 +1476,47 @@ window.saveNewAdmin = async function() {
 window.removeAdmin = async (id) => {
   if (!confirm('Admin-Rolle entfernen?')) return;
   await updateDoc(doc(db,'anmeldungen',id), { admin: false });
+};
+
+const SONDERROLLEN_LABELS = { bauleitung: 'Bauleitung', 'bauküche': 'Bau-Küche', sicherheitsbeauftragter: 'Sicherheitsbeauftragter' };
+const SONDERROLLEN_ORDER  = ['bauleitung', 'bauküche', 'sicherheitsbeauftragter'];
+
+function renderSonderrollenList() {
+  const list = document.getElementById('sonderrolle-list');
+  if (!list) return;
+  const personen = allDocs.filter(d => d.sonderrolle)
+    .sort((a,b) => SONDERROLLEN_ORDER.indexOf(a.sonderrolle) - SONDERROLLEN_ORDER.indexOf(b.sonderrolle));
+  if (!personen.length) { list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:4px 0">Keine Sonderrollen vergeben.</div>'; return; }
+  list.innerHTML = personen.map(d => {
+    const name = ((d.vorname||'') + ' ' + (d.nachname||'')).trim();
+    const label = SONDERROLLEN_LABELS[d.sonderrolle] || d.sonderrolle;
+    return `<div class="orga-row">
+      <div class="orga-row-info"><span class="orga-row-name">${name}</span><span class="orga-row-role">${label}</span></div>
+      <button class="btn btn-outline btn-sm" onclick="window.removeSonderrolle('${d.id}')">Entfernen</button>
+    </div>`;
+  }).join('');
+}
+
+window.showAddSonderrolleForm = function() {
+  document.getElementById('sonderrolle-add-form').style.display = 'block';
+  const sel = document.getElementById('sonderrolle-person-select');
+  const available = allDocs.sort((a,b) => (a.nachname||'').localeCompare(b.nachname||'','de'));
+  sel.innerHTML = '<option value="">– Person auswählen –</option>' +
+    available.map(d => `<option value="${d.id}">${d.vorname||''} ${d.nachname||''}</option>`).join('');
+};
+window.hideAddSonderrolleForm = function() {
+  document.getElementById('sonderrolle-add-form').style.display = 'none';
+};
+window.saveNewSonderrolle = async function() {
+  const rolle   = document.getElementById('sonderrolle-select').value;
+  const personId = document.getElementById('sonderrolle-person-select').value;
+  if (!rolle || !personId) { alert('Bitte Rolle und Person auswählen.'); return; }
+  await updateDoc(doc(db,'anmeldungen',personId), { sonderrolle: rolle });
+  window.hideAddSonderrolleForm();
+};
+window.removeSonderrolle = async (id) => {
+  if (!confirm('Sonderrolle entfernen?')) return;
+  await updateDoc(doc(db,'anmeldungen',id), { sonderrolle: null });
 };
 
 window.removeTeamleiterGewerk = async (id, gewerkId) => {
