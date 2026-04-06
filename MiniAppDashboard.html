@@ -618,10 +618,8 @@ window._showAnmeldungen = (ns, docId, dayLabel, gwName) => {
 };
 
 window._saveGanttKW = async (barId, sKWId, sYrId, eKWId, eYrId, btn) => {
-  const sKW = parseInt(document.getElementById(sKWId)?.value);
-  const sYr = parseInt(document.getElementById(sYrId)?.value);
-  const eKW = parseInt(document.getElementById(eKWId)?.value);
-  const eYr = parseInt(document.getElementById(eYrId)?.value);
+  const read = id => { const el = document.getElementById(id); return parseInt(el?.value || el?.placeholder); };
+  const sKW = read(sKWId), sYr = read(sYrId), eKW = read(eKWId), eYr = read(eYrId);
   if (!sKW || !sYr || !eKW || !eYr) return;
   const startMon = kwToMonday(sYr, sKW);
   const endSun   = kwToMonday(eYr, eKW);
@@ -881,6 +879,7 @@ async function loadUserData() {
               placeholder="${curBedarf !== '' ? curBedarf : '–'}"
               onclick="event.stopPropagation()"
               onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();window._setStandardBedarf('${ns}','${gwId}','${stdId}');this.blur()}"
+              onblur="event.stopPropagation();if(this.value!=='')window._setStandardBedarf('${ns}','${gwId}','${stdId}')"
               style="width:52px;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none;flex-shrink:0">
             <button type="button" onclick="event.stopPropagation();window._setStandardBedarf('${ns}','${gwId}','${stdId}')"
               style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;flex-shrink:0">
@@ -903,12 +902,12 @@ async function loadUserData() {
             html += `<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:6px">
               <span style="font-size:11px;color:var(--text-muted);min-width:32px">Von</span>
               <span style="font-size:11px;font-weight:600;color:var(--text-muted)">KW</span>
-              <input id="kw-s-${ns}-${bid}" type="number" inputmode="numeric" min="1" max="53" value="${sKW}" style="${inputStyle}">
-              <input id="yr-s-${ns}-${bid}" type="number" inputmode="numeric" min="2024" max="2035" value="${sYr}" style="${yrStyle}">
+              <input id="kw-s-${ns}-${bid}" type="number" inputmode="numeric" min="1" max="53" placeholder="${sKW}" style="${inputStyle}">
+              <input id="yr-s-${ns}-${bid}" type="number" inputmode="numeric" min="2024" max="2035" placeholder="${sYr}" style="${yrStyle}">
               <span style="font-size:11px;color:var(--text-muted);min-width:32px">Bis</span>
               <span style="font-size:11px;font-weight:600;color:var(--text-muted)">KW</span>
-              <input id="kw-e-${ns}-${bid}" type="number" inputmode="numeric" min="1" max="53" value="${eKW}" style="${inputStyle}">
-              <input id="yr-e-${ns}-${bid}" type="number" inputmode="numeric" min="2024" max="2035" value="${eYr}" style="${yrStyle}">
+              <input id="kw-e-${ns}-${bid}" type="number" inputmode="numeric" min="1" max="53" placeholder="${eKW}" style="${inputStyle}">
+              <input id="yr-e-${ns}-${bid}" type="number" inputmode="numeric" min="2024" max="2035" placeholder="${eYr}" style="${yrStyle}">
               <button type="button"
                 onclick="window._saveGanttKW('${bid}','kw-s-${ns}-${bid}','yr-s-${ns}-${bid}','kw-e-${ns}-${bid}','yr-e-${ns}-${bid}',this)"
                 style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer;flex-shrink:0">
