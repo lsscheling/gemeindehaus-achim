@@ -878,8 +878,9 @@ async function loadUserData() {
                onclick="window._toggleTlCard('${gwId}')">
             <span style="width:9px;height:9px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
             <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">${gwName}</span>
-            <input id="${stdInputId}" type="number" min="0" max="99" placeholder="${curBedarf !== '' ? curBedarf : '–'}"
+            <input id="${stdInputId}" type="number" inputmode="numeric" min="0" max="99" placeholder="${curBedarf !== '' ? curBedarf : '–'}"
               onclick="event.stopPropagation()"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();window._setStandardBedarf('${gwId}','${stdInputId}');this.blur()}"
               style="width:52px;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none;flex-shrink:0">
             <button type="button" onclick="event.stopPropagation();window._setStandardBedarf('${gwId}','${stdInputId}')"
               style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;flex-shrink:0">
@@ -901,8 +902,9 @@ async function loadUserData() {
           tlHtml += `<div class="gewerk-row" style="align-items:center;gap:8px">
             <span class="gewerk-row-name" style="cursor:pointer;flex:1" onclick="window._showAnmeldungen('${docId2}','${dayLbl}','${gwName}')">${dayLbl}</span>
             <span id="bdgtl-${docId2}">${bedarfBadge(count, bedarf || null)}</span>
-            <input id="inp-${docId2}" type="number" min="0" max="99" value="${bedarf}" placeholder="Bedarf"
-              style="width:64px;font-size:12px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none"
+            <input id="inp-${docId2}" type="number" inputmode="numeric" min="0" max="99" value="${bedarf}" placeholder="–"
+              style="width:52px;font-size:12px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();window._setBedarf('${docId2}','${iso}','${gwId}',this.value);this.blur()}"
               onchange="window._setBedarf('${docId2}','${iso}','${gwId}',this.value)">
             <span style="font-size:18px;color:var(--clay-dark);cursor:pointer" onclick="window._showAnmeldungen('${docId2}','${dayLbl}','${gwName}')">›</span>
           </div>`;
