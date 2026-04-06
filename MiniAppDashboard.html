@@ -196,7 +196,8 @@
   <button class="nav-btn active" onclick="showView('dashboard',this)">Dashboard</button>
   <button class="nav-btn" onclick="showView('infos',this)">Infos</button>
   <button class="nav-btn" onclick="showView('baustatus',this)">Baustatus</button>
-  <button class="nav-btn" id="nav-tl" style="display:none" onclick="showView('teamleiter',this)">Teamleiter</button>
+  <button class="nav-btn" id="nav-tl"  style="display:none" onclick="showView('teamleiter',this)">Teamleiter</button>
+  <button class="nav-btn" id="nav-adm" style="display:none" onclick="showView('admin',this)">Admin</button>
   <button class="help-btn" onclick="openHelp()">?</button>
 </nav>
 
@@ -313,6 +314,11 @@
 <!-- ══════════ TEAMLEITER VIEW ══════════ -->
 <div class="view" id="view-teamleiter">
   <div id="tl-view-body"><div style="color:var(--text-muted);font-size:13px">Wird geladen …</div></div>
+</div>
+
+<!-- ══════════ ADMIN VIEW ══════════ -->
+<div class="view" id="view-admin">
+  <div id="adm-view-body"><div style="color:var(--text-muted);font-size:13px">Wird geladen …</div></div>
 </div>
 
 <!-- ══════════ ANMELDUNGEN POPUP ══════════ -->
@@ -599,6 +605,66 @@ function initials(vorname, nachname) {
   return ((vorname||'').charAt(0) + (nachname||'').charAt(0)).toUpperCase();
 }
 
+// ── Namespace-Datenspeicher für Bedarf-Tabs ──
+window._bedarfData = {}; // ns → { tage, anmMap }
+
+window._toggleBedarfCard = (bodyId, chevId) => {
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevId);
+  if (!body) return;
+  const collapsed = body.style.display === 'none';
+  body.style.display = collapsed ? '' : 'none';
+  if (chev) chev.style.transform = collapsed ? '' : 'rotate(-90deg)';
+};
+
+window._setBedarf = async (ns, docId, iso, gwId, val) => {
+  const bedarf = val === '' ? null : Number(val);
+  const d = window._bedarfData[ns]; if (!d) return;
+  const existing = d.anmMap[docId] || {};
+  await setDoc(doc(db, 'einsatzAnmeldungen', docId),
+    { date: iso, gewerkId: gwId, angemeldete: existing.angemeldete || {}, bedarf }, { merge: true });
+  d.anmMap[docId] = { ...existing, bedarf };
+  const count = Object.keys(existing.angemeldete || {}).length;
+  const badge = document.getElementById(`bdg-${ns}-${docId}`);
+  if (badge) badge.innerHTML = bedarfBadgeUser(count, bedarf);
+  const inp = document.getElementById(`inp-${ns}-${docId}`);
+  if (inp) { inp.value = ''; inp.placeholder = bedarf != null ? String(bedarf) : '–'; }
+};
+
+window._setStandardBedarf = async (ns, gwId, inputId) => {
+  const inputEl = document.getElementById(inputId);
+  const val = inputEl?.value;
+  if (val === '' || val == null) return;
+  const bedarf = Number(val);
+  const d = window._bedarfData[ns]; if (!d) return;
+  await Promise.all(
+    d.tage.filter(t => t.bars.some(b => b.gewerkId === gwId)).map(async ({ iso }) => {
+      const docId = `${iso}_${gwId}`;
+      const existing = d.anmMap[docId] || {};
+      await setDoc(doc(db, 'einsatzAnmeldungen', docId),
+        { date: iso, gewerkId: gwId, angemeldete: existing.angemeldete || {}, bedarf }, { merge: true });
+      d.anmMap[docId] = { ...existing, bedarf };
+      const count = Object.keys(existing.angemeldete || {}).length;
+      const badge = document.getElementById(`bdg-${ns}-${docId}`);
+      if (badge) badge.innerHTML = bedarfBadgeUser(count, bedarf);
+      const inp = document.getElementById(`inp-${ns}-${docId}`);
+      if (inp) { inp.value = ''; inp.placeholder = String(bedarf); }
+    })
+  );
+  if (inputEl) { inputEl.value = ''; inputEl.placeholder = String(bedarf); }
+};
+
+window._showAnmeldungen = (ns, docId, dayLabel, gwName) => {
+  const data  = window._bedarfData[ns]?.anmMap[docId] || {};
+  const namen = Object.values(data.angemeldete || {});
+  document.getElementById('anm-title').textContent = gwName;
+  document.getElementById('anm-sub').textContent   = dayLabel;
+  document.getElementById('anm-list').innerHTML    = namen.length
+    ? namen.map(n => `<div style="padding:8px 12px;background:var(--sand);border-radius:10px;font-size:13px;font-weight:500">${n}</div>`).join('')
+    : '<div style="color:var(--text-muted);font-size:13px">Noch niemand angemeldet.</div>';
+  document.getElementById('anm-overlay').classList.add('visible');
+};
+
 function bedarfBadgeUser(count, bedarf) {
   if (!bedarf) return `<span class="need-badge${count>0?' ok':''}">${count} angemeldet</span>`;
   const fehlen = bedarf - count;
@@ -771,155 +837,108 @@ async function loadUserData() {
       });
     }
 
-    // ── Teamleiter-Tab ──
-    if (userDoc?.rolle === 'teamleiter' && (userDoc?.teamleiterGewerke||[]).length) {
-      document.getElementById('nav-tl').style.display = '';
-      const tlGewerke = userDoc.teamleiterGewerke;
+    // ── Shared: Tage + AnmMap für eine Liste von Gewerk-IDs laden ──
+    const WD2 = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    async function loadBedarfData(gwIds) {
       const today2 = new Date(); today2.setHours(0,0,0,0);
       const in14b  = new Date(today2); in14b.setDate(in14b.getDate() + 14);
-      const WD2    = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-      const allBars2 = allBars.filter(b => tlGewerke.includes(b.gewerkId));
-
-      // Tage + Bars für TL-Gewerke sammeln (alle Tage Mo–Sa, kein Gruppenfilter)
-      const tlTage = [];
+      const relevantBars = allBars.filter(b => gwIds.includes(b.gewerkId));
+      const tage = [];
       const cur2 = new Date(today2);
       while (cur2 <= in14b) {
         if (cur2.getDay() !== 0) {
           const iso2 = `${cur2.getFullYear()}-${String(cur2.getMonth()+1).padStart(2,'0')}-${String(cur2.getDate()).padStart(2,'0')}`;
-          const dayBars2 = allBars2.filter(b => {
+          const dayBars2 = relevantBars.filter(b => {
             const s = parseLocalDate(b.start), e = parseLocalDate(b.end);
             return cur2 >= s && cur2 <= e;
           });
-          if (dayBars2.length) tlTage.push({ iso: iso2, date: new Date(cur2), bars: dayBars2 });
+          if (dayBars2.length) tage.push({ iso: iso2, date: new Date(cur2), bars: dayBars2 });
         }
         cur2.setDate(cur2.getDate() + 1);
       }
-
-      // Anmeldungen für TL-relevante Docs laden
-      const tlDocIds = new Set();
-      tlTage.forEach(({ iso, bars }) => bars.forEach(b => tlDocIds.add(`${iso}_${b.gewerkId}`)));
-      const tlAnmMap = {}; // docId → { angemeldete: {}, bedarf: n }
-      await Promise.all([...tlDocIds].map(async id => {
+      const docIds = new Set();
+      tage.forEach(({ iso, bars }) => bars.forEach(b => docIds.add(`${iso}_${b.gewerkId}`)));
+      const anmMap = {};
+      await Promise.all([...docIds].map(async id => {
         const s = await getDoc(doc(db, 'einsatzAnmeldungen', id));
-        tlAnmMap[id] = s.exists() ? s.data() : { angemeldete: {}, bedarf: null };
+        anmMap[id] = s.exists() ? s.data() : { angemeldete: {}, bedarf: null };
       }));
+      return { tage, anmMap };
+    }
 
-      // Bedarf speichern
-      window._setBedarf = async (docId, iso, gwId, val) => {
-        const bedarf = val === '' ? null : Number(val);
-        const existing = tlAnmMap[docId] || {};
-        await setDoc(doc(db, 'einsatzAnmeldungen', docId),
-          { date: iso, gewerkId: gwId, angemeldete: existing.angemeldete || {}, bedarf },
-          { merge: true });
-        tlAnmMap[docId] = { ...existing, bedarf };
-        // Badge aktualisieren
-        const count = Object.keys(existing.angemeldete || {}).length;
-        const badge = document.getElementById('bdgtl-' + docId);
-        if (badge) badge.innerHTML = bedarfBadge(count, bedarf);
-        const inp = document.getElementById('inp-' + docId);
-        if (inp) { inp.value = ''; inp.placeholder = bedarf != null ? String(bedarf) : '–'; }
-      };
-
-      const bedarfBadge = (count, bedarf) => bedarfBadgeUser(count, bedarf);
-
-      // Popup-Funktion
-      window._showAnmeldungen = (docId, dayLabel, gwName) => {
-        const data  = tlAnmMap[docId] || {};
-        const namen = Object.values(data.angemeldete || {});
-        document.getElementById('anm-title').textContent = gwName;
-        document.getElementById('anm-sub').textContent = dayLabel;
-        document.getElementById('anm-list').innerHTML = namen.length
-          ? namen.map(n => `<div style="padding:8px 12px;background:var(--sand);border-radius:10px;font-size:13px;font-weight:500">${n}</div>`).join('')
-          : '<div style="color:var(--text-muted);font-size:13px">Noch niemand angemeldet.</div>';
-        document.getElementById('anm-overlay').classList.add('visible');
-      };
-
-      // Standard-Bedarf für alle Tage eines Gewerks setzen
-      window._setStandardBedarf = async (gwId, inputId) => {
-        const inputEl = document.getElementById(inputId);
-        const val = inputEl?.value;
-        if (val === '' || val === null) return;
-        const bedarf = Number(val);
-        const tageForGw = tlTage.filter(t => t.bars.some(b => b.gewerkId === gwId));
-        await Promise.all(tageForGw.map(async ({ iso }) => {
-          const docId = `${iso}_${gwId}`;
-          const existing = tlAnmMap[docId] || {};
-          await setDoc(doc(db, 'einsatzAnmeldungen', docId),
-            { date: iso, gewerkId: gwId, angemeldete: existing.angemeldete || {}, bedarf },
-            { merge: true });
-          tlAnmMap[docId] = { ...existing, bedarf };
-          const count = Object.keys(existing.angemeldete || {}).length;
-          const badge = document.getElementById('bdgtl-' + docId);
-          if (badge) badge.innerHTML = bedarfBadge(count, bedarf);
-          const inp = document.getElementById('inp-' + docId);
-          if (inp) { inp.value = ''; inp.placeholder = String(bedarf); }
-        }));
-        // Eingabefeld leeren, Placeholder auf neuen Wert setzen
-        if (inputEl) { inputEl.value = ''; inputEl.placeholder = String(bedarf); }
-      };
-
-      window._toggleTlCard = (gwId) => {
-        const body = document.getElementById('tl-body-' + gwId);
-        const chev = document.getElementById('tl-chev-' + gwId);
-        const collapsed = body.style.display === 'none';
-        body.style.display = collapsed ? '' : 'none';
-        chev.style.transform = collapsed ? '' : 'rotate(-90deg)';
-      };
-
-      // TL-View rendern
-      let tlHtml = '';
-      tlGewerke.forEach(gwId => {
-        const gw = gewerkeMap[gwId];
-        const gwName = gw?.name || gwId;
+    function renderBedarfCards(ns, gwIds, tage, anmMap) {
+      let html = '';
+      gwIds.forEach(gwId => {
+        const gw     = gewerkeMap[gwId];
+        const gwName = gw?.name  || gwId;
         const color  = gw?.color || 'var(--clay)';
-        const gwTage = tlTage.filter(t => t.bars.some(b => b.gewerkId === gwId));
+        const gwTage = tage.filter(t => t.bars.some(b => b.gewerkId === gwId));
         if (!gwTage.length) return;
-
-        // Aktuell gesetzter Standard-Bedarf: erster nicht-null Wert aus tlAnmMap für dieses Gewerk
-        const stdInputId = `std-bedarf-${gwId}`;
-        const curBedarf = gwTage.map(({ iso }) => tlAnmMap[`${iso}_${gwId}`]?.bedarf).find(v => v != null) ?? '';
-
-        tlHtml += `
+        const stdId     = `std-${ns}-${gwId}`;
+        const bodyId    = `body-${ns}-${gwId}`;
+        const chevId    = `chev-${ns}-${gwId}`;
+        const curBedarf = gwTage.map(({ iso }) => anmMap[`${iso}_${gwId}`]?.bedarf).find(v => v != null) ?? '';
+        html += `
         <div class="card" style="margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
-               onclick="window._toggleTlCard('${gwId}')">
+               onclick="window._toggleBedarfCard('${bodyId}','${chevId}')">
             <span style="width:9px;height:9px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
             <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">${gwName}</span>
-            <input id="${stdInputId}" type="number" inputmode="numeric" min="0" max="99" placeholder="${curBedarf !== '' ? curBedarf : '–'}"
+            <input id="${stdId}" type="number" inputmode="numeric" min="0" max="99"
+              placeholder="${curBedarf !== '' ? curBedarf : '–'}"
               onclick="event.stopPropagation()"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();window._setStandardBedarf('${gwId}','${stdInputId}');this.blur()}"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();window._setStandardBedarf('${ns}','${gwId}','${stdId}');this.blur()}"
               style="width:52px;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none;flex-shrink:0">
-            <button type="button" onclick="event.stopPropagation();window._setStandardBedarf('${gwId}','${stdInputId}')"
+            <button type="button" onclick="event.stopPropagation();window._setStandardBedarf('${ns}','${gwId}','${stdId}')"
               style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;flex-shrink:0">
               Setzen
             </button>
-            <span id="tl-chev-${gwId}" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
+            <span id="${chevId}" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
           </div>
-          <div id="tl-body-${gwId}" style="margin-top:12px;display:none">`;
-
+          <div id="${bodyId}" style="margin-top:12px;display:none">`;
         let lastKW2 = '';
         gwTage.forEach(({ iso, date }) => {
-          const kw2    = 'KW ' + String(isoWeek(date)).padStart(2,'0');
-          if (kw2 !== lastKW2) { tlHtml += `<div class="kw-sep">${kw2}</div>`; lastKW2 = kw2; }
-          const docId2  = `${iso}_${gwId}`;
-          const data    = tlAnmMap[docId2] || {};
-          const count   = Object.keys(data.angemeldete || {}).length;
-          const bedarf  = data.bedarf || '';
-          const dayLbl  = WD2[date.getDay()] + ', ' + fmtDateDE(date);
-          tlHtml += `<div class="gewerk-row" style="align-items:center;gap:8px">
-            <span class="gewerk-row-name" style="cursor:pointer;flex:1" onclick="window._showAnmeldungen('${docId2}','${dayLbl}','${gwName}')">${dayLbl}</span>
-            <span id="bdgtl-${docId2}">${bedarfBadge(count, bedarf || null)}</span>
-            <input id="inp-${docId2}" type="number" inputmode="numeric" min="0" max="99" placeholder="${bedarf !== '' ? bedarf : '–'}"
+          const kw2   = 'KW ' + String(isoWeek(date)).padStart(2,'0');
+          if (kw2 !== lastKW2) { html += `<div class="kw-sep">${kw2}</div>`; lastKW2 = kw2; }
+          const docId = `${iso}_${gwId}`;
+          const data  = anmMap[docId] || {};
+          const count = Object.keys(data.angemeldete || {}).length;
+          const bed   = data.bedarf || '';
+          const dayLbl = WD2[date.getDay()] + ', ' + fmtDateDE(date);
+          html += `<div class="gewerk-row" style="align-items:center;gap:8px">
+            <span class="gewerk-row-name" style="cursor:pointer;flex:1"
+              onclick="window._showAnmeldungen('${ns}','${docId}','${dayLbl}','${gwName}')">${dayLbl}</span>
+            <span id="bdg-${ns}-${docId}">${bedarfBadgeUser(count, bed || null)}</span>
+            <input id="inp-${ns}-${docId}" type="number" inputmode="numeric" min="0" max="99"
+              placeholder="${bed !== '' ? bed : '–'}"
               style="width:52px;font-size:12px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();window._setBedarf('${docId2}','${iso}','${gwId}',this.value);this.blur()}"
-              onchange="window._setBedarf('${docId2}','${iso}','${gwId}',this.value)">
-            <span style="font-size:18px;color:var(--clay-dark);cursor:pointer" onclick="window._showAnmeldungen('${docId2}','${dayLbl}','${gwName}')">›</span>
+              onkeydown="if(event.key==='Enter'){event.preventDefault();window._setBedarf('${ns}','${docId}','${iso}','${gwId}',this.value);this.blur()}"
+              onchange="window._setBedarf('${ns}','${docId}','${iso}','${gwId}',this.value)">
+            <span style="font-size:18px;color:var(--clay-dark);cursor:pointer"
+              onclick="window._showAnmeldungen('${ns}','${docId}','${dayLbl}','${gwName}')">›</span>
           </div>`;
         });
-
-        tlHtml += `</div></div>`;
+        html += `</div></div>`;
       });
-      document.getElementById('tl-view-body').innerHTML = tlHtml || '<div style="color:var(--text-muted);font-size:13px">Keine Einsätze in den nächsten 14 Tagen.</div>';
+      return html || '<div style="color:var(--text-muted);font-size:13px">Keine Einsätze in den nächsten 14 Tagen.</div>';
+    }
+
+    // ── Teamleiter-Tab ──
+    if (userDoc?.rolle === 'teamleiter' && (userDoc?.teamleiterGewerke||[]).length) {
+      document.getElementById('nav-tl').style.display = '';
+      const tlGewerke = userDoc.teamleiterGewerke;
+      const { tage: tlTage, anmMap: tlAnmMap } = await loadBedarfData(tlGewerke);
+      window._bedarfData['tl'] = { tage: tlTage, anmMap: tlAnmMap };
+      document.getElementById('tl-view-body').innerHTML = renderBedarfCards('tl', tlGewerke, tlTage, tlAnmMap);
+    }
+
+    // ── Admin-Tab ──
+    if (userDoc?.rolle === 'admin') {
+      document.getElementById('nav-adm').style.display = '';
+      const admGewerke = Object.keys(gewerkeMap);
+      const { tage: admTage, anmMap: admAnmMap } = await loadBedarfData(admGewerke);
+      window._bedarfData['adm'] = { tage: admTage, anmMap: admAnmMap };
+      document.getElementById('adm-view-body').innerHTML = renderBedarfCards('adm', admGewerke, admTage, admAnmMap);
     }
 
     // ── Meine Einsätze ──
