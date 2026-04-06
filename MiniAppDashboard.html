@@ -348,19 +348,22 @@ function currentKW() {
 }
 
 // ── KW Tabelle ──
-(function() {
+function renderKWTable(meineGruppe) {
   const cur = currentKW();
   let html = '<tr><th>Kalenderwoche</th><th>Aktive Gruppen</th></tr>';
   for (let i = -1; i <= 5; i++) {
-    const kw = cur + i;
-    const gr = gruppenFuerKW(kw);
-    const isCur = i === 0;
+    const kw     = cur + i;
+    const gr     = gruppenFuerKW(kw);
+    const isCur  = i === 0;
+    const aktiv  = meineGruppe && gr.includes(meineGruppe);
     const kwCell = isCur ? `<span class="kw-badge">KW ${kw}</span> ← jetzt` : `KW ${kw}`;
-    const grCell = gr.map(g => `<span class="${g===MY_GRUPPE?'mine-kw':''}">Gr. ${g}</span>`).join(' &amp; ');
-    html += `<tr class="${isCur?'cur':''}"><td>${kwCell}</td><td>${grCell}${gr.includes(MY_GRUPPE)?' 🔵':''}</td></tr>`;
+    const grCell = gr.map(g => `<span class="${meineGruppe && g===meineGruppe ? 'mine-kw' : ''}"">Gr. ${g}</span>`).join(' &amp; ');
+    const rowStyle = (!aktiv && meineGruppe) ? ' style="opacity:.4"' : '';
+    html += `<tr class="${isCur ? 'cur' : ''}"${rowStyle}><td>${kwCell}</td><td>${grCell}</td></tr>`;
   }
   document.getElementById('kw-table').innerHTML = html;
-})();
+}
+renderKWTable(null); // initial ohne Gruppe
 
 // ── Einsatzdaten (nach Tag) ──
 const tage = [
@@ -627,48 +630,66 @@ function bedarfBadgeMine(count, bedarf) {
   return `<span class="need-badge">${count}/${bedarf}</span>`;
 }
 
+const SONDERROLLEN_ORDER  = ['bauleitung', 'bauküche', 'sicherheitsbeauftragter'];
+const SONDERROLLEN_LABELS = { bauleitung: 'Bauleitung', 'bauküche': 'Bau-Küche', sicherheitsbeauftragter: 'Sicherheitsbeauftragter' };
+
+function contactRow(d, roleLabel, isLast) {
+  const ini    = initials(d.vorname, d.nachname);
+  const name   = ((d.vorname || '') + ' ' + (d.nachname || '')).trim();
+  const tel    = d.telefon || '';
+  const tgHref = d.telegram_username ? 'https://t.me/' + d.telegram_username : '';
+  return `<div class="contact-row" ${isLast ? 'style="margin-bottom:0"' : ''}>
+    <div class="contact-avatar lead">${ini}</div>
+    <div class="contact-info">
+      <div class="contact-name">${name}</div>
+      <div class="contact-role">${roleLabel}</div>
+    </div>
+    <div class="contact-actions">
+      ${tel    ? `<button class="icon-btn btn-call" onclick="copyTel('${tel}')" title="Nummer kopieren">📞</button>` : ''}
+      ${tgHref ? `<a href="${tgHref}" target="_blank" class="icon-btn btn-tg" title="Telegram">${tgSvg()}</a>` : ''}
+    </div>
+  </div>`;
+}
+
 async function loadTeamleiter() {
   const list = document.getElementById('teamleiter-list');
   try {
-    // Load gewerke names
-    const gwSnap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
+    const [gwSnap, allSnap] = await Promise.all([
+      getDoc(doc(db, 'planung', 'gewerkeKonfig')),
+      getDocs(collection(db, 'anmeldungen'))
+    ]);
     const gewerkeMap = {};
-    if (gwSnap.exists()) {
-      (gwSnap.data().gewerke || []).forEach(g => { gewerkeMap[g.id] = g.name; });
-    }
+    if (gwSnap.exists()) (gwSnap.data().gewerke || []).forEach(g => { gewerkeMap[g.id] = g.name; });
 
-    // Load teamleiter
-    const snap = await getDocs(query(collection(db, 'anmeldungen'), where('rolle', '==', 'teamleiter')));
-    const teamleiter = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
+    const alle = allSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Sonderrollen in definierter Reihenfolge
+    const sonder = alle
+      .filter(d => d.sonderrolle && SONDERROLLEN_ORDER.includes(d.sonderrolle))
+      .sort((a, b) => SONDERROLLEN_ORDER.indexOf(a.sonderrolle) - SONDERROLLEN_ORDER.indexOf(b.sonderrolle));
+
+    // Teamleiter alphabetisch nach Nachname
+    const teamleiter = alle
+      .filter(d => d.rolle === 'teamleiter')
       .sort((a, b) => (a.nachname || '').localeCompare(b.nachname || '', 'de') || (a.vorname || '').localeCompare(b.vorname || '', 'de'));
 
-    if (!teamleiter.length) {
-      list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Noch keine Teamleiter eingetragen.</div>';
-      return;
+    let html = '';
+
+    // Sonderrollen-Block
+    sonder.forEach(d => {
+      html += contactRow(d, SONDERROLLEN_LABELS[d.sonderrolle] || d.sonderrolle, false);
+    });
+
+    // Abschnitt Gewerke (nur wenn es Teamleiter gibt)
+    if (teamleiter.length) {
+      if (sonder.length) html += `<div class="kw-sep" style="margin-top:14px">Gewerke</div>`;
+      teamleiter.forEach((d, i) => {
+        const gwLabel = (d.teamleiterGewerke || []).map(id => gewerkeMap[id] || id).join(' & ') || 'Teamleiter';
+        html += contactRow(d, gwLabel, i === teamleiter.length - 1);
+      });
     }
 
-    list.innerHTML = teamleiter.map((d, i) => {
-      const ini    = initials(d.vorname, d.nachname);
-      const name   = ((d.vorname || '') + ' ' + (d.nachname || '')).trim();
-      const gewerke = (d.teamleiterGewerke || []).map(id => gewerkeMap[id] || id).join(' & ') || 'Teamleiter';
-      const tel    = d.telefon || '';
-      const tgUser = d.telegram_username || '';
-      const tgId   = d.telegram_id || '';
-      const isLast = i === teamleiter.length - 1;
-      const tgHref = tgUser ? 'https://t.me/'+tgUser : '';
-      return `<div class="contact-row" ${isLast ? 'style="margin-bottom:0"' : ''}>
-        <div class="contact-avatar lead">${ini}</div>
-        <div class="contact-info">
-          <div class="contact-name">${name}</div>
-          <div class="contact-role">${gewerke}</div>
-        </div>
-        <div class="contact-actions">
-          ${tel    ? `<button class="icon-btn btn-call" onclick="copyTel('${tel}')" title="Nummer kopieren">📞</button>` : ''}
-          ${tgHref ? `<a href="${tgHref}" target="_blank" class="icon-btn btn-tg" title="Telegram">${tgSvg()}</a>` : ''}
-        </div>
-      </div>`;
-    }).join('');
+    list.innerHTML = html || '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
   } catch(e) {
     list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Fehler beim Laden.</div>';
     console.error(e);
@@ -758,6 +779,7 @@ async function loadUserData() {
 
     const gruppe  = userDoc?.gruppe  || null;
     const gewerke = userDoc?.gewerke_zugewiesen || [];
+    renderKWTable(gruppe);
 
     // 2. Gewerk-Namen + Gantt-Daten laden
     const [gwSnap, ganttSnap] = await Promise.all([
