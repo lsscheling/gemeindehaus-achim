@@ -660,7 +660,7 @@ async function loadTeamleiter() {
           <div class="contact-role">${gewerke}</div>
         </div>
         <div class="contact-actions">
-          ${tel    ? `<button class="icon-btn btn-call" onclick="window.location.href='tel:${tel.replace(/\s/g,'')}'">📞</button>` : ''}
+          ${tel    ? `<a href="tel:${tel.replace(/\s/g,'')}" style="font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:5px 10px;border-radius:10px;text-decoration:none;white-space:nowrap">📞 ${tel}</a>` : ''}
           ${tgHref ? `<a href="${tgHref}" target="_blank" class="icon-btn btn-tg" title="Telegram">${tgSvg()}</a>` : ''}
         </div>
       </div>`;
@@ -695,7 +695,7 @@ async function loadOrga() {
         <div class="orga-avatar">${ini}</div>
         <div class="orga-info"><div class="orga-name">${name}</div></div>
         <div class="orga-actions">
-          ${tel    ? `<button class="icon-btn btn-call" onclick="window.location.href='tel:${tel.replace(/\s/g,'')}'">📞</button>` : ''}
+          ${tel    ? `<a href="tel:${tel.replace(/\s/g,'')}" style="font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:5px 10px;border-radius:10px;text-decoration:none;white-space:nowrap">📞 ${tel}</a>` : ''}
           ${tgHref ? `<a href="${tgHref}" target="_blank" class="icon-btn btn-tg" title="Telegram">${tgSvg()}</a>` : ''}
         </div>
       </div>`;
@@ -798,7 +798,7 @@ async function loadUserData() {
           <span class="info-label" style="color:var(--clay-dark);font-size:10px">${label}</span>
           <span style="font-size:13px;font-weight:500;flex:1">${name}</span>
           <div style="display:flex;gap:4px">
-            ${tel    ? `<button class="icon-btn btn-call" onclick="window.location.href='tel:${tel.replace(/\s/g,'')}'">📞</button>` : ''}
+            ${tel    ? `<a href="tel:${tel.replace(/\s/g,'')}" style="font-size:12px;font-weight:600;color:var(--green);background:var(--green-light);padding:5px 10px;border-radius:10px;text-decoration:none;white-space:nowrap">📞 ${tel}</a>` : ''}
             ${tgHref ? `<a href="${tgHref}" target="_blank" class="icon-btn btn-tg" title="Telegram">${tgSvg()}</a>` : ''}
           </div>
         </div>`;
