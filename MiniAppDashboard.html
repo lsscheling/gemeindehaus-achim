@@ -743,30 +743,23 @@ async function loadUserData() {
         return `<span class="gewerk-tag mine">${g ? g.name : id}</span>`;
       }).join('');
 
-      // Teamkollegen: gleiche Gruppe + mind. ein gemeinsames Gewerk
-      const allSnap = await getDocs(query(collection(db, 'anmeldungen'), where('gruppe', '==', gruppe)));
-      const kollegen = allSnap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(d => {
-          if (d.telegram_id === tgId) return false; // nicht sich selbst
-          const dGewerke = d.gewerke_zugewiesen || [];
-          return gewerke.some(g => dGewerke.includes(g));
-        })
-        .sort((a, b) => (a.vorname + a.nachname).localeCompare(b.vorname + b.nachname, 'de'));
-
-      // Teamleiter der eigenen Gewerke
+      // Teamleiter der eigenen Gewerke, sortiert nach erstem passendem Gewerk-Namen
       const tlSnap = await getDocs(query(collection(db, 'anmeldungen'), where('rolle', '==', 'teamleiter')));
       const teamleiter = tlSnap.docs
         .map(d => ({ id: d.id, ...d.data() }))
         .filter(d => (d.teamleiterGewerke || []).some(g => gewerke.includes(g)))
-        .sort((a, b) => (a.vorname + a.nachname).localeCompare(b.vorname + b.nachname, 'de'));
+        .sort((a, b) => {
+          const gwA = gewerke.find(g => (a.teamleiterGewerke||[]).includes(g));
+          const gwB = gewerke.find(g => (b.teamleiterGewerke||[]).includes(g));
+          return (gewerkeMap[gwA]?.name || '').localeCompare(gewerkeMap[gwB]?.name || '', 'de');
+        });
 
       const personRow = (d, label) => {
         const name = ((d.vorname || '') + ' ' + (d.nachname || '')).trim();
         const tel  = d.telefon || '';
         const tgid = d.telegram_id || '';
         return `<div class="info-row">
-          <span class="info-label">${label}</span>
+          <span class="info-label" style="color:var(--clay-dark);font-size:10px">${label}</span>
           <span style="font-size:13px;font-weight:500;flex:1">${name}</span>
           <div style="display:flex;gap:4px">
             ${tel  ? `<button class="icon-btn btn-call tl-call-btn" data-name="${name.replace(/"/g,'&quot;')}" data-tel="${tel}">📞</button>` : ''}
@@ -776,9 +769,18 @@ async function loadUserData() {
       };
 
       let teamHtml = `<div class="info-row"><span class="info-label">Gewerke</span><div class="gewerk-tags">${gwTags}</div></div>`;
-      teamleiter.forEach((d, i) => { teamHtml += personRow(d, i === 0 ? 'Teamleiter' : ''); });
-      kollegen.forEach((d, i)   => { teamHtml += personRow(d, i === 0 ? 'Kollegen' : ''); });
-      if (!teamleiter.length && !kollegen.length) teamHtml += '<div style="color:var(--text-muted);font-size:12px;padding:6px 0">Noch keine weiteren Teammitglieder.</div>';
+      if (teamleiter.length) {
+        teamHtml += `<div style="font-size:10px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin:10px 0 4px">Ansprechpartner</div>`;
+        teamleiter.forEach(d => {
+          // Label = Name des ersten passenden Gewerks des TL
+          const gwLabel = gewerke
+            .map(g => ({ id: g, name: gewerkeMap[g]?.name || g }))
+            .find(g => (d.teamleiterGewerke || []).includes(g.id))?.name || '';
+          teamHtml += personRow(d, gwLabel);
+        });
+      } else {
+        teamHtml += '<div style="color:var(--text-muted);font-size:12px;padding:6px 0">Kein Ansprechpartner zugewiesen.</div>';
+      }
 
       teamBody.innerHTML = teamHtml;
       teamBody.addEventListener('click', e => {
