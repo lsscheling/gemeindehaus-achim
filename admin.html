@@ -446,6 +446,23 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
     </div>
     <!-- Teamleiter list -->
     <div id="tl-list" style="display:flex;flex-direction:column;gap:10px"></div>
+
+    <!-- Admins -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:28px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted)">Admins</div>
+      <button class="btn btn-accent btn-sm" onclick="window.showAddAdminForm()">+ Admin hinzufügen</button>
+    </div>
+    <div id="admin-add-form" style="display:none;background:white;border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Person</div>
+      <select id="admin-person-select" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);width:100%;max-width:340px;cursor:pointer;margin-bottom:12px">
+        <option value="">– Person auswählen –</option>
+      </select>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-accent" onclick="window.saveNewAdmin()">Hinzufügen</button>
+        <button class="btn btn-outline" onclick="window.hideAddAdminForm()">Abbrechen</button>
+      </div>
+    </div>
+    <div id="admin-list" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
 </div>
 
@@ -1098,10 +1115,6 @@ function buildPersonForm(data) {
     <div class="mrow">
       ${field('Telegram ID','telegram-id','text',val('telegram_id') ? String(val('telegram_id')) : '','z.B. 123456789')}
     </div>
-    <div class="msection">Berechtigungen</div>
-    <label class="mcheck" style="max-width:400px">
-      <input type="checkbox" id="mf-admin" ${val('rolle') === 'admin' ? 'checked' : ''}> Admin-Zugang (Dashboard Admin-Tab)
-    </label>
     <div class="msection">Schichtarbeit</div>
     <label class="mcheck" style="max-width:400px">
       <input type="checkbox" id="mf-schichtarbeit" ${val('schichtarbeit') ? 'checked' : ''}> Ich arbeite im Schichtbetrieb
@@ -1162,10 +1175,6 @@ async function savePerson(isEdit) {
   const nachname = document.getElementById('mf-nachname')?.value.trim();
   if (!vorname||!nachname) { alert('Bitte Vor- und Nachname angeben.'); return; }
   const gewerke = [...document.querySelectorAll('input[name="mf-gewerk"]:checked')].map(cb => cb.value);
-  const isAdmin = document.getElementById('mf-admin')?.checked || false;
-  const existingRolle = isEdit && editingId ? (allDocs.find(d => d.id === editingId)?.rolle || null) : null;
-  // Teamleiter-Rolle nicht überschreiben; nur admin ↔ null toggeln
-  const rolle = existingRolle === 'teamleiter' ? 'teamleiter' : (isAdmin ? 'admin' : null);
   const data = {
     vorname, nachname,
     email: document.getElementById('mf-email')?.value.trim()||'',
@@ -1177,7 +1186,6 @@ async function savePerson(isEdit) {
     qualifikationen: document.getElementById('mf-quali')?.value.trim()||'',
     gruppenwunsch: document.getElementById('mf-gruppenwunsch')?.value.trim()||'',
     manuell_eingetragen: true,
-    rolle,
   };
   try {
     if (isEdit && editingId) {
@@ -1309,9 +1317,25 @@ function loadAnmeldungen() {
   });
 }
 
-// ── NUTZERVERWALTUNG / TEAMLEITER ──
+// ── NUTZERVERWALTUNG / TEAMLEITER + ADMINS ──
 function renderUsersTable() {
   const list = document.getElementById('tl-list'); if (!list) return;
+
+  // Admins
+  const adminList = document.getElementById('admin-list');
+  if (adminList) {
+    const admins = allDocs.filter(d => d.rolle === 'admin')
+      .sort((a,b) => (a.vorname+a.nachname).localeCompare(b.vorname+b.nachname,'de'));
+    adminList.innerHTML = admins.length
+      ? admins.map(d => `
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+          <div style="font-weight:500;font-size:14px">${d.vorname||''} ${d.nachname||''}</div>
+          <button class="btn btn-danger btn-sm" onclick="window.removeAdmin('${d.id}')">Entfernen</button>
+        </div>`).join('')
+      : '<div style="color:var(--muted);font-size:13px;padding:8px 0">Noch keine Admins angelegt.</div>';
+  }
+
+  // Teamleiter
   const teamleiter = allDocs.filter(d => d.rolle === 'teamleiter')
     .sort((a,b) => (a.vorname+a.nachname).localeCompare(b.vorname+b.nachname,'de'));
   if (!teamleiter.length) {
@@ -1385,6 +1409,32 @@ window.saveNewTeamleiter = async function() {
 window.removeTeamleiter = async (id) => {
   if (!confirm('Teamleiter-Rolle entfernen?')) return;
   await updateDoc(doc(db,'anmeldungen',id), { rolle: null, teamleiterGewerke: [] });
+};
+
+window.showAddAdminForm = function() {
+  const form = document.getElementById('admin-add-form');
+  form.style.display = 'block';
+  const sel = document.getElementById('admin-person-select');
+  const available = allDocs.filter(d => d.rolle !== 'admin' && d.rolle !== 'teamleiter')
+    .sort((a,b) => (a.vorname+a.nachname).localeCompare(b.vorname+b.nachname,'de'));
+  sel.innerHTML = '<option value="">– Person auswählen –</option>' +
+    available.map(d => `<option value="${d.id}">${d.vorname||''} ${d.nachname||''}</option>`).join('');
+};
+
+window.hideAddAdminForm = function() {
+  document.getElementById('admin-add-form').style.display = 'none';
+};
+
+window.saveNewAdmin = async function() {
+  const personId = document.getElementById('admin-person-select').value;
+  if (!personId) { alert('Bitte eine Person auswählen.'); return; }
+  await updateDoc(doc(db,'anmeldungen',personId), { rolle: 'admin' });
+  window.hideAddAdminForm();
+};
+
+window.removeAdmin = async (id) => {
+  if (!confirm('Admin-Rolle entfernen?')) return;
+  await updateDoc(doc(db,'anmeldungen',id), { rolle: null });
 };
 
 window.removeTeamleiterGewerk = async (id, gewerkId) => {
