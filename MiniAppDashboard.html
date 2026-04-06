@@ -437,12 +437,7 @@ function tgMessage(name) {
   } else alert('Telegram: '+name);
 }
 function tgOpen(userId) {
-  const url = 'tg://user?id=' + userId;
-  if (window.Telegram && window.Telegram.WebApp) {
-    Telegram.WebApp.openLink(url);
-  } else {
-    window.location.href = url;
-  }
+  window.location.href = 'tg://user?id=' + userId;
 }
 
 // ── Render helper ──
