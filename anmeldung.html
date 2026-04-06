@@ -5,6 +5,7 @@
 <meta name="color-scheme" content="light">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Anmeldung – Gemeindehaus Achim</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
 :root { color-scheme: light; }
@@ -283,6 +284,7 @@ function collectPayload() {
     var el = document.getElementById('level-val-' + g);
     erfahrung[g] = el ? (el.value || '') : '';
   });
+  var tgUser = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user;
   return {
     vorname: document.getElementById('f-vorname').value || '',
     nachname: document.getElementById('f-nachname').value || '',
@@ -293,7 +295,8 @@ function collectPayload() {
     qualifikationen: document.getElementById('f-qualifikationen').value || '',
     gruppenwunsch: document.getElementById('f-gruppenwunsch').value || '',
     status: 'angemeldet',
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    telegram_id: tgUser ? tgUser.id : null
   };
 }
 
