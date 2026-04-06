@@ -1060,23 +1060,19 @@ async function loadUserData() {
       }
       let html = '', lastKW = '';
       tageArr.forEach(({ iso, date, bars: dayBars }) => {
-        // Bars filtern bevor Tages-Header gerendert wird
         const visibleBars = dayBars.filter(bar => {
-          const docId = `${iso}_${bar.gewerkId}`;
-          const rec   = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
-          const count = Object.keys(rec.angemeldete).length;
-          if (nurMeine)  return !!rec.bedarf;
-          return !!rec.bedarf && (rec.bedarf - count) > 0;
+          const rec = anmeldungenMap[`${iso}_${bar.gewerkId}`] || { angemeldete: {}, bedarf: null };
+          if (nurMeine) return !!rec.bedarf;
+          return !!rec.bedarf && (rec.bedarf - Object.keys(rec.angemeldete).length) > 0;
         });
         if (!visibleBars.length) return;
 
         const kw = 'KW ' + String(isoWeek(date)).padStart(2,'0');
         if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
 
-        // Tages-Header
-        html += `<div style="font-size:12px;font-weight:700;color:var(--clay-dark);padding:6px 2px 4px">${WD[date.getDay()]}, ${fmtDateDE(date)}</div>`;
+        const dayLabel = WD[date.getDay()] + ', ' + fmtDateDE(date);
 
-        visibleBars.forEach(bar => {
+        visibleBars.forEach((bar, i) => {
           const gw      = gewerkeMap[bar.gewerkId];
           const color   = gw?.color || bar.color || 'var(--clay)';
           const name    = gw?.name  || bar.name  || bar.gewerkId;
@@ -1088,9 +1084,15 @@ async function loadUserData() {
           const badgeId = `bdg-${docId}`;
           const isMine  = gewerke.includes(bar.gewerkId);
 
-          html += `<div class="gewerk-row ${isMine ? 'mine-row' : ''}" style="padding:5px 10px;margin-bottom:3px">
-            <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
-            <span class="gewerk-row-name" style="font-size:13px">${name}</span>
+          // Datum nur bei erster Zeile des Tages, danach Leerraum als Einzug
+          const dateCell = i === 0
+            ? `<span style="font-size:12px;font-weight:600;color:var(--clay-dark);min-width:72px;flex-shrink:0">${dayLabel}</span>`
+            : `<span style="min-width:72px;flex-shrink:0"></span>`;
+
+          html += `<div class="gewerk-row ${isMine ? 'mine-row' : ''}" style="padding:4px 10px;margin-bottom:2px;gap:6px">
+            ${dateCell}
+            <span style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
+            <span class="gewerk-row-name" style="font-size:12px">${name}</span>
             ${nurMeine ? `<span id="${badgeId}">${bedarfBadgeMine(count, rec.bedarf)}</span>` : ''}
             <button class="action-btn btn-join${istAn?' done':''}" id="${btnId}"
               onclick="window._anmelden('${iso}','${bar.gewerkId}','${btnId}','${badgeId}')">
