@@ -617,6 +617,33 @@ window._showAnmeldungen = (ns, docId, dayLabel, gwName) => {
   document.getElementById('anm-overlay').classList.add('visible');
 };
 
+window._saveGanttKW = async (barId, sKWId, sYrId, eKWId, eYrId, btn) => {
+  const sKW = parseInt(document.getElementById(sKWId)?.value);
+  const sYr = parseInt(document.getElementById(sYrId)?.value);
+  const eKW = parseInt(document.getElementById(eKWId)?.value);
+  const eYr = parseInt(document.getElementById(eYrId)?.value);
+  if (!sKW || !sYr || !eKW || !eYr) return;
+  const startMon = kwToMonday(sYr, sKW);
+  const endSun   = kwToMonday(eYr, eKW);
+  endSun.setDate(endSun.getDate() + 6); // Sonntag der End-KW
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const ref  = doc(db, 'planung', 'ganttDaten');
+    const snap = await getDoc(ref);
+    if (!snap.exists()) throw new Error('ganttDaten nicht gefunden');
+    const data    = snap.data();
+    const updated = (data.gewerke || []).map(b =>
+      b.id === barId ? { ...b, start: dateToISO(startMon), end: dateToISO(endSun) } : b
+    );
+    await setDoc(ref, { ...data, gewerke: updated });
+    btn.textContent = 'Gespeichert ✓';
+    setTimeout(() => { btn.textContent = 'Speichern'; btn.disabled = false; }, 2500);
+  } catch(e) {
+    alert('Fehler beim Speichern: ' + e.message);
+    btn.textContent = 'Speichern'; btn.disabled = false;
+  }
+};
+
 function bedarfBadgeUser(count, bedarf) {
   if (!bedarf) return `<span class="need-badge${count>0?' ok':''}">${count} angemeldet</span>`;
   const fehlen = bedarf - count;
@@ -693,6 +720,17 @@ function isoWeek(d) {
   tmp.setDate(tmp.getDate() + 4 - (tmp.getDay() || 7));
   const y1 = new Date(tmp.getFullYear(), 0, 1);
   return Math.ceil(((tmp - y1) / 86400000 + 1) / 7);
+}
+function kwToMonday(year, kw) {
+  // ISO: Montag der angegebenen KW im Jahr year
+  const jan4 = new Date(year, 0, 4);
+  const dow  = (jan4.getDay() + 6) % 7; // 0=Mo..6=So
+  const mon  = new Date(jan4);
+  mon.setDate(jan4.getDate() - dow + (kw - 1) * 7);
+  return mon;
+}
+function dateToISO(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function gruppeAktivInKW(gruppe, kw) {
   const r = ((kw - 1) % 3) + 1;
@@ -827,7 +865,8 @@ async function loadUserData() {
         const gwName = gw?.name  || gwId;
         const color  = gw?.color || 'var(--clay)';
         const gwTage = tage.filter(t => t.bars.some(b => b.gewerkId === gwId));
-        if (!gwTage.length) return;
+        const gwBars = allBars.filter(b => b.gewerkId === gwId);
+        if (!gwTage.length && !gwBars.length) return;
         const stdId     = `std-${ns}-${gwId}`;
         const bodyId    = `body-${ns}-${gwId}`;
         const chevId    = `chev-${ns}-${gwId}`;
@@ -850,6 +889,35 @@ async function loadUserData() {
             <span id="${chevId}" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
           </div>
           <div id="${bodyId}" style="margin-top:12px;display:none">`;
+        // ── Zeitraum-Editor ──
+        if (gwBars.length) {
+          const inputStyle = 'width:44px;font-size:12px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:\'DM Sans\',sans-serif;outline:none';
+          const yrStyle    = 'width:56px;font-size:12px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:\'DM Sans\',sans-serif;outline:none';
+          html += `<div style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Zeitraum</div>`;
+          gwBars.forEach(bar => {
+            const sD = parseLocalDate(bar.start), eD = parseLocalDate(bar.end);
+            const sKW = isoWeek(sD), sYr = sD.getFullYear();
+            const eKW = isoWeek(eD), eYr = eD.getFullYear();
+            const bid = bar.id;
+            html += `<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:6px">
+              <span style="font-size:11px;color:var(--text-muted);min-width:32px">Von</span>
+              <span style="font-size:11px;font-weight:600;color:var(--text-muted)">KW</span>
+              <input id="kw-s-${ns}-${bid}" type="number" inputmode="numeric" min="1" max="53" value="${sKW}" style="${inputStyle}">
+              <input id="yr-s-${ns}-${bid}" type="number" inputmode="numeric" min="2024" max="2035" value="${sYr}" style="${yrStyle}">
+              <span style="font-size:11px;color:var(--text-muted);min-width:32px">Bis</span>
+              <span style="font-size:11px;font-weight:600;color:var(--text-muted)">KW</span>
+              <input id="kw-e-${ns}-${bid}" type="number" inputmode="numeric" min="1" max="53" value="${eKW}" style="${inputStyle}">
+              <input id="yr-e-${ns}-${bid}" type="number" inputmode="numeric" min="2024" max="2035" value="${eYr}" style="${yrStyle}">
+              <button type="button"
+                onclick="window._saveGanttKW('${bid}','kw-s-${ns}-${bid}','yr-s-${ns}-${bid}','kw-e-${ns}-${bid}','yr-e-${ns}-${bid}',this)"
+                style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer;flex-shrink:0">
+                Speichern
+              </button>
+            </div>`;
+          });
+          html += `</div>`;
+        }
         let lastKW2 = '';
         gwTage.forEach(({ iso, date }) => {
           const kw2   = 'KW ' + String(isoWeek(date)).padStart(2,'0');
@@ -874,7 +942,7 @@ async function loadUserData() {
         });
         html += `</div></div>`;
       });
-      return html || '<div style="color:var(--text-muted);font-size:13px">Keine Einsätze in den nächsten 14 Tagen.</div>';
+      return html || '<div style="color:var(--text-muted);font-size:13px">Keine Gewerke zugewiesen.</div>';
     }
 
     // ── Teamleiter-Tab ──
