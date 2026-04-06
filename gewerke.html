@@ -415,8 +415,11 @@ function render() {
       </div>
 
       <!-- Min. Personen -->
-      <div style="text-align:center;font-size:12px;color:var(--muted)">
-        ${g.minPersons}&nbsp;P.
+      <div style="text-align:center">
+        <input type="number" inputmode="numeric" min="1" max="99" value="${g.minPersons || 1}"
+          style="width:54px;font-size:13px;font-family:'DM Sans',sans-serif;border:1px solid var(--border);border-radius:var(--radius);padding:5px 6px;text-align:center;outline:none;background:white"
+          onchange="setMinPersons('${g.id}',this.value)"
+          onfocus="this.select()">
       </div>
 
       <!-- Aktionen -->
@@ -481,6 +484,11 @@ window.setActive = function(id, val) {
   if (!g) return;
   g.active = val;
   render();
+};
+
+window.setMinPersons = function(id, val) {
+  const g = gewerke.find(x => x.id === id);
+  if (g) g.minPersons = parseInt(val) || 1;
 };
 
 // Checkbox: in Anmeldung sichtbar
