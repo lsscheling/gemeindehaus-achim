@@ -348,15 +348,27 @@ function currentKW() {
 
 // ── KW Tabelle ──
 function renderKWTable(meineGruppe) {
-  const cur = currentKW();
-  let html = '<tr><th>Kalenderwoche</th><th>Aktive Gruppen</th></tr>';
+  const now  = new Date();
+  const cur  = currentKW();
+  const fmt  = d => `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.`;
+  let html = '<tr><th>KW</th><th>Aktive Gruppen</th></tr>';
   for (let i = -1; i <= 5; i++) {
-    const kw     = cur + i;
-    const gr     = gruppenFuerKW(kw);
-    const isCur  = i === 0;
-    const aktiv  = meineGruppe && gr.includes(meineGruppe);
-    const kwCell = isCur ? `<span class="kw-badge">KW ${kw}</span> ← jetzt` : `KW ${kw}`;
-    const grCell = gr.map(g => `<span class="${meineGruppe && g===meineGruppe ? 'mine-kw' : ''}"">Gr. ${g}</span>`).join(' &amp; ');
+    const kw    = cur + i;
+    const year  = now.getFullYear();
+    const mon   = kwToMonday(year, kw);
+    const sun   = new Date(mon); sun.setDate(mon.getDate() + 6);
+    const dates = `<span style="color:var(--text-muted);font-size:10px"> (${fmt(mon)}–${fmt(sun)})</span>`;
+    const gr    = gruppenFuerKW(kw);
+    const isCur = i === 0;
+    const aktiv = meineGruppe && gr.includes(meineGruppe);
+    const kwCell = isCur
+      ? `<span class="kw-badge">KW ${kw}</span>${dates} ← jetzt`
+      : `KW ${kw}${dates}`;
+    const grCell = [1,2,3].map(g => {
+      const active = gr.includes(g);
+      const mine   = meineGruppe && g === meineGruppe;
+      return `<span style="font-weight:${mine?'700':'500'};color:${active?(mine?'var(--mine)':'var(--ink)'):'var(--clay-light)'}">${g}</span>`;
+    }).join(' &nbsp; ');
     const rowStyle = (!aktiv && meineGruppe) ? ' style="opacity:.4"' : '';
     html += `<tr class="${isCur ? 'cur' : ''}"${rowStyle}><td>${kwCell}</td><td>${grCell}</td></tr>`;
   }
