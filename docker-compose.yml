@@ -5,7 +5,7 @@ services:
     image: nginx:alpine
     container_name: gemeindehaus_nginx
     ports:
-      - "80:80"  # Passe dies an, falls Port 80 bereits belegt ist auf Proxmox (z.B. "8080:80")
+      - "8080:80"  # Port 80 war belegt, nutzen wir 8080
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./:/usr/share/nginx/html:ro  # Gesamtes Verzeichnis laden (Backend & Co. wird via nginx.conf blockiert)
