@@ -1327,11 +1327,14 @@ async function loadUserData() {
     };
 
     // Meine Einsätze: eigene Gruppe-Bars + persönliche Anmeldungen aus "Helfer benötigt"
-    (function renderMeineEinsaetze() {
-      // Pro Tag alle relevanten Bars sammeln:
-      // (a) Gruppe aktiv + Gewerk gehört zum User + bedarf gesetzt
-      // (b) User hat sich persönlich angemeldet (unabhängig von Gruppe)
-      const dayMap = {}; // iso → { date, kwNum, bars: Set von bar-Refs }
+    window._renderMeineEinsaetze = function renderMeineEinsaetze() {
+      if (!allKWList.length) {
+        einsaetzeBody.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
+        return;
+      }
+
+      // Pro Tag Bars sammeln: (a) Gruppe-Bars mit Bedarf, (b) persönliche Anmeldungen
+      const dayMap = {}; // iso → { date, kwNum, bars[] }
       alleTage.forEach(({ iso, date, bars: dayBars, kwNum }) => {
         const kn = kwNum || isoWeek(date);
         const gruppeAktiv = gruppe && gruppeAktivInKW(gruppe, kn);
@@ -1347,18 +1350,9 @@ async function loadUserData() {
         });
       });
 
-      const days = Object.values(dayMap).sort((a, b) => a.date - b.date);
-      if (!days.length) {
-        einsaetzeBody.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
-        return;
-      }
-
-      let html = '', lastKW = '';
-      days.forEach(({ iso, date, kwNum, bars: dayBars }) => {
-        const kw = 'KW ' + String(isoWeek(date)).padStart(2,'0');
-        if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
-        html += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">`;
-        html += `<span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>`;
+      const renderChips = (iso, date, dayBars) => {
+        let h = `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">`;
+        h += `<span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>`;
         dayBars.forEach(bar => {
           const gw     = gewerkeMap[bar.gewerkId];
           const name   = gw?.name || bar.gewerkId;
@@ -1369,17 +1363,43 @@ async function loadUserData() {
           const isMine = gewerke.includes(bar.gewerkId);
           const chipId = `chip-e-${docId}`;
           const badgeId= `bdg-e-${docId}`;
-          html += `<div class="einsatz-chip${isMine?' mine':''}${istAn?' signed':''}" id="${chipId}"
+          h += `<div class="einsatz-chip${isMine?' mine':''}${istAn?' signed':''}" id="${chipId}"
             onclick="window._anmelden('${iso}','${bar.gewerkId}','${chipId}','${badgeId}')">
             <span class="chip-name">${name}</span>
             <span id="${badgeId}" style="font-size:10px;font-weight:700;color:inherit;opacity:.75">${bedarfBadgeMine(count,rec.bedarf)}</span>
             <span class="chip-state">${istAn?'✓':'+'}</span>
           </div>`;
         });
-        html += `</div>`;
+        return h + `</div>`;
+      };
+
+      let html = '';
+      allKWList.forEach(({ kwNum, kwStr }) => {
+        const gruppeAktiv = gruppe && gruppeAktivInKW(gruppe, kwNum);
+        // Alle Tage dieser KW mit relevanten Bars
+        const tageInKW = alleTage
+          .filter(t => (t.kwNum || isoWeek(t.date)) === kwNum && dayMap[t.iso])
+          .sort((a, b) => a.date - b.date);
+
+        if (!gruppeAktiv && !tageInKW.length) {
+          // Freie Woche ohne persönliche Anmeldungen
+          html += `<div class="kw-sep">${kwStr}</div>`;
+          html += `<div style="color:var(--text-muted);font-size:12px;padding:3px 2px 10px;font-style:italic">In dieser Woche ist deine Gruppe nicht geplant</div>`;
+        } else if (!gruppeAktiv && tageInKW.length) {
+          // Freie Woche, aber persönliche Anmeldungen vorhanden
+          html += `<div class="kw-sep">${kwStr}</div>`;
+          html += `<div style="color:var(--text-muted);font-size:12px;padding:3px 2px 6px;font-style:italic">In dieser Woche ist deine Gruppe nicht geplant</div>`;
+          tageInKW.forEach(({ iso, date }) => html += renderChips(iso, date, dayMap[iso].bars));
+        } else if (tageInKW.length) {
+          // Aktive Woche mit Einträgen
+          html += `<div class="kw-sep">${kwStr}</div>`;
+          tageInKW.forEach(({ iso, date }) => html += renderChips(iso, date, dayMap[iso].bars));
+        }
+        // Aktive Woche ohne Einträge: KW komplett weglassen
       });
-      einsaetzeBody.innerHTML = html;
-    })();
+      einsaetzeBody.innerHTML = html || '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
+    };
+    window._renderMeineEinsaetze();
     renderRows(alleTage,  document.getElementById('helfer-body'), false);
 
   } catch(e) {
