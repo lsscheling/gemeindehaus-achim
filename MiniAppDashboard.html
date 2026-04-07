@@ -119,6 +119,10 @@
   .section-title { font-size: 11px; font-weight: 700; color: var(--clay); letter-spacing: .6px; text-transform: uppercase; margin: 16px 0 8px; display: flex; align-items: center; gap: 6px; }
   .section-title:first-child { margin-top: 0; }
   .section-title::after { content: ''; flex: 1; height: 1px; background: var(--clay-pale); }
+  .search-wrap { margin-bottom: 12px; }
+  .search-input { width: 100%; box-sizing: border-box; padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--clay-pale); background: var(--white); font-size: 13px; color: var(--text-main); outline: none; }
+  .search-input:focus { border-color: var(--clay); }
+  .search-input::placeholder { color: var(--text-muted); }
   .contact-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--white); border-radius: 12px; margin-bottom: 8px; box-shadow: var(--shadow-sm); }
   .contact-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--clay-pale); color: var(--clay-dark); display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; flex-shrink: 0; }
   .contact-avatar.lead { background: var(--clay); color: var(--white); }
@@ -266,6 +270,9 @@
 
 <!-- ══════════ INFOS ══════════ -->
 <div class="view" id="view-infos">
+  <div class="search-wrap">
+    <input type="search" id="infos-search" class="search-input" placeholder="Name, Rolle oder Gewerk …" oninput="filterContacts(this.value)">
+  </div>
   <div id="teamleiter-list"><div style="color:var(--text-muted);font-size:13px;padding:8px 0">Wird geladen …</div></div>
 </div>
 
@@ -667,6 +674,38 @@ function contactRow(d, roleLabel, isLast) {
   </div>`;
 }
 
+// Stored contact data for filtering
+let _contactItems = []; // { d, roleLabel, section }
+
+function renderContactList(items) {
+  const list = document.getElementById('teamleiter-list');
+  if (!items.length) {
+    list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Treffer.</div>';
+    return;
+  }
+  let html = '';
+  let lastSection = null;
+  items.forEach(({ d, roleLabel, section }) => {
+    if (section !== lastSection) {
+      if (lastSection !== null) html += '<div style="height:4px"></div>';
+      html += `<div class="kw-sep" style="${lastSection === null ? 'margin-top:0' : 'margin-top:10px'}">${section}</div>`;
+      lastSection = section;
+    }
+    html += contactRow(d, roleLabel, false);
+  });
+  list.innerHTML = html;
+}
+
+window.filterContacts = function(q) {
+  if (!q.trim()) { renderContactList(_contactItems); return; }
+  const lq = q.toLowerCase();
+  const filtered = _contactItems.filter(({ d, roleLabel, section }) => {
+    const name = ((d.vorname || '') + ' ' + (d.nachname || '')).toLowerCase();
+    return name.includes(lq) || roleLabel.toLowerCase().includes(lq) || section.toLowerCase().includes(lq);
+  });
+  renderContactList(filtered);
+};
+
 async function loadTeamleiter() {
   const list = document.getElementById('teamleiter-list');
   try {
@@ -689,23 +728,22 @@ async function loadTeamleiter() {
       .filter(d => d.rolle === 'teamleiter')
       .sort((a, b) => (a.nachname || '').localeCompare(b.nachname || '', 'de') || (a.vorname || '').localeCompare(b.vorname || '', 'de'));
 
-    let html = '';
+    _contactItems = [];
 
-    // Sonderrollen-Block
     sonder.forEach(d => {
-      html += contactRow(d, SONDERROLLEN_LABELS[d.sonderrolle] || d.sonderrolle, false);
+      _contactItems.push({ d, roleLabel: SONDERROLLEN_LABELS[d.sonderrolle] || d.sonderrolle, section: 'Organisation' });
     });
 
-    // Abschnitt Gewerke (nur wenn es Teamleiter gibt)
-    if (teamleiter.length) {
-      if (sonder.length) html += `<div class="kw-sep" style="margin-top:14px">Gewerke</div>`;
-      teamleiter.forEach((d, i) => {
-        const gwLabel = (d.teamleiterGewerke || []).map(id => gewerkeMap[id] || id).join(' & ') || 'Teamleiter';
-        html += contactRow(d, gwLabel, i === teamleiter.length - 1);
-      });
-    }
+    teamleiter.forEach(d => {
+      const gwLabel = (d.teamleiterGewerke || []).map(id => gewerkeMap[id] || id).join(' & ') || 'Teamleiter';
+      _contactItems.push({ d, roleLabel: gwLabel, section: 'Gewerke' });
+    });
 
-    list.innerHTML = html || '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
+    if (!_contactItems.length) {
+      list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
+      return;
+    }
+    renderContactList(_contactItems);
   } catch(e) {
     list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Fehler beim Laden.</div>';
     console.error(e);
