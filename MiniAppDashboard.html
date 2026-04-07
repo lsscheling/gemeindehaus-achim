@@ -1123,15 +1123,15 @@ async function loadUserData() {
 
       const bkMap = {};
       await Promise.all(bkDates.map(async ({ iso }) => {
-        const snap = await getDoc(doc(db, 'baukuecheAnmeldungen', iso));
+        const snap = await getDoc(doc(db, 'einsatzAnmeldungen', `${iso}_baukueche`));
         bkMap[iso] = snap.exists() ? (snap.data().angemeldete || {}) : {};
       }));
 
       window._bkAnmelden = async (iso, btnId, cntId) => {
-        const ref   = doc(db, 'baukuecheAnmeldungen', iso);
+        const ref   = doc(db, 'einsatzAnmeldungen', `${iso}_baukueche`);
         const entry = bkMap[iso] || {};
         if (entry[bkMyId]) delete entry[bkMyId]; else entry[bkMyId] = bkMyName;
-        await setDoc(ref, { date: iso, angemeldete: entry }, { merge: true });
+        await setDoc(ref, { date: iso, gewerkId: 'baukueche', angemeldete: entry }, { merge: true });
         bkMap[iso] = entry;
         const count = Object.keys(entry).length;
         const btn = document.getElementById(btnId);
