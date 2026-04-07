@@ -744,6 +744,7 @@ loadOrga();
 
 // ── Helpers ──
 function parseLocalDate(str) {
+  if (!str || typeof str !== 'string') return null;
   const p = str.split('-');
   return new Date(+p[0], +p[1]-1, +p[2]);
 }
@@ -871,7 +872,7 @@ async function loadUserData() {
           const iso2 = `${cur2.getFullYear()}-${String(cur2.getMonth()+1).padStart(2,'0')}-${String(cur2.getDate()).padStart(2,'0')}`;
           const dayBars2 = relevantBars.filter(b => {
             const s = parseLocalDate(b.start), e = parseLocalDate(b.end);
-            return cur2 >= s && cur2 <= e;
+            return s && e && cur2 >= s && cur2 <= e;
           });
           if (dayBars2.length) tage.push({ iso: iso2, date: new Date(cur2), bars: dayBars2 });
         }
@@ -1113,7 +1114,7 @@ async function loadUserData() {
         const meineTagBars = [], alleTagBars = [];
         allBars.forEach(bar => {
           const s = parseLocalDate(bar.start), e = parseLocalDate(bar.end);
-          if (cur < s || cur > e) return;
+          if (!s || !e || cur < s || cur > e) return;
           if (gruppeAktivInKW(gruppe, kw) && gewerke.includes(bar.gewerkId)) meineTagBars.push(bar);
           alleTagBars.push(bar);
         });
@@ -1188,8 +1189,8 @@ async function loadUserData() {
 
         const kw = 'KW ' + String(isoWeek(date)).padStart(2,'0');
         if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
-        html += `<div style="font-size:11px;font-weight:600;color:var(--clay-dark);margin:2px 0 5px;padding-left:2px">${WD[date.getDay()]}, ${fmtDateDE(date)}</div>`;
-        html += `<div class="einsatz-chips">`;
+        html += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">`;
+        html += `<span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>`;
 
         visibleBars.forEach(bar => {
           const gw     = gewerkeMap[bar.gewerkId];
@@ -1278,7 +1279,7 @@ async function loadUserData() {
     renderRows(alleTage,  document.getElementById('helfer-body'), false);
 
   } catch(e) {
-    einsaetzeBody.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Fehler beim Laden.</div>';
+    einsaetzeBody.innerHTML = `<div style="color:var(--text-muted);font-size:13px">Fehler beim Laden: ${e.message}</div>`;
     console.error(e);
   }
 }
