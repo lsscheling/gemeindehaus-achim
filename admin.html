@@ -1611,7 +1611,7 @@ window.renderGemeindePanel = function() {
     list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px 0">Noch keine Gemeinden angelegt.</div>';
     return;
   }
-  list.innerHTML = gemeindeKonfig.map(g => {
+  list.innerHTML = [...gemeindeKonfig].sort((a,b) => a.name.localeCompare(b.name,'de')).map(g => {
     const count = allDocs.filter(d => d.gemeinde === g.id).length;
     return `<div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:12px">
       <div style="flex:1;font-size:14px;font-weight:400">${g.name}</div>
