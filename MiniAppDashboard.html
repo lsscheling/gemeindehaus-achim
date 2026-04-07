@@ -1107,8 +1107,6 @@ async function loadUserData() {
     // ── Bauküche-Tab ──
     if (userDoc?.admin === true || userDoc?.sonderrolle === 'bauküche') {
       document.getElementById('nav-bk').style.display = '';
-      const bkMyId   = String(tgId);
-      const bkMyName = ((userDoc.vorname||'') + ' ' + (userDoc.nachname||'')).trim() || 'Unbekannt';
 
       const bkToday = new Date(); bkToday.setHours(0,0,0,0);
       const bkIn14  = new Date(bkToday); bkIn14.setDate(bkIn14.getDate() + 14);
@@ -1116,54 +1114,41 @@ async function loadUserData() {
       const bkCur   = new Date(bkToday);
       while (bkCur <= bkIn14) {
         if (bkCur.getDay() !== 0) {
-          bkDates.push({ iso: dateToISO(bkCur), date: new Date(bkCur) });
+          const iso     = dateToISO(bkCur);
+          const dayBars = allBars.filter(bar => {
+            const s = parseLocalDate(bar.start), e = parseLocalDate(bar.end);
+            return s && e && bkCur >= s && bkCur <= e;
+          });
+          bkDates.push({ iso, date: new Date(bkCur), bars: dayBars });
         }
         bkCur.setDate(bkCur.getDate() + 1);
       }
 
-      const bkMap = {};
-      await Promise.all(bkDates.map(async ({ iso }) => {
-        const snap = await getDoc(doc(db, 'einsatzAnmeldungen', `${iso}_baukueche`));
-        bkMap[iso] = snap.exists() ? (snap.data().angemeldete || {}) : {};
+      // Alle relevanten einsatzAnmeldungen-Dokumente laden
+      const bkDocIds = new Set();
+      bkDates.forEach(({ iso, bars }) => bars.forEach(b => bkDocIds.add(`${iso}_${b.gewerkId}`)));
+      const bkAnmMap = {};
+      await Promise.all([...bkDocIds].map(async docId => {
+        const snap = await getDoc(doc(db, 'einsatzAnmeldungen', docId));
+        bkAnmMap[docId] = snap.exists() ? (snap.data().angemeldete || {}) : {};
       }));
-
-      window._bkAnmelden = async (iso, btnId, cntId) => {
-        const ref   = doc(db, 'einsatzAnmeldungen', `${iso}_baukueche`);
-        const entry = bkMap[iso] || {};
-        if (entry[bkMyId]) delete entry[bkMyId]; else entry[bkMyId] = bkMyName;
-        await setDoc(ref, { date: iso, gewerkId: 'baukueche', angemeldete: entry }, { merge: true });
-        bkMap[iso] = entry;
-        const count = Object.keys(entry).length;
-        const btn = document.getElementById(btnId);
-        const cnt = document.getElementById(cntId);
-        if (btn) {
-          btn.classList.toggle('signed', !!entry[bkMyId]);
-          btn.querySelector('.chip-state').textContent = entry[bkMyId] ? '✓' : '+';
-          btn.querySelector('.chip-name').textContent  = entry[bkMyId] ? 'Angemeldet' : 'Anmelden';
-        }
-        if (cnt) cnt.textContent = count + (count === 1 ? ' Person' : ' Personen');
-      };
 
       const WD_BK = ['So','Mo','Di','Mi','Do','Fr','Sa'];
       let bkHtml = '', bkLastKW = '';
-      bkDates.forEach(({ iso, date }) => {
+      bkDates.forEach(({ iso, date, bars }) => {
         const kw = 'KW ' + String(isoWeek(date)).padStart(2,'0');
         if (kw !== bkLastKW) { bkHtml += `<div class="kw-sep">${kw}</div>`; bkLastKW = kw; }
-        const entry = bkMap[iso] || {};
-        const count = Object.keys(entry).length;
-        const istAn = !!entry[bkMyId];
-        const btnId = `bk-btn-${iso}`;
-        const cntId = `bk-cnt-${iso}`;
-        bkHtml += `
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-            <span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD_BK[date.getDay()]}, ${fmtDateDE(date)}</span>
-            <span id="${cntId}" style="font-size:11px;color:var(--text-muted)">${count} ${count === 1 ? 'Person' : 'Personen'}</span>
-            <div class="einsatz-chip${istAn?' signed':''}" id="${btnId}"
-              onclick="window._bkAnmelden('${iso}','${btnId}','${cntId}')">
-              <span class="chip-name">${istAn ? 'Angemeldet' : 'Anmelden'}</span>
-              <span class="chip-state">${istAn ? '✓' : '+'}</span>
-            </div>
-          </div>`;
+        // Unique User-IDs über alle Gewerke dieses Tages
+        const uniqueIds = new Set();
+        bars.forEach(bar => {
+          Object.keys(bkAnmMap[`${iso}_${bar.gewerkId}`] || {}).forEach(id => uniqueIds.add(id));
+        });
+        const count = uniqueIds.size;
+        bkHtml += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD_BK[date.getDay()]}, ${fmtDateDE(date)}</span>
+          <span style="font-size:20px;font-weight:700;color:var(--text);min-width:28px;text-align:right">${count}</span>
+          <span style="font-size:11px;color:var(--text-muted)">${count === 1 ? 'Person' : 'Personen'}</span>
+        </div>`;
       });
       document.getElementById('bk-body').innerHTML = bkHtml || '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
     }
