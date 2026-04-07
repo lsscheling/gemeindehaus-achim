@@ -728,28 +728,21 @@ async function loadTeamleiter() {
 
     const alle = allSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    // Sonderrollen in definierter Reihenfolge (keine Admins)
-    const sonder = alle
-      .filter(d => !d.admin && d.sonderrolle && SONDERROLLEN_ORDER.includes(d.sonderrolle))
-      .sort((a, b) => SONDERROLLEN_ORDER.indexOf(a.sonderrolle) - SONDERROLLEN_ORDER.indexOf(b.sonderrolle));
+    // Alle Personen mit Teamleiter-Rolle oder Sonderrolle
+    const relevant = alle.filter(d =>
+      d.rolle === 'teamleiter' || (d.sonderrolle && SONDERROLLEN_ORDER.includes(d.sonderrolle))
+    );
 
-    // Teamleiter alphabetisch nach Nachname (keine Admins)
-    const teamleiter = alle
-      .filter(d => !d.admin && d.rolle === 'teamleiter')
-      .sort((a, b) => (a.nachname || '').localeCompare(b.nachname || '', 'de') || (a.vorname || '').localeCompare(b.vorname || '', 'de'));
-
-    _contactItems = [];
-    const seen = new Set();
-
-    sonder.forEach(d => {
-      seen.add(d.id);
-      _contactItems.push({ d, roleLabel: SONDERROLLEN_LABELS[d.sonderrolle] || d.sonderrolle });
-    });
-
-    teamleiter.forEach(d => {
-      if (seen.has(d.id)) return; // bereits durch Sonderrolle erfasst
-      const gwLabel = (d.teamleiterGewerke || []).map(id => gewerkeMap[id] || id).join(' & ') || 'Teamleiter';
-      _contactItems.push({ d, roleLabel: gwLabel });
+    _contactItems = relevant.map(d => {
+      const parts = [];
+      if (d.sonderrolle && SONDERROLLEN_LABELS[d.sonderrolle])
+        parts.push(SONDERROLLEN_LABELS[d.sonderrolle]);
+      if (d.rolle === 'teamleiter') {
+        const gwLabel = (d.teamleiterGewerke || []).map(id => gewerkeMap[id] || id).join(', ');
+        if (gwLabel) parts.push(gwLabel);
+        else if (!parts.length) parts.push('Teamleiter');
+      }
+      return { d, roleLabel: parts.join(', ') };
     });
 
     _contactItems.sort((a, b) =>
