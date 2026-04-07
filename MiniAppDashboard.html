@@ -271,7 +271,7 @@
 <!-- ══════════ INFOS ══════════ -->
 <div class="view" id="view-infos">
   <div class="search-wrap">
-    <input type="search" id="infos-search" class="search-input" placeholder="Name, Rolle oder Gewerk …" oninput="filterContacts(this.value)">
+    <input type="search" id="infos-search" class="search-input" placeholder="🔍  Name, Rolle oder Gewerk …" oninput="filterContacts(this.value)" onkeydown="if(event.key==='Enter')this.blur()" onclick="this.focus()">
   </div>
   <div id="teamleiter-list"><div style="color:var(--text-muted);font-size:13px;padding:8px 0">Wird geladen …</div></div>
 </div>
@@ -703,25 +703,15 @@ function renderContactList(items) {
     list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Treffer.</div>';
     return;
   }
-  let html = '';
-  let lastSection = null;
-  items.forEach(({ d, roleLabel, section }) => {
-    if (section !== lastSection) {
-      if (lastSection !== null) html += '<div style="height:4px"></div>';
-      html += `<div class="kw-sep" style="${lastSection === null ? 'margin-top:0' : 'margin-top:10px'}">${section}</div>`;
-      lastSection = section;
-    }
-    html += contactRow(d, roleLabel, false);
-  });
-  list.innerHTML = html;
+  list.innerHTML = items.map(({ d, roleLabel }) => contactRow(d, roleLabel, false)).join('');
 }
 
 window.filterContacts = function(q) {
   if (!q.trim()) { renderContactList(_contactItems); return; }
   const lq = q.toLowerCase();
-  const filtered = _contactItems.filter(({ d, roleLabel, section }) => {
+  const filtered = _contactItems.filter(({ d, roleLabel }) => {
     const name = ((d.vorname || '') + ' ' + (d.nachname || '')).toLowerCase();
-    return name.includes(lq) || roleLabel.toLowerCase().includes(lq) || section.toLowerCase().includes(lq);
+    return name.includes(lq) || roleLabel.toLowerCase().includes(lq);
   });
   renderContactList(filtered);
 };
@@ -751,13 +741,18 @@ async function loadTeamleiter() {
     _contactItems = [];
 
     sonder.forEach(d => {
-      _contactItems.push({ d, roleLabel: SONDERROLLEN_LABELS[d.sonderrolle] || d.sonderrolle, section: 'Organisation' });
+      _contactItems.push({ d, roleLabel: SONDERROLLEN_LABELS[d.sonderrolle] || d.sonderrolle });
     });
 
     teamleiter.forEach(d => {
       const gwLabel = (d.teamleiterGewerke || []).map(id => gewerkeMap[id] || id).join(' & ') || 'Teamleiter';
-      _contactItems.push({ d, roleLabel: gwLabel, section: 'Gewerke' });
+      _contactItems.push({ d, roleLabel: gwLabel });
     });
+
+    _contactItems.sort((a, b) =>
+      (a.d.nachname || '').localeCompare(b.d.nachname || '', 'de') ||
+      (a.d.vorname  || '').localeCompare(b.d.vorname  || '', 'de')
+    );
 
     if (!_contactItems.length) {
       list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
