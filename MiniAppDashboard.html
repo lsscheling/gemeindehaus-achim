@@ -212,6 +212,7 @@
 <nav class="nav">
   <button class="nav-btn active" onclick="showView('dashboard',this)">Dashboard</button>
   <button class="nav-btn" onclick="showView('infos',this)">Ansprechpartner</button>
+  <button class="nav-btn" id="nav-bk"  style="display:none" onclick="showView('baukueche',this)">Bauküche</button>
   <button class="nav-btn" id="nav-tl"  style="display:none" onclick="showView('teamleiter',this)">Teamleiter</button>
   <button class="nav-btn" id="nav-adm" style="display:none" onclick="showView('admin',this)">Admin</button>
   <button class="help-btn" onclick="openHelp()">?</button>
@@ -266,6 +267,11 @@
 <!-- ══════════ INFOS ══════════ -->
 <div class="view" id="view-infos">
   <div id="teamleiter-list"><div style="color:var(--text-muted);font-size:13px;padding:8px 0">Wird geladen …</div></div>
+</div>
+
+<!-- ══════════ BAUKÜCHE VIEW ══════════ -->
+<div class="view" id="view-baukueche">
+  <div id="bk-body"><div style="color:var(--text-muted);font-size:13px">Wird geladen …</div></div>
 </div>
 
 <!-- ══════════ TEAMLEITER VIEW ══════════ -->
@@ -1096,6 +1102,80 @@ async function loadUserData() {
         ${renderBedarfCards('adm', admGewerke, admTage, admAnmMap)}
       `;
       window._renderAdmNews();
+    }
+
+    // ── Bauküche-Tab ──
+    if (tgId && userDoc) {
+      document.getElementById('nav-bk').style.display = '';
+      const bkMyId   = String(tgId);
+      const bkMyName = ((userDoc.vorname||'') + ' ' + (userDoc.nachname||'')).trim() || 'Unbekannt';
+
+      const bkToday = new Date(); bkToday.setHours(0,0,0,0);
+      const bkIn14  = new Date(bkToday); bkIn14.setDate(bkIn14.getDate() + 14);
+      const bkDates = [];
+      const bkCur   = new Date(bkToday);
+      while (bkCur <= bkIn14) {
+        if (bkCur.getDay() !== 0) {
+          bkDates.push({ iso: dateToISO(bkCur), date: new Date(bkCur) });
+        }
+        bkCur.setDate(bkCur.getDate() + 1);
+      }
+
+      const bkMap = {};
+      await Promise.all(bkDates.map(async ({ iso }) => {
+        const snap = await getDoc(doc(db, 'baukuecheAnmeldungen', iso));
+        bkMap[iso] = snap.exists() ? (snap.data().angemeldete || {}) : {};
+      }));
+
+      window._bkAnmelden = async (iso, btnId, cntId) => {
+        const ref   = doc(db, 'baukuecheAnmeldungen', iso);
+        const entry = bkMap[iso] || {};
+        if (entry[bkMyId]) delete entry[bkMyId]; else entry[bkMyId] = bkMyName;
+        await setDoc(ref, { date: iso, angemeldete: entry }, { merge: true });
+        bkMap[iso] = entry;
+        const count = Object.keys(entry).length;
+        const btn = document.getElementById(btnId);
+        const cnt = document.getElementById(cntId);
+        if (btn) {
+          btn.classList.toggle('signed', !!entry[bkMyId]);
+          btn.querySelector('.chip-state').textContent = entry[bkMyId] ? '✓' : '+';
+          btn.querySelector('.chip-name').textContent  = entry[bkMyId] ? 'Angemeldet' : 'Anmelden';
+        }
+        if (cnt) cnt.textContent = count + (count === 1 ? ' Person' : ' Personen');
+        const nameEl = document.getElementById('bk-names-' + iso);
+        if (nameEl) nameEl.innerHTML = Object.values(entry).map(n =>
+          `<span style="font-size:11px;background:var(--clay-pale);color:var(--clay-dark);border-radius:6px;padding:2px 7px">${n}</span>`
+        ).join('');
+      };
+
+      const WD_BK = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+      let bkHtml = '', bkLastKW = '';
+      bkDates.forEach(({ iso, date }) => {
+        const kw = 'KW ' + String(isoWeek(date)).padStart(2,'0');
+        if (kw !== bkLastKW) { bkHtml += `<div class="kw-sep">${kw}</div>`; bkLastKW = kw; }
+        const entry = bkMap[iso] || {};
+        const count = Object.keys(entry).length;
+        const istAn = !!entry[bkMyId];
+        const btnId = `bk-btn-${iso}`;
+        const cntId = `bk-cnt-${iso}`;
+        const names = Object.values(entry);
+        bkHtml += `
+          <div style="margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD_BK[date.getDay()]}, ${fmtDateDE(date)}</span>
+              <span id="${cntId}" style="font-size:11px;color:var(--text-muted)">${count} ${count === 1 ? 'Person' : 'Personen'}</span>
+              <div class="einsatz-chip${istAn?' signed':''}" id="${btnId}"
+                onclick="window._bkAnmelden('${iso}','${btnId}','${cntId}')">
+                <span class="chip-name">${istAn ? 'Angemeldet' : 'Anmelden'}</span>
+                <span class="chip-state">${istAn ? '✓' : '+'}</span>
+              </div>
+            </div>
+            <div id="bk-names-${iso}" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;padding-left:60px">
+              ${names.map(n => `<span style="font-size:11px;background:var(--clay-pale);color:var(--clay-dark);border-radius:6px;padding:2px 7px">${n}</span>`).join('')}
+            </div>
+          </div>`;
+      });
+      document.getElementById('bk-body').innerHTML = bkHtml || '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
     }
 
     // ── Meine Einsätze ──
