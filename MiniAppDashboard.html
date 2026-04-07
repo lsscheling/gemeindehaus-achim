@@ -653,8 +653,8 @@ function bedarfBadgeMine(count, bedarf) {
   return `<span class="need-badge">${count}/${bedarf}</span>`;
 }
 
-const SONDERROLLEN_ORDER  = ['bauleitung', 'bauküche', 'sicherheitsbeauftragter'];
-const SONDERROLLEN_LABELS = { bauleitung: 'Bauleitung', 'bauküche': 'Bau-Küche', sicherheitsbeauftragter: 'Sicherheitsbeauftragter' };
+const SONDERROLLEN_ORDER  = ['organisation', 'bauleitung', 'bauküche', 'sicherheitsbeauftragter'];
+const SONDERROLLEN_LABELS = { organisation: 'Organisation', bauleitung: 'Bauleitung', 'bauküche': 'Bau-Küche', sicherheitsbeauftragter: 'Sicherheitsbeauftragter' };
 
 function contactRow(d, roleLabel, isLast) {
   const ini    = initials(d.vorname, d.nachname);
@@ -755,7 +755,7 @@ loadTeamleiter();
 async function loadOrga() {
   const list = document.getElementById('orga-list');
   try {
-    const snap = await getDocs(query(collection(db, 'anmeldungen'), where('admin', '==', true)));
+    const snap = await getDocs(query(collection(db, 'anmeldungen'), where('sonderrolle', '==', 'organisation')));
     const admins = snap.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (a.nachname || '').localeCompare(b.nachname || '', 'de') || (a.vorname || '').localeCompare(b.vorname || '', 'de'));
