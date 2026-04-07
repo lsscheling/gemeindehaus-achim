@@ -341,6 +341,26 @@ async function saveDraft() {
 }
 
 async function saveTabAndGo(fromTabId, toTabId, toIdx) {
+  if (fromTabId === 'person') {
+    var required = [
+      document.getElementById('f-vorname'),
+      document.getElementById('f-nachname'),
+      document.getElementById('f-telefon')
+    ];
+    var hasError = false;
+    required.forEach(function(el) {
+      if (!el.value.trim()) {
+        el.classList.add('error');
+        el.addEventListener('input', function() { el.classList.remove('error'); }, { once: true });
+        hasError = true;
+      }
+    });
+    if (hasError) { showToast('Bitte alle Pflichtfelder ausfüllen.', 'error'); return; }
+    if (!document.querySelector('input[name="gemeinde"]:checked')) {
+      showToast('Bitte eine Gemeinde auswählen.', 'error');
+      return;
+    }
+  }
   await saveDraft();
   switchTab(toTabId, toIdx);
 }
