@@ -494,7 +494,7 @@ async function doLogin() {
   if (!email || !pw) { errEl.textContent = 'Bitte E-Mail und Passwort eingeben.'; errEl.style.display = 'block'; return; }
   
   try {
-    const res = await fetch('/api/auth/admin', {
+    const res = await fetch('http://localhost:3000/api/auth/admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password: pw })

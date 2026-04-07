@@ -181,6 +181,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
             <span>Da unter der Woche auch vormittags gearbeitet wird, ist diese Information in der Organisation hilfreich.</span>
           </span>
         </label>
+        <div class="divider"></div>
+        <div class="section-title">Gemeinde</div>
+        <div class="checkbox-grid" style="grid-template-columns: 1fr;" id="gemeinde-grid">
+          <div class="gewerk-loading">Gemeinden werden geladen …</div>
+        </div>
         <div class="btn-row">
           <span></span>
           <button type="button" class="submit-btn" style="background:var(--accent)" onclick="saveTabAndGo('person','gewerk',1)">Weiter →</button>
@@ -284,10 +289,15 @@ function collectPayload() {
     var el = document.getElementById('level-val-' + g);
     erfahrung[g] = el ? (el.value || '') : '';
   });
+  var gemeindeEl = document.querySelector('input[name="gemeinde"]:checked');
+  var tgUser = getCurrentTelegramUser();
+  
   return {
     vorname: document.getElementById('f-vorname').value || '',
     nachname: document.getElementById('f-nachname').value || '',
     telefon: document.getElementById('f-telefon').value || '',
+    gemeinde: gemeindeEl ? gemeindeEl.value : '',
+    telegram_username: tgUser && tgUser.username ? tgUser.username : null,
     schichtarbeit: document.getElementById('cb-schichtarbeit').checked,
     gewerke: gewerke,
     erfahrung: erfahrung,
@@ -296,6 +306,31 @@ function collectPayload() {
     status: 'angemeldet',
     updatedAt: new Date().toISOString()
   };
+}
+
+// ─────────────────────────────────────────────
+// VALIDATION
+// ─────────────────────────────────────────────
+function validatePersonTab() {
+  var required = [
+    document.getElementById('f-vorname'),
+    document.getElementById('f-nachname'),
+    document.getElementById('f-telefon')
+  ];
+  var hasError = false;
+  required.forEach(function(el) {
+    if (!el.value.trim()) {
+      el.classList.add('error');
+      el.addEventListener('input', function() { el.classList.remove('error'); }, { once: true });
+      hasError = true;
+    }
+  });
+  if (hasError) { showToast('Bitte alle Pflichtfelder ausfüllen.', 'error'); return false; }
+  if (!document.querySelector('input[name="gemeinde"]:checked')) {
+    showToast('Bitte eine Gemeinde auswählen.', 'error');
+    return false;
+  }
+  return true;
 }
 
 // ─────────────────────────────────────────────
@@ -315,6 +350,7 @@ async function saveDraft() {
 }
 
 async function saveTabAndGo(fromTabId, toTabId, toIdx) {
+  if (!validatePersonTab()) return;
   await saveDraft();
   switchTab(toTabId, toIdx);
 }
@@ -503,7 +539,7 @@ async function handleSubmit(e) {
 </script>
 
 <script type="module">
-import { apiFetch, authenticateWithTelegram } from "./js/api.js";
+import { apiFetch, authenticateWithTelegram, getCurrentTelegramUser } from "./js/api.js";
 
 // ── Save / upsert Anmeldung ──
 // Wir senden es einfach als POST, unser Backend kümmert sich um Einfügen / Überschreiben
@@ -518,6 +554,38 @@ window._saveAnmeldung = async function(payload) {
     console.warn('Fehler beim Autosave via API', e);
   }
 };
+
+// ── Load Gemeinden ──
+function buildGemeindenGrid(gemeinden) {
+  var grid = document.getElementById('gemeinde-grid');
+  grid.innerHTML = '';
+  if (!gemeinden || gemeinden.length === 0) {
+    grid.innerHTML = '<div class="gewerk-error">Keine Gemeinden verfügbar.</div>';
+    return;
+  }
+  gemeinden.forEach(function(g) {
+    var label = document.createElement('label');
+    label.className = 'checkbox-item';
+    label.innerHTML =
+      '<input type="radio" name="gemeinde" value="' + g.id + '">' +
+      '<span class="check-box"></span>' +
+      '<span class="check-label">' + g.name + '</span>';
+    grid.appendChild(label);
+  });
+}
+
+async function loadGemeinden() {
+  const container = document.getElementById('gemeinde-grid');
+  container.innerHTML = '<div class="gewerk-loading">Gemeinden werden geladen …</div>';
+  try {
+    const data = await apiFetch('/gemeinden');
+    const gemeinden = data.gemeinden || [];
+    buildGemeindenGrid(gemeinden);
+  } catch (e) {
+    console.error(e);
+    container.innerHTML = '<div class="gewerk-error">Fehler beim Laden der Gemeinden.</div>';
+  }
+}
 
 // ── Load Gewerke ──
 async function loadGewerke() {
@@ -537,6 +605,7 @@ async function loadGewerke() {
 window.addEventListener('DOMContentLoaded', async function() {
   // Sofortige Telegram Auth beim Booten versuchen
   await authenticateWithTelegram();
+  loadGemeinden();
   loadGewerke();
 });
 </script>

@@ -171,9 +171,11 @@ app.post('/api/anmeldung', authenticateToken, async (req, res) => {
     result = await supabase
       .from('users')
       .update({
+        telegram_username: payload.telegram_username || null,
         vorname: payload.vorname,
         nachname: payload.nachname,
         telefon: payload.telefon,
+        gemeinde: payload.gemeinde || null,
         schichtarbeit: payload.schichtarbeit || false,
         gewerke: payload.gewerke || [],
         erfahrung: payload.erfahrung || {},
@@ -190,9 +192,11 @@ app.post('/api/anmeldung', authenticateToken, async (req, res) => {
       .from('users')
       .insert({
         telegram_id: telegram_id,
+        telegram_username: payload.telegram_username || null,
         vorname: payload.vorname,
         nachname: payload.nachname,
         telefon: payload.telefon,
+        gemeinde: payload.gemeinde || null,
         schichtarbeit: payload.schichtarbeit || false,
         gewerke: payload.gewerke || [],
         erfahrung: payload.erfahrung || {},
@@ -217,6 +221,12 @@ app.get('/api/gewerke', async (req, res) => {
   const { data: gewerke } = await supabase.from('gewerke_konfig').select('*').order('sort_order', { ascending: true });
   const { data: levels } = await supabase.from('levels').select('*');
   return res.json({ gewerke: gewerke || [], levels: levels || [] });
+});
+
+// 6. Gemeinden abfragen (öffentlich, für das Formular)
+app.get('/api/gemeinden', async (req, res) => {
+  const { data: gemeinden } = await supabase.from('gemeinden').select('*').eq('active', true).order('sort_order', { ascending: true });
+  return res.json({ gemeinden: gemeinden || [] });
 });
 
 // ==========================================

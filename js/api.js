@@ -1,11 +1,17 @@
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'http://localhost:3000/api';
+
+// Globaler Storage für Telegram-Daten
+let currentTelegramUser = null;
 
 /**
- * Führt einen API Request aus inkl. Authentifizierungstoken aus localStorage.
+ * Gibt den aktuellen Telegram-Benutzer zurück
  */
+export function getCurrentTelegramUser() {
+  return currentTelegramUser;
+}
 export async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem('auth_token');
-  
+
   const headers = {
     'Content-Type': 'application/json',
     ...(options.headers || {})
@@ -37,19 +43,26 @@ export async function authenticateWithTelegram() {
   tg.ready();
 
   const initData = tg.initData;
-  
+
   // Falls wir nicht im Telegram Kontext laufen (also z.B. wenn sich ein Admin direkt im Webbrowser einloggt)
   if (!initData) {
     return false;
   }
 
   try {
+    const urlParams = new URLSearchParams(initData);
+    const userStr = urlParams.get('user');
+    if (userStr) {
+      currentTelegramUser = JSON.parse(userStr);
+      console.log('[API] Telegram User gespeichert:', currentTelegramUser.username || currentTelegramUser.id);
+    }
+
     const res = await fetch(`${API_BASE_URL}/auth/telegram`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ initData })
     });
-    
+
     if (res.ok) {
       const data = await res.json();
       localStorage.setItem('auth_token', data.token); // Wir merken uns den Token!
