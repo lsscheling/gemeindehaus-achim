@@ -6,11 +6,14 @@ function getApiBaseUrl() {
     return 'http://localhost:3000/api';
   }
   // Production: nutze den Server, von dem die Seite geladen wird
-  return `${window.location.protocol}//${window.location.host}/api`;
+  const url = `${window.location.protocol}//${window.location.host}/api`;
+  console.log('[API Config] hostname:', window.location.hostname, 'protocol:', window.location.protocol, 'host:', window.location.host);
+  return url;
 }
 
 const API_BASE_URL = getApiBaseUrl();
-console.log('[API] Base URL:', API_BASE_URL);
+console.log('[API] Base URL ermittelt:', API_BASE_URL);
+console.log('[API] window.location:', window.location.href);
 
 // Globaler Storage für Telegram-Daten
 let currentTelegramUser = null;
