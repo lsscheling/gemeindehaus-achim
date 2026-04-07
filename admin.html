@@ -286,6 +286,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Gantt ↗
     </button>
+    <button class="nav-item" onclick="showPanel('gemeinden')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Gemeinden
+    </button>
   </nav>
   <div style="padding:16px 12px;border-top:1px solid rgba(255,255,255,0.08)" id="sidebar-user-info"></div>
 </div>
@@ -491,6 +495,36 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
   </div>
 </div>
 
+<!-- ══════════════════════════════════════ GEMEINDEN ══ -->
+<div id="panel-gemeinden" class="panel">
+  <div class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+    <div style="flex:1"><div class="topbar-title">Gemeinden</div><div class="topbar-sub">Gemeinden im Anmeldeformular verwalten</div></div>
+    <div class="topbar-actions">
+      <button class="btn btn-accent" onclick="window.showGemeindeForm()">+ Gemeinde hinzufügen</button>
+    </div>
+  </div>
+  <div class="content">
+    <div id="gemeinde-add-form" style="display:none;background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:20px">
+      <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px" id="gemeinde-form-title">Neue Gemeinde</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Name</div>
+          <input id="gemeinde-name-input" type="text" placeholder="z.B. Ev. Gemeinde Achim …"
+            style="width:100%;font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();window.saveGemeinde()}">
+        </div>
+        <input type="hidden" id="gemeinde-edit-id" value="">
+        <button class="btn btn-accent" onclick="window.saveGemeinde()">Speichern</button>
+        <button class="btn btn-outline" onclick="window.hideGemeindeForm()">Abbrechen</button>
+      </div>
+    </div>
+    <div id="gemeinde-list" style="display:flex;flex-direction:column;gap:8px">
+      <div style="color:var(--muted);font-size:13px;padding:12px 0">Wird geladen…</div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 </div><!-- /shell -->
 </div><!-- /app -->
@@ -554,6 +588,7 @@ function showPanel(id) {
   });
   if (id === 'planung') renderPlanungPanel();
   if (id === 'nutzerverwaltung') renderUsersTable();
+  if (id === 'gemeinden') window.renderGemeindePanel && window.renderGemeindePanel();
   closeSidebar();
 }
 function toggleSidebar() {
@@ -1312,6 +1347,7 @@ onAuthStateChanged(auth, async user => {
     info.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${user.email}</div>
       <button onclick="window.doLogout()" style="margin-top:8px;width:100%;padding:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius);color:rgba(255,255,255,0.55);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer">Abmelden</button>`;
     await loadGewerke();
+    await loadGemeindeKonfig();
     loadAnmeldungen();
   } else {
     currentUserRole = null;
@@ -1557,6 +1593,74 @@ window.addGewerkToExisting = function(id) {
 };
 
 window.renderUsersTable = renderUsersTable;
+
+// ── GEMEINDEN ──
+let gemeindeKonfig = [];
+
+async function loadGemeindeKonfig() {
+  try {
+    const snap = await getDoc(doc(db, 'planung', 'gemeindeKonfig'));
+    gemeindeKonfig = snap.exists() ? (snap.data().gemeinden || []) : [];
+  } catch(e) { gemeindeKonfig = []; }
+}
+
+window.renderGemeindePanel = function() {
+  const list = document.getElementById('gemeinde-list');
+  if (!list) return;
+  if (!gemeindeKonfig.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px 0">Noch keine Gemeinden angelegt.</div>';
+    return;
+  }
+  list.innerHTML = gemeindeKonfig.map(g => {
+    const count = allDocs.filter(d => d.gemeinde === g.id).length;
+    return `<div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:12px">
+      <div style="flex:1;font-size:14px;font-weight:400">${g.name}</div>
+      <span style="font-size:12px;color:var(--muted);white-space:nowrap">${count} ${count === 1 ? 'Person' : 'Personen'}</span>
+      <button class="btn btn-outline btn-sm" onclick="window.editGemeinde('${g.id}')">Bearbeiten</button>
+      <button class="btn btn-danger btn-sm" onclick="window.deleteGemeinde('${g.id}')">Löschen</button>
+    </div>`;
+  }).join('');
+};
+
+window.showGemeindeForm = function(id, name) {
+  document.getElementById('gemeinde-edit-id').value = id || '';
+  document.getElementById('gemeinde-name-input').value = name || '';
+  document.getElementById('gemeinde-form-title').textContent = id ? 'Gemeinde bearbeiten' : 'Neue Gemeinde';
+  document.getElementById('gemeinde-add-form').style.display = '';
+  document.getElementById('gemeinde-name-input').focus();
+};
+
+window.hideGemeindeForm = function() {
+  document.getElementById('gemeinde-add-form').style.display = 'none';
+  document.getElementById('gemeinde-edit-id').value = '';
+  document.getElementById('gemeinde-name-input').value = '';
+};
+
+window.editGemeinde = function(id) {
+  const g = gemeindeKonfig.find(x => x.id === id);
+  if (g) window.showGemeindeForm(g.id, g.name);
+};
+
+window.saveGemeinde = async function() {
+  const name = document.getElementById('gemeinde-name-input').value.trim();
+  if (!name) { document.getElementById('gemeinde-name-input').focus(); return; }
+  const editId = document.getElementById('gemeinde-edit-id').value;
+  if (editId) {
+    gemeindeKonfig = gemeindeKonfig.map(g => g.id === editId ? { ...g, name } : g);
+  } else {
+    gemeindeKonfig.push({ id: 'g_' + Date.now(), name });
+  }
+  await setDoc(doc(db, 'planung', 'gemeindeKonfig'), { gemeinden: gemeindeKonfig });
+  window.hideGemeindeForm();
+  window.renderGemeindePanel();
+};
+
+window.deleteGemeinde = async function(id) {
+  if (!confirm('Gemeinde wirklich löschen?')) return;
+  gemeindeKonfig = gemeindeKonfig.filter(g => g.id !== id);
+  await setDoc(doc(db, 'planung', 'gemeindeKonfig'), { gemeinden: gemeindeKonfig });
+  window.renderGemeindePanel();
+};
 </script>
 </body>
 </html>
