@@ -1326,64 +1326,59 @@ async function loadUserData() {
       bodyEl.innerHTML = html || '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
     };
 
-    // Meine Einsätze: KWs mit Chips oder "nicht geplant"-Hinweis
+    // Meine Einsätze: eigene Gruppe-Bars + persönliche Anmeldungen aus "Helfer benötigt"
     (function renderMeineEinsaetze() {
-      if (!allKWList.length) {
+      // Pro Tag alle relevanten Bars sammeln:
+      // (a) Gruppe aktiv + Gewerk gehört zum User + bedarf gesetzt
+      // (b) User hat sich persönlich angemeldet (unabhängig von Gruppe)
+      const dayMap = {}; // iso → { date, kwNum, bars: Set von bar-Refs }
+      alleTage.forEach(({ iso, date, bars: dayBars, kwNum }) => {
+        const kn = kwNum || isoWeek(date);
+        const gruppeAktiv = gruppe && gruppeAktivInKW(gruppe, kn);
+        dayBars.forEach(bar => {
+          const docId = `${iso}_${bar.gewerkId}`;
+          const rec   = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
+          const istAn = !!rec.angemeldete[myId];
+          const gruppeBar = gruppeAktiv && gewerke.includes(bar.gewerkId) && !!rec.bedarf;
+          if (!gruppeBar && !istAn) return;
+          if (!dayMap[iso]) dayMap[iso] = { date, kwNum: kn, bars: [] };
+          if (!dayMap[iso].bars.find(b => b.gewerkId === bar.gewerkId))
+            dayMap[iso].bars.push(bar);
+        });
+      });
+
+      const days = Object.values(dayMap).sort((a, b) => a.date - b.date);
+      if (!days.length) {
         einsaetzeBody.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
         return;
       }
-      // meineTage nach KW gruppieren
-      const tagsByKW = {};
-      meineTage.forEach(tag => {
-        const kwStr = 'KW ' + String(isoWeek(tag.date)).padStart(2,'0');
-        (tagsByKW[kwStr] = tagsByKW[kwStr] || []).push(tag);
-      });
 
-      let html = '';
-      allKWList.forEach(({ kwNum, kwStr }) => {
-        const gruppeAktiv = gruppeAktivInKW(gruppe, kwNum);
-
-        if (!gruppeAktiv) {
-          html += `<div class="kw-sep">${kwStr}</div>`;
-          html += `<div style="color:var(--text-muted);font-size:12px;padding:3px 2px 10px;font-style:italic">In dieser Woche ist deine Gruppe nicht geplant</div>`;
-          return;
-        }
-
-        // Gruppe aktiv: erst Chip-HTML aufbauen, dann nur anhängen wenn nicht leer
-        let kwHtml = '';
-        (tagsByKW[kwStr] || []).forEach(({ iso, date, bars: dayBars }) => {
-          const visibleBars = dayBars.filter(bar => {
-            const rec = anmeldungenMap[`${iso}_${bar.gewerkId}`] || { angemeldete: {}, bedarf: null };
-            return !!rec.bedarf;
-          });
-          if (!visibleBars.length) return;
-          kwHtml += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">`;
-          kwHtml += `<span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>`;
-          visibleBars.forEach(bar => {
-            const gw     = gewerkeMap[bar.gewerkId];
-            const name   = gw?.name || bar.gewerkId;
-            const color  = gw?.farbe || '#888';
-            const docId  = `${iso}_${bar.gewerkId}`;
-            const rec    = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
-            const count  = Object.keys(rec.angemeldete).length;
-            const istAn  = !!rec.angemeldete[myId];
-            const isMine = gewerke.includes(bar.gewerkId);
-            const chipId = `chip-e-${docId}`;
-            const badgeId= `bdg-e-${docId}`;
-            kwHtml += `<div class="einsatz-chip${isMine?' mine':''}${istAn?' signed':''}" id="${chipId}"
-              onclick="window._anmelden('${iso}','${bar.gewerkId}','${chipId}','${badgeId}')">
-              <span style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
-              <span class="chip-name">${name}</span>
-              <span id="${badgeId}" style="font-size:10px;font-weight:700;color:inherit;opacity:.75">${bedarfBadgeMine(count,rec.bedarf)}</span>
-              <span class="chip-state">${istAn?'✓':'+'}</span>
-            </div>`;
-          });
-          kwHtml += `</div>`;
+      let html = '', lastKW = '';
+      days.forEach(({ iso, date, kwNum, bars: dayBars }) => {
+        const kw = 'KW ' + String(isoWeek(date)).padStart(2,'0');
+        if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
+        html += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">`;
+        html += `<span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>`;
+        dayBars.forEach(bar => {
+          const gw     = gewerkeMap[bar.gewerkId];
+          const name   = gw?.name || bar.gewerkId;
+          const docId  = `${iso}_${bar.gewerkId}`;
+          const rec    = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
+          const count  = Object.keys(rec.angemeldete).length;
+          const istAn  = !!rec.angemeldete[myId];
+          const isMine = gewerke.includes(bar.gewerkId);
+          const chipId = `chip-e-${docId}`;
+          const badgeId= `bdg-e-${docId}`;
+          html += `<div class="einsatz-chip${isMine?' mine':''}${istAn?' signed':''}" id="${chipId}"
+            onclick="window._anmelden('${iso}','${bar.gewerkId}','${chipId}','${badgeId}')">
+            <span class="chip-name">${name}</span>
+            <span id="${badgeId}" style="font-size:10px;font-weight:700;color:inherit;opacity:.75">${bedarfBadgeMine(count,rec.bedarf)}</span>
+            <span class="chip-state">${istAn?'✓':'+'}</span>
+          </div>`;
         });
-        if (kwHtml) html += `<div class="kw-sep">${kwStr}</div>` + kwHtml;
-        // Wenn Gruppe aktiv aber kein Bedarf: KW komplett weglassen
+        html += `</div>`;
       });
-      einsaetzeBody.innerHTML = html || '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
+      einsaetzeBody.innerHTML = html;
     })();
     renderRows(alleTage,  document.getElementById('helfer-body'), false);
 
