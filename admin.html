@@ -479,6 +479,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Rolle</div>
       <select id="sonderrolle-select" onchange="window.updateSonderrollePersonSelect()" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);width:100%;max-width:340px;cursor:pointer;margin-bottom:12px">
         <option value="">– Rolle auswählen –</option>
+        <option value="organisation">Organisation</option>
         <option value="bauleitung">Bauleitung</option>
         <option value="bauküche">Bau-Küche</option>
         <option value="sicherheitsbeauftragter">Sicherheitsbeauftragter</option>
@@ -1532,8 +1533,8 @@ window.removeAdmin = async (id) => {
   await updateDoc(doc(db,'anmeldungen',id), { admin: false });
 };
 
-const SONDERROLLEN_LABELS = { bauleitung: 'Bauleitung', 'bauküche': 'Bau-Küche', sicherheitsbeauftragter: 'Sicherheitsbeauftragter' };
-const SONDERROLLEN_ORDER  = ['bauleitung', 'bauküche', 'sicherheitsbeauftragter'];
+const SONDERROLLEN_LABELS = { organisation: 'Organisation', bauleitung: 'Bauleitung', 'bauküche': 'Bau-Küche', sicherheitsbeauftragter: 'Sicherheitsbeauftragter' };
+const SONDERROLLEN_ORDER  = ['organisation', 'bauleitung', 'bauküche', 'sicherheitsbeauftragter'];
 
 function renderSonderrollenList() {
   const list = document.getElementById('sonderrolle-list');
