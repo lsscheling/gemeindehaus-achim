@@ -979,9 +979,11 @@ async function loadUserData() {
     }
 
     // ── Teamleiter-Tab ──
-    if (userDoc?.rolle === 'teamleiter' && (userDoc?.teamleiterGewerke||[]).length) {
+    const isTL = userDoc?.rolle === 'teamleiter' && (userDoc?.teamleiterGewerke||[]).length;
+    const isAdmin = userDoc?.admin === true;
+    if (isTL || isAdmin) {
       document.getElementById('nav-tl').style.display = '';
-      const tlGewerke = userDoc.teamleiterGewerke;
+      const tlGewerke = isTL ? userDoc.teamleiterGewerke : Object.keys(gewerkeMap);
       const { tage: tlTage, anmMap: tlAnmMap } = await loadBedarfData(tlGewerke);
       window._bedarfData['tl'] = { tage: tlTage, anmMap: tlAnmMap };
       document.getElementById('tl-view-body').innerHTML = renderBedarfCards('tl', tlGewerke, tlTage, tlAnmMap);
