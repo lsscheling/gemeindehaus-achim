@@ -62,7 +62,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 .checkbox-item input[type="radio"]:checked ~ .radio-box::after { content: ''; display: block; width: 5px; height: 5px; border-radius: 50%; background: white; margin: auto; }
 .checkbox-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; background: white; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: border-color 0.15s; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .checkbox-item:hover { border-color: var(--accent); }
-.checkbox-item input[type="checkbox"] { display: none; }
+.checkbox-item input[type="checkbox"],
+.checkbox-item input[type="radio"] { display: none; }
 .check-box { width: 15px; height: 15px; border: 1.5px solid var(--border); border-radius: 2px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
 .checkbox-item input:checked ~ .check-box { background: var(--accent); border-color: var(--accent); }
 .checkbox-item input:checked ~ .check-box::after { content: ''; display: block; width: 7px; height: 4px; border-left: 1.5px solid white; border-bottom: 1.5px solid white; transform: rotate(-45deg) translateY(-1px); }
@@ -246,6 +247,15 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 // ─────────────────────────────────────────────
 // TABS
 // ─────────────────────────────────────────────
+function toggleGemeinde(e, id) {
+  var input = document.querySelector('input[name="gemeinde"][value="' + id + '"]');
+  if (!input) return;
+  if (input.checked) {
+    e.preventDefault();
+    input.checked = false;
+  }
+}
+
 function toggleInfoPopover(e) {
   e.stopPropagation();
   var pop = document.getElementById('gruppenwunsch-info');
@@ -541,10 +551,11 @@ async function loadGemeinden() {
   const grid = document.getElementById('gemeinde-grid');
   try {
     const snap = await getDoc(doc(db, 'planung', 'gemeindeKonfig'));
-    const gemeinden = snap.exists() ? (snap.data().gemeinden || []) : [];
+    const gemeinden = (snap.exists() ? (snap.data().gemeinden || []) : [])
+      .sort((a,b) => a.name.localeCompare(b.name,'de'));
     if (!gemeinden.length) { grid.innerHTML = ''; return; }
     grid.innerHTML = gemeinden.map(g =>
-      `<label class="checkbox-item">
+      `<label class="checkbox-item" onclick="toggleGemeinde(event,'${g.id}')">
         <input type="radio" name="gemeinde" value="${g.id}">
         <span class="check-box radio-box"></span>
         <span class="check-label">${g.name}</span>
