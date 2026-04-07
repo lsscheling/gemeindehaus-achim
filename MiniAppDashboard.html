@@ -301,7 +301,6 @@
   <div class="sheet">
     <div class="news-header">
       <div class="news-header-title">Neuigkeiten / Informationen</div>
-      <div class="news-header-sub">Gemeindebau Achim</div>
       <button class="sheet-close" onclick="closeOverlay('news-overlay')">✕</button>
     </div>
     <div class="news-list" id="news-list-body">
@@ -913,7 +912,6 @@ async function loadUserData() {
         <div class="card" style="margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
                onclick="window._toggleBedarfCard('${bodyId}','${chevId}')">
-            <span style="width:9px;height:9px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
             <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">${gwName}</span>
             <input id="${stdId}" type="number" inputmode="numeric" min="0" max="99"
               placeholder="${curBedarf !== '' ? curBedarf : '–'}"
@@ -1265,7 +1263,6 @@ async function loadUserData() {
 
           html += `<div class="einsatz-chip${isMine?' mine':''}${istAn?' signed':''}" id="${chipId}"
             onclick="window._anmelden('${iso}','${bar.gewerkId}','${chipId}','${badgeId}')">
-            <span style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block"></span>
             <span class="chip-name">${name}</span>
             ${nurMeine ? `<span id="${badgeId}" style="font-size:10px;font-weight:700;color:inherit;opacity:.75">${bedarfBadgeMine(count,rec.bedarf)}</span>` : ''}
             <span class="chip-state">${istAn?'✓':'+'}</span>
@@ -1307,8 +1304,8 @@ async function loadUserData() {
             return !!rec.bedarf;
           });
           if (!visibleBars.length) return;
-          kwHtml += `<div style="font-size:11px;font-weight:600;color:var(--clay-dark);margin:2px 0 5px;padding-left:2px">${WD[date.getDay()]}, ${fmtDateDE(date)}</div>`;
-          kwHtml += `<div class="einsatz-chips">`;
+          kwHtml += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">`;
+          kwHtml += `<span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>`;
           visibleBars.forEach(bar => {
             const gw     = gewerkeMap[bar.gewerkId];
             const name   = gw?.name || bar.gewerkId;
