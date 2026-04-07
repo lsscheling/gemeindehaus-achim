@@ -23,6 +23,8 @@ export function getCurrentTelegramUser() {
 }
 export async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem('auth_token');
+  
+  console.log('[apiFetch] Endpoint:', endpoint, 'API_BASE_URL:', API_BASE_URL);
 
   const headers = {
     'Content-Type': 'application/json',
@@ -33,17 +35,28 @@ export async function apiFetch(endpoint, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers
-  });
+  const fullUrl = `${API_BASE_URL}${endpoint}`;
+  console.log('[apiFetch] Full URL:', fullUrl);
 
-  if (!response.ok) {
-    const errObj = await response.json().catch(() => ({}));
-    throw new Error(errObj.error || `HTTP Error ${response.status}`);
+  try {
+    const response = await fetch(fullUrl, {
+      ...options,
+      headers
+    });
+
+    if (!response.ok) {
+      const errObj = await response.json().catch(() => ({}));
+      console.error('[apiFetch] HTTP Error:', response.status, errObj);
+      throw new Error(errObj.error || `HTTP Error ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('[apiFetch] Response:', data);
+    return data;
+  } catch (e) {
+    console.error('[apiFetch] Fetch Error:', e);
+    throw e;
   }
-
-  return response.json();
 }
 
 /**
