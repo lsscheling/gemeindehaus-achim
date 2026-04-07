@@ -1105,7 +1105,7 @@ async function loadUserData() {
     }
 
     // ── Bauküche-Tab ──
-    if (tgId && userDoc) {
+    if (userDoc?.admin === true || userDoc?.sonderrolle === 'bauküche') {
       document.getElementById('nav-bk').style.display = '';
       const bkMyId   = String(tgId);
       const bkMyName = ((userDoc.vorname||'') + ' ' + (userDoc.nachname||'')).trim() || 'Unbekannt';
@@ -1142,10 +1142,6 @@ async function loadUserData() {
           btn.querySelector('.chip-name').textContent  = entry[bkMyId] ? 'Angemeldet' : 'Anmelden';
         }
         if (cnt) cnt.textContent = count + (count === 1 ? ' Person' : ' Personen');
-        const nameEl = document.getElementById('bk-names-' + iso);
-        if (nameEl) nameEl.innerHTML = Object.values(entry).map(n =>
-          `<span style="font-size:11px;background:var(--clay-pale);color:var(--clay-dark);border-radius:6px;padding:2px 7px">${n}</span>`
-        ).join('');
       };
 
       const WD_BK = ['So','Mo','Di','Mi','Do','Fr','Sa'];
@@ -1158,20 +1154,14 @@ async function loadUserData() {
         const istAn = !!entry[bkMyId];
         const btnId = `bk-btn-${iso}`;
         const cntId = `bk-cnt-${iso}`;
-        const names = Object.values(entry);
         bkHtml += `
-          <div style="margin-bottom:10px">
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD_BK[date.getDay()]}, ${fmtDateDE(date)}</span>
-              <span id="${cntId}" style="font-size:11px;color:var(--text-muted)">${count} ${count === 1 ? 'Person' : 'Personen'}</span>
-              <div class="einsatz-chip${istAn?' signed':''}" id="${btnId}"
-                onclick="window._bkAnmelden('${iso}','${btnId}','${cntId}')">
-                <span class="chip-name">${istAn ? 'Angemeldet' : 'Anmelden'}</span>
-                <span class="chip-state">${istAn ? '✓' : '+'}</span>
-              </div>
-            </div>
-            <div id="bk-names-${iso}" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;padding-left:60px">
-              ${names.map(n => `<span style="font-size:11px;background:var(--clay-pale);color:var(--clay-dark);border-radius:6px;padding:2px 7px">${n}</span>`).join('')}
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD_BK[date.getDay()]}, ${fmtDateDE(date)}</span>
+            <span id="${cntId}" style="font-size:11px;color:var(--text-muted)">${count} ${count === 1 ? 'Person' : 'Personen'}</span>
+            <div class="einsatz-chip${istAn?' signed':''}" id="${btnId}"
+              onclick="window._bkAnmelden('${iso}','${btnId}','${cntId}')">
+              <span class="chip-name">${istAn ? 'Angemeldet' : 'Anmelden'}</span>
+              <span class="chip-state">${istAn ? '✓' : '+'}</span>
             </div>
           </div>`;
       });
