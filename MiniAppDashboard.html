@@ -1079,7 +1079,7 @@ async function loadUserData() {
     const isBK    = userDoc?.sonderrolle === 'bauküche';
     if (isTL || isOrga || isAdmin) {
       document.getElementById('nav-tl').style.display = '';
-      const tlGewerke = (isTL && !isOrga && !isAdmin) ? (userDoc.teamleiterGewerke || []) : Object.keys(gewerkeMap);
+      const tlGewerke = userDoc?.teamleiterGewerke || [];
       const { tage: tlTage, allDays: tlAllDays, anmMap: tlAnmMap } = await loadBedarfData(tlGewerke);
       window._bedarfData['tl'] = { tage: tlTage, anmMap: tlAnmMap };
       document.getElementById('tl-view-body').innerHTML =
