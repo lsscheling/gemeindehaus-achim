@@ -320,7 +320,7 @@
 <div class="overlay" id="help-overlay" onclick="overlayClose(event,'help-overlay')">
   <div class="sheet">
     <div class="help-header">
-      <div class="help-header-title">Hilfe, Kontakt &amp; Gruppenrhythmus</div>
+      <div class="help-header-title">Hilfe &amp; Infos</div>
       <button class="sheet-close" onclick="closeOverlay('help-overlay')">✕</button>
     </div>
     <div class="help-content">
@@ -333,7 +333,10 @@
 
       <!-- KW Rhythmus -->
       <div class="help-block">
-        <div class="help-block-title">🔄 Gruppen-Rhythmus</div>
+        <div class="help-block-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>🔄 Gruppen-Rhythmus</span>
+          <span class="team-badge" id="kw-gruppe-badge" style="display:none"></span>
+        </div>
         <table class="kw-table" id="kw-table"></table>
       </div>
 
@@ -363,7 +366,19 @@ function renderKWTable(meineGruppe) {
   const now  = new Date();
   const cur  = currentKW();
   const fmt  = d => `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.`;
-  let html = '<tr><th>KW</th><th>Aktive Gruppen</th></tr>';
+
+  // Gruppe-Badge oben rechts
+  const badge = document.getElementById('kw-gruppe-badge');
+  if (badge) {
+    if (meineGruppe) {
+      badge.textContent = 'Gruppe ' + meineGruppe;
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  let html = '<tr><th>KW</th><th>Gruppen</th></tr>';
   for (let i = -1; i <= 5; i++) {
     const kw    = cur + i;
     const year  = now.getFullYear();
@@ -372,17 +387,22 @@ function renderKWTable(meineGruppe) {
     const dates = `<span style="color:var(--text-muted);font-size:10px"> (${fmt(mon)}–${fmt(sun)})</span>`;
     const gr    = gruppenFuerKW(kw);
     const isCur = i === 0;
-    const aktiv = meineGruppe && gr.includes(meineGruppe);
+    const meineAktiv = meineGruppe && gr.includes(meineGruppe);
+
     const kwCell = isCur
       ? `<span class="kw-badge">KW ${kw}</span>${dates} ← jetzt`
       : `KW ${kw}${dates}`;
+
     const grCell = [1,2,3].map(g => {
       const active = gr.includes(g);
       const mine   = meineGruppe && g === meineGruppe;
-      return `<span style="font-weight:${mine?'700':'500'};color:${active?(mine?'var(--mine)':'var(--ink)'):'var(--clay-light)'}">${g}</span>`;
+      const color  = active ? 'var(--green)' : 'var(--text-muted)';
+      return `<span style="font-weight:${mine?'700':'500'};color:${color}">${g}</span>`;
     }).join(' &nbsp; ');
-    const rowStyle = (!aktiv && meineGruppe) ? ' style="opacity:.4"' : '';
-    html += `<tr class="${isCur ? 'cur' : ''}"${rowStyle}><td>${kwCell}</td><td>${grCell}</td></tr>`;
+
+    const rowBg = meineAktiv ? `background:var(--green-light)` : '';
+    const rowClass = isCur ? 'cur' : '';
+    html += `<tr class="${rowClass}" style="${rowBg}"><td>${kwCell}</td><td>${grCell}</td></tr>`;
   }
   document.getElementById('kw-table').innerHTML = html;
 }
