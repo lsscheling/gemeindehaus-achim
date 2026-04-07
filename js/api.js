@@ -1,4 +1,16 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+// Dynamisch die korrekte API-URL ermitteln
+function getApiBaseUrl() {
+  // Lokal: http://localhost:3000/api
+  // Production (Proxmox): http://<domain>/api (nginx leitet weiter)
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3000/api';
+  }
+  // Production: nutze den Server, von dem die Seite geladen wird
+  return `${window.location.protocol}//${window.location.host}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
+console.log('[API] Base URL:', API_BASE_URL);
 
 // Globaler Storage für Telegram-Daten
 let currentTelegramUser = null;

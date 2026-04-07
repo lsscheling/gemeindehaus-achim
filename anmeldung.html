@@ -578,12 +578,15 @@ async function loadGemeinden() {
   const container = document.getElementById('gemeinde-grid');
   container.innerHTML = '<div class="gewerk-loading">Gemeinden werden geladen …</div>';
   try {
+    console.log('[Gemeinden] Starte API-Anfrage...');
     const data = await apiFetch('/gemeinden');
+    console.log('[Gemeinden] API-Response:', data);
     const gemeinden = data.gemeinden || [];
+    console.log('[Gemeinden] Gemeinden geladen:', gemeinden.length);
     buildGemeindenGrid(gemeinden);
   } catch (e) {
-    console.error(e);
-    container.innerHTML = '<div class="gewerk-error">Fehler beim Laden der Gemeinden.</div>';
+    console.error('[Gemeinden] Fehler:', e);
+    container.innerHTML = '<div class="gewerk-error">Fehler beim Laden der Gemeinden: ' + e.message + '</div>';
   }
 }
 
