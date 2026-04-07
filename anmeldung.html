@@ -248,11 +248,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 // TABS
 // ─────────────────────────────────────────────
 function toggleGemeinde(e, id) {
+  e.preventDefault();
   var input = document.querySelector('input[name="gemeinde"][value="' + id + '"]');
   if (!input) return;
   if (input.checked) {
-    e.preventDefault();
     input.checked = false;
+  } else {
+    document.querySelectorAll('input[name="gemeinde"]').forEach(function(r) { r.checked = false; });
+    input.checked = true;
   }
 }
 
