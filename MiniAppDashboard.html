@@ -1280,6 +1280,8 @@ async function loadUserData() {
       // Helfer-Chip ausblenden wenn Bedarf gedeckt
       if (chip && document.getElementById('helfer-body')?.contains(chip) && rec.bedarf && count >= rec.bedarf)
         chip.style.display = 'none';
+      // Meine Einsätze neu rendern damit An-/Abmeldungen sofort erscheinen
+      window._renderMeineEinsaetze?.();
     };
 
     const ns = (nurMeine) => nurMeine ? 'e' : 'h';
