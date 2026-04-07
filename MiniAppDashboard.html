@@ -218,7 +218,7 @@
   <button class="nav-btn" onclick="showView('infos',this)">Ansprechpartner</button>
   <button class="nav-btn" id="nav-bk"  style="display:none" onclick="showView('baukueche',this)">Küche</button>
   <button class="nav-btn" id="nav-tl"  style="display:none" onclick="showView('teamleiter',this)">Teamleiter</button>
-  <button class="nav-btn" id="nav-adm" style="display:none" onclick="showView('admin',this)">Admin</button>
+  <button class="nav-btn" id="nav-adm" style="display:none" onclick="showView('admin',this)">Orga</button>
   <button class="help-btn" onclick="openHelp()">?</button>
 </nav>
 
@@ -728,23 +728,26 @@ async function loadTeamleiter() {
 
     const alle = allSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    // Sonderrollen in definierter Reihenfolge
+    // Sonderrollen in definierter Reihenfolge (keine Admins)
     const sonder = alle
-      .filter(d => d.sonderrolle && SONDERROLLEN_ORDER.includes(d.sonderrolle))
+      .filter(d => !d.admin && d.sonderrolle && SONDERROLLEN_ORDER.includes(d.sonderrolle))
       .sort((a, b) => SONDERROLLEN_ORDER.indexOf(a.sonderrolle) - SONDERROLLEN_ORDER.indexOf(b.sonderrolle));
 
-    // Teamleiter alphabetisch nach Nachname
+    // Teamleiter alphabetisch nach Nachname (keine Admins)
     const teamleiter = alle
-      .filter(d => d.rolle === 'teamleiter')
+      .filter(d => !d.admin && d.rolle === 'teamleiter')
       .sort((a, b) => (a.nachname || '').localeCompare(b.nachname || '', 'de') || (a.vorname || '').localeCompare(b.vorname || '', 'de'));
 
     _contactItems = [];
+    const seen = new Set();
 
     sonder.forEach(d => {
+      seen.add(d.id);
       _contactItems.push({ d, roleLabel: SONDERROLLEN_LABELS[d.sonderrolle] || d.sonderrolle });
     });
 
     teamleiter.forEach(d => {
+      if (seen.has(d.id)) return; // bereits durch Sonderrolle erfasst
       const gwLabel = (d.teamleiterGewerke || []).map(id => gewerkeMap[id] || id).join(' & ') || 'Teamleiter';
       _contactItems.push({ d, roleLabel: gwLabel });
     });
@@ -925,11 +928,12 @@ async function loadUserData() {
       const today2 = new Date(); today2.setHours(0,0,0,0);
       const in14b  = new Date(today2); in14b.setDate(in14b.getDate() + 14);
       const relevantBars = allBars.filter(b => gwIds.includes(b.gewerkId));
-      const tage = [];
+      const tage = [], allDays = [];
       const cur2 = new Date(today2);
       while (cur2 <= in14b) {
         if (cur2.getDay() !== 0) {
           const iso2 = `${cur2.getFullYear()}-${String(cur2.getMonth()+1).padStart(2,'0')}-${String(cur2.getDate()).padStart(2,'0')}`;
+          allDays.push({ iso: iso2, date: new Date(cur2) });
           const dayBars2 = relevantBars.filter(b => {
             const s = parseLocalDate(b.start), e = parseLocalDate(b.end);
             return s && e && cur2 >= s && cur2 <= e;
@@ -940,12 +944,45 @@ async function loadUserData() {
       }
       const docIds = new Set();
       tage.forEach(({ iso, bars }) => bars.forEach(b => docIds.add(`${iso}_${b.gewerkId}`)));
+      allDays.forEach(({ iso }) => docIds.add(`${iso}_bauhelfer`));
       const anmMap = {};
       await Promise.all([...docIds].map(async id => {
         const s = await getDoc(doc(db, 'einsatzAnmeldungen', id));
         anmMap[id] = s.exists() ? s.data() : { angemeldete: {}, bedarf: null };
       }));
-      return { tage, anmMap };
+      return { tage, allDays, anmMap };
+    }
+
+    function renderBauhelferCard(ns, allDays, anmMap) {
+      const bodyId = `body-${ns}-bauhelfer`;
+      const chevId = `chev-${ns}-bauhelfer`;
+      let rows = '';
+      let lastKWb = '';
+      allDays.forEach(({ iso, date }) => {
+        const docId = `${iso}_bauhelfer`;
+        const data  = anmMap[docId] || { angemeldete: {} };
+        const count = Object.keys(data.angemeldete || {}).length;
+        if (!count) return;
+        const kw2 = 'KW ' + String(isoWeek(date)).padStart(2,'0');
+        if (kw2 !== lastKWb) { rows += `<div class="kw-sep">${kw2}</div>`; lastKWb = kw2; }
+        const dayLbl = WD2[date.getDay()] + ', ' + fmtDateDE(date);
+        rows += `<div class="gewerk-row" style="align-items:center;gap:8px">
+          <span class="gewerk-row-name" style="cursor:pointer;flex:1"
+            onclick="window._showAnmeldungen('${ns}','${docId}','${dayLbl}','Bauhelfer allgemein')">${dayLbl}</span>
+          <span id="bdg-${ns}-${docId}">${bedarfBadgeUser(count, null)}</span>
+          <span style="font-size:18px;color:var(--clay-dark);cursor:pointer"
+            onclick="window._showAnmeldungen('${ns}','${docId}','${dayLbl}','Bauhelfer allgemein')">›</span>
+        </div>`;
+      });
+      const inner = rows || '<div style="color:var(--text-muted);font-size:13px;padding:4px 0">Noch keine Anmeldungen.</div>';
+      return `<div class="card" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
+             onclick="window._toggleBedarfCard('${bodyId}','${chevId}')">
+          <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Bauhelfer allgemein</span>
+          <span id="${chevId}" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
+        </div>
+        <div id="${bodyId}" style="margin-top:12px;display:none">${inner}</div>
+      </div>`;
     }
 
     function renderBedarfCards(ns, gwIds, tage, anmMap) {
@@ -1036,21 +1073,25 @@ async function loadUserData() {
     }
 
     // ── Teamleiter-Tab ──
-    const isTL = userDoc?.rolle === 'teamleiter' && (userDoc?.teamleiterGewerke||[]).length;
+    const isTL    = userDoc?.rolle === 'teamleiter';
     const isAdmin = userDoc?.admin === true;
-    if (isTL || isAdmin) {
+    const isOrga  = userDoc?.sonderrolle === 'organisation';
+    const isBK    = userDoc?.sonderrolle === 'bauküche';
+    if (isTL || isOrga || isAdmin) {
       document.getElementById('nav-tl').style.display = '';
-      const tlGewerke = isTL ? userDoc.teamleiterGewerke : Object.keys(gewerkeMap);
-      const { tage: tlTage, anmMap: tlAnmMap } = await loadBedarfData(tlGewerke);
+      const tlGewerke = (isTL && !isOrga && !isAdmin) ? (userDoc.teamleiterGewerke || []) : Object.keys(gewerkeMap);
+      const { tage: tlTage, allDays: tlAllDays, anmMap: tlAnmMap } = await loadBedarfData(tlGewerke);
       window._bedarfData['tl'] = { tage: tlTage, anmMap: tlAnmMap };
-      document.getElementById('tl-view-body').innerHTML = renderBedarfCards('tl', tlGewerke, tlTage, tlAnmMap);
+      document.getElementById('tl-view-body').innerHTML =
+        renderBedarfCards('tl', tlGewerke, tlTage, tlAnmMap) +
+        renderBauhelferCard('tl', tlAllDays, tlAnmMap);
     }
 
     // ── Admin-Tab ──
-    if (userDoc?.admin === true) {
+    if (isOrga || isAdmin) {
       document.getElementById('nav-adm').style.display = '';
       const admGewerke = Object.keys(gewerkeMap);
-      const { tage: admTage, anmMap: admAnmMap } = await loadBedarfData(admGewerke);
+      const { tage: admTage, allDays: admAllDays, anmMap: admAnmMap } = await loadBedarfData(admGewerke);
       window._bedarfData['adm'] = { tage: admTage, anmMap: admAnmMap };
 
       // News-Verwaltung
@@ -1125,38 +1166,45 @@ async function loadUserData() {
 
       const inputStyle = 'width:100%;font-family:"DM Sans",sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:8px 10px;outline:none;background:white;box-sizing:border-box';
       document.getElementById('adm-view-body').innerHTML = `
-        <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
-          <span>Neuigkeiten / Informationen</span>
-          <button onclick="window._admNewsNew()"
-            style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
-            + Neu
-          </button>
-        </div>
-        <div id="adm-news-form" style="display:none;background:var(--sand);border-radius:10px;padding:12px;margin-bottom:10px">
-          <div style="font-size:12px;font-weight:600;margin-bottom:8px" id="adm-news-form-title">Neue Meldung</div>
-          <input id="adm-news-datum" type="text" placeholder="Datum (z.B. 7. April 2026)" style="${inputStyle};margin-bottom:8px">
-          <textarea id="adm-news-text" rows="3" placeholder="Text der Meldung …"
-            style="${inputStyle};resize:vertical;min-height:70px;margin-bottom:10px"></textarea>
-          <div style="display:flex;gap:8px">
-            <button onclick="window._admNewsSave()"
-              style="background:var(--clay);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
-              Speichern
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
+               onclick="window._toggleBedarfCard('adm-news-body','adm-news-chev')">
+            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Neuigkeiten / Informationen</span>
+            <button onclick="event.stopPropagation();window._admNewsNew()"
+              style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+              + Neu
             </button>
-            <button onclick="window._admNewsCancel()"
-              style="background:none;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 12px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer">
-              Abbrechen
-            </button>
+            <span id="adm-news-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0">▼</span>
+          </div>
+          <div id="adm-news-body" style="margin-top:12px">
+            <div id="adm-news-form" style="display:none;background:var(--sand);border-radius:10px;padding:12px;margin-bottom:10px">
+              <div style="font-size:12px;font-weight:600;margin-bottom:8px" id="adm-news-form-title">Neue Meldung</div>
+              <input id="adm-news-datum" type="text" placeholder="Datum (z.B. 7. April 2026)" style="${inputStyle};margin-bottom:8px">
+              <textarea id="adm-news-text" rows="3" placeholder="Text der Meldung …"
+                style="${inputStyle};resize:vertical;min-height:70px;margin-bottom:10px"></textarea>
+              <div style="display:flex;gap:8px">
+                <button onclick="window._admNewsSave()"
+                  style="background:var(--clay);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+                  Speichern
+                </button>
+                <button onclick="window._admNewsCancel()"
+                  style="background:none;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 12px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer">
+                  Abbrechen
+                </button>
+              </div>
+            </div>
+            <div id="adm-news-list" style="display:flex;flex-direction:column;gap:8px"></div>
           </div>
         </div>
-        <div id="adm-news-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px"></div>
         <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">Bedarf verwalten</div>
         ${renderBedarfCards('adm', admGewerke, admTage, admAnmMap)}
+        ${renderBauhelferCard('adm', admAllDays, admAnmMap)}
       `;
       window._renderAdmNews();
     }
 
     // ── Bauküche-Tab ──
-    if (userDoc?.admin === true || userDoc?.sonderrolle === 'bauküche') {
+    if (isTL || isBK || isOrga || isAdmin) {
       document.getElementById('nav-bk').style.display = '';
 
       const bkToday = new Date(); bkToday.setHours(0,0,0,0);
