@@ -339,6 +339,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
             <tr>
               <th class="cb-col"><input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this.checked)" title="Alle auswählen"></th>
               <th>Name</th>
+              <th>Gemeinde</th>
               <th>Gewerk(e) & Level</th>
               <th>Schichtarbeit</th>
               <th>Gruppe</th>
@@ -347,7 +348,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
             </tr>
           </thead>
           <tbody id="anmeldungen-tbody">
-            <tr><td colspan="7" class="loading-state">Wird geladen…</td></tr>
+            <tr><td colspan="8" class="loading-state">Wird geladen…</td></tr>
           </tbody>
         </table>
       </div>
@@ -655,6 +656,12 @@ function isAbwesend(person, dateOrToday) {
 // ═══════════════════════════════════════════════
 // GEWERK HELPER
 // ═══════════════════════════════════════════════
+function getGemeindeLabel(id) {
+  if (!id || id === 'keine') return '–';
+  const g = (window._gemeindeKonfig || []).find(x => x.id === id);
+  return g ? g.name : id;
+}
+
 function getGewerkLabel(id) {
   if (id === 'bauhelfer_allgemein') return 'Bauhelfer allgemein';
   const gw = allGewerkeKonfig.find(g => g.id === id) || gewerkeKonfig.find(g => g.id === id);
@@ -691,7 +698,7 @@ function applyFilters() {
 function renderTable() {
   const tbody = document.getElementById('anmeldungen-tbody');
   if (!filteredDocs.length) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">Keine Einträge gefunden.</div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state">Keine Einträge gefunden.</div></td></tr>';
     return;
   }
   tbody.innerHTML = filteredDocs.map(d => {
@@ -717,6 +724,7 @@ function renderTable() {
     return `<tr class="${isSelected ? 'selected' : ''}" onclick="rowClick(event,'${d.id}')">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${isSelected?'checked':''} onchange="toggleSelect('${d.id}',this.checked)" onclick="event.stopPropagation()"></td>
       <td><strong>${name}</strong><br><span style="font-size:11px;color:var(--muted)">${d.email||''}</span></td>
+      <td style="font-size:12px">${getGemeindeLabel(d.gemeinde)}</td>
       <td>${gewerkeHtml}</td>
       <td>${schichtHtml}</td>
       <td onclick="event.stopPropagation()">${gruppeSelect}</td>
@@ -1190,6 +1198,15 @@ function buildPersonForm(data) {
     <label class="mcheck" style="max-width:400px">
       <input type="checkbox" id="mf-schichtarbeit" ${val('schichtarbeit') ? 'checked' : ''}> Ich arbeite im Schichtbetrieb
     </label>
+    <div class="msection">Gemeinde</div>
+    <div class="mfield">
+      <label>Gemeinde</label>
+      <select id="mf-gemeinde" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);width:100%;max-width:340px;cursor:pointer">
+        <option value="">– Keine Angabe –</option>
+        ${[...(window._gemeindeKonfig||[])].sort((a,b)=>a.name.localeCompare(b.name,'de')).map(g=>`<option value="${g.id}" ${d.gemeinde===g.id?'selected':''}>${g.name}</option>`).join('')}
+        <option value="keine" ${d.gemeinde==='keine'?'selected':''}>Keine</option>
+      </select>
+    </div>
     <div class="msection">Bauhelfer allgemein</div>
     <label class="mcheck" style="max-width:300px">
       <input type="checkbox" name="mf-gewerk" value="bauhelfer_allgemein" ${bauhelferChecked?'checked':''}> Bauhelfer allgemein
@@ -1254,6 +1271,7 @@ async function savePerson(isEdit) {
     telegram_username: document.getElementById('mf-telegram-username')?.value.trim()||null,
     gewerke,
     erfahrung: Object.assign({}, modalErfahrung),
+    gemeinde: document.getElementById('mf-gemeinde')?.value || '',
     schichtarbeit: document.getElementById('mf-schichtarbeit')?.checked || false,
     qualifikationen: document.getElementById('mf-quali')?.value.trim()||'',
     gruppenwunsch: document.getElementById('mf-gruppenwunsch')?.value.trim()||'',
@@ -1602,6 +1620,7 @@ async function loadGemeindeKonfig() {
     const snap = await getDoc(doc(db, 'planung', 'gemeindeKonfig'));
     gemeindeKonfig = snap.exists() ? (snap.data().gemeinden || []) : [];
   } catch(e) { gemeindeKonfig = []; }
+  window._gemeindeKonfig = gemeindeKonfig;
 }
 
 window.renderGemeindePanel = function() {
