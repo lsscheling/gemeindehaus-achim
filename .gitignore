@@ -4,10 +4,12 @@ package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
-# Environment
+# Environment & Secrets
 .env
 .env.local
 .env.*.local
+firebase-credentials.json
+backend/firebase-credentials.json
 
 # IDE
 .vscode/
