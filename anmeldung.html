@@ -57,6 +57,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 
 /* CHECKBOXES */
 .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.radio-box { border-radius: 50% !important; }
+.checkbox-item input[type="radio"]:checked ~ .radio-box { background: var(--accent); border-color: var(--accent); }
+.checkbox-item input[type="radio"]:checked ~ .radio-box::after { content: ''; display: block; width: 5px; height: 5px; border-radius: 50%; background: white; margin: auto; }
 .checkbox-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; background: white; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: border-color 0.15s; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .checkbox-item:hover { border-color: var(--accent); }
 .checkbox-item input[type="checkbox"] { display: none; }
@@ -181,6 +184,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
             <span>Da unter der Woche auch vormittags gearbeitet wird, ist diese Information in der Organisation hilfreich.</span>
           </span>
         </label>
+        <div class="divider"></div>
+        <div class="section-title">Gemeinde</div>
+        <div class="checkbox-grid" id="gemeinde-grid">
+          <div style="grid-column:1/-1;font-size:13px;color:var(--muted);font-weight:300">Wird geladen…</div>
+        </div>
         <div class="btn-row">
           <span></span>
           <button type="button" class="submit-btn" style="background:var(--accent)" onclick="saveTabAndGo('person','gewerk',1)">Weiter →</button>
@@ -279,6 +287,8 @@ var loadedGewerke = [];
 function collectPayload() {
   var gewerke = [];
   document.querySelectorAll('input[name="gewerk"]:checked').forEach(function(cb) { gewerke.push(cb.value); });
+  var gemeindeEl = document.querySelector('input[name="gemeinde"]:checked');
+  var gemeinde = gemeindeEl ? gemeindeEl.value : '';
   var erfahrung = {};
   gewerke.forEach(function(g) {
     var el = document.getElementById('level-val-' + g);
@@ -290,6 +300,7 @@ function collectPayload() {
     nachname: document.getElementById('f-nachname').value || '',
     telefon: document.getElementById('f-telefon').value || '',
     schichtarbeit: document.getElementById('cb-schichtarbeit').checked,
+    gemeinde: gemeinde,
     gewerke: gewerke,
     erfahrung: erfahrung,
     qualifikationen: document.getElementById('f-qualifikationen').value || '',
@@ -525,6 +536,25 @@ window._saveAnmeldung = async function(payload) {
   }
 };
 
+// ── Load Gemeinden ──
+async function loadGemeinden() {
+  const grid = document.getElementById('gemeinde-grid');
+  try {
+    const snap = await getDoc(doc(db, 'planung', 'gemeindeKonfig'));
+    const gemeinden = snap.exists() ? (snap.data().gemeinden || []) : [];
+    if (!gemeinden.length) { grid.innerHTML = ''; return; }
+    grid.innerHTML = gemeinden.map(g =>
+      `<label class="checkbox-item">
+        <input type="radio" name="gemeinde" value="${g.id}">
+        <span class="check-box radio-box"></span>
+        <span class="check-label">${g.name}</span>
+      </label>`
+    ).join('');
+  } catch(e) {
+    grid.innerHTML = '<div style="grid-column:1/-1;font-size:13px;color:var(--muted);font-weight:300">Gemeinden konnten nicht geladen werden.</div>';
+  }
+}
+
 // ── Load Gewerke ──
 async function loadGewerke() {
   const container = document.getElementById('gewerk-grid');
@@ -543,6 +573,7 @@ async function loadGewerke() {
 }
 
 window.addEventListener('DOMContentLoaded', function() {
+  loadGemeinden();
   loadGewerke();
 });
 </script>
