@@ -1,0 +1,3 @@
+- [x] API-URL-Ermittlung in `js/api.js` robust für Telegram WebApp machen
+- [x] URL-Normalisierung (Trailing Slash) ergänzen
+- [ ] Fortschritt validieren und TODO aktualisieren

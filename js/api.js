@@ -1,14 +1,30 @@
 // Dynamisch die korrekte API-URL ermitteln
+function normalizeBaseUrl(url) {
+  return String(url || '').replace(/\/+$/, '');
+}
+
 function getApiBaseUrl() {
-  // Lokal: http://localhost:3000/api
-  // Production (Proxmox): http://<domain>/api (nginx leitet weiter)
+  // 1) Explizit im Window gesetzt (z.B. für Telegram WebApp)
+  if (window.__API_BASE_URL) {
+    return normalizeBaseUrl(window.__API_BASE_URL);
+  }
+
+  // 2) Optional über Query-Param (?apiBase=https://example.com/api)
+  const qp = new URLSearchParams(window.location.search);
+  const apiBaseFromQuery = qp.get('apiBase');
+  if (apiBaseFromQuery) {
+    return normalizeBaseUrl(apiBaseFromQuery);
+  }
+
+  // 3) Lokal: direkt auf Backend
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return 'http://localhost:3000/api';
   }
-  // Production: nutze den Server, von dem die Seite geladen wird
+
+  // 4) Production: gleicher Host + /api (nginx proxy)
   const url = `${window.location.protocol}//${window.location.host}/api`;
   console.log('[API Config] hostname:', window.location.hostname, 'protocol:', window.location.protocol, 'host:', window.location.host);
-  return url;
+  return normalizeBaseUrl(url);
 }
 
 const API_BASE_URL = getApiBaseUrl();
