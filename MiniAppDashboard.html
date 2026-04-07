@@ -1246,9 +1246,10 @@ async function loadUserData() {
     // Anmeldungen direkt per Dokument-ID laden (kein Query-Index nötig)
     const anmeldungenMap = {}; // "iso_gewerkId" → { angemeldete: {[tgId]: name}, bedarf: n|null }
     const docIds = new Set();
-    [...meineTage, ...alleTage].forEach(({ iso, bars }) =>
-      bars.forEach(bar => docIds.add(`${iso}_${bar.gewerkId}`))
-    );
+    [...meineTage, ...alleTage].forEach(({ iso, bars }) => {
+      bars.forEach(bar => docIds.add(`${iso}_${bar.gewerkId}`));
+      docIds.add(`${iso}_bauhelfer`); // allgemeine Anmeldung
+    });
     await Promise.all([...docIds].map(async docId => {
       const snap = await getDoc(doc(db, 'einsatzAnmeldungen', docId));
       anmeldungenMap[docId] = snap.exists()
@@ -1297,9 +1298,29 @@ async function loadUserData() {
           if (nurMeine) return !!rec.bedarf;
           return !!rec.bedarf && (rec.bedarf - Object.keys(rec.angemeldete).length) > 0;
         });
-        if (!visibleBars.length) return;
-
         const kw = 'KW ' + String(isoWeek(date)).padStart(2,'0');
+
+        // Keine offenen Spots: bei Helfer-Ansicht allgemeine Bauhelfer-Option zeigen
+        if (!visibleBars.length) {
+          if (nurMeine) return;
+          const docId  = `${iso}_bauhelfer`;
+          const rec    = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
+          const count  = Object.keys(rec.angemeldete).length;
+          const istAn  = !!rec.angemeldete[myId];
+          const chipId = `chip-h-${docId}`;
+          const badgeId= `bdg-h-${docId}`;
+          if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
+          html += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">`;
+          html += `<span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>`;
+          html += `<div class="einsatz-chip${istAn?' signed':''}" id="${chipId}"
+            onclick="window._anmelden('${iso}','bauhelfer','${chipId}','${badgeId}')">
+            <span class="chip-name">Bauhelfer</span>
+            <span id="${badgeId}" style="font-size:10px;font-weight:700;color:inherit;opacity:.75">${bedarfBadgeMine(count, null)}</span>
+            <span class="chip-state">${istAn?'✓':'+'}</span>
+          </div></div>`;
+          return;
+        }
+
         if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
         html += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">`;
         html += `<span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>`;
@@ -1319,7 +1340,7 @@ async function loadUserData() {
           html += `<div class="einsatz-chip${isMine?' mine':''}${istAn?' signed':''}" id="${chipId}"
             onclick="window._anmelden('${iso}','${bar.gewerkId}','${chipId}','${badgeId}')">
             <span class="chip-name">${name}</span>
-            ${nurMeine ? `<span id="${badgeId}" style="font-size:10px;font-weight:700;color:inherit;opacity:.75">${bedarfBadgeMine(count,rec.bedarf)}</span>` : ''}
+            <span id="${badgeId}" style="font-size:10px;font-weight:700;color:inherit;opacity:.75">${bedarfBadgeMine(count,rec.bedarf)}</span>
             <span class="chip-state">${istAn?'✓':'+'}</span>
           </div>`;
         });
@@ -1350,6 +1371,13 @@ async function loadUserData() {
           if (!dayMap[iso].bars.find(b => b.gewerkId === bar.gewerkId))
             dayMap[iso].bars.push(bar);
         });
+        // Allgemeine Bauhelfer-Anmeldung einschließen
+        const bhRec = anmeldungenMap[`${iso}_bauhelfer`] || { angemeldete: {}, bedarf: null };
+        if (bhRec.angemeldete[myId]) {
+          if (!dayMap[iso]) dayMap[iso] = { date, kwNum: kn, bars: [] };
+          if (!dayMap[iso].bars.find(b => b.gewerkId === 'bauhelfer'))
+            dayMap[iso].bars.push({ gewerkId: 'bauhelfer', name: 'Bauhelfer' });
+        }
       });
 
       const renderChips = (iso, date, dayBars) => {
@@ -1357,7 +1385,7 @@ async function loadUserData() {
         h += `<span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>`;
         dayBars.forEach(bar => {
           const gw     = gewerkeMap[bar.gewerkId];
-          const name   = gw?.name || bar.gewerkId;
+          const name   = gw?.name || bar.name || bar.gewerkId;
           const docId  = `${iso}_${bar.gewerkId}`;
           const rec    = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
           const count  = Object.keys(rec.angemeldete).length;
