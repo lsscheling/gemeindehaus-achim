@@ -553,14 +553,17 @@ async function loadGemeinden() {
     const snap = await getDoc(doc(db, 'planung', 'gemeindeKonfig'));
     const gemeinden = (snap.exists() ? (snap.data().gemeinden || []) : [])
       .sort((a,b) => a.name.localeCompare(b.name,'de'));
-    if (!gemeinden.length) { grid.innerHTML = ''; return; }
     grid.innerHTML = gemeinden.map(g =>
       `<label class="checkbox-item" onclick="toggleGemeinde(event,'${g.id}')">
         <input type="radio" name="gemeinde" value="${g.id}">
         <span class="check-box radio-box"></span>
         <span class="check-label">${g.name}</span>
       </label>`
-    ).join('');
+    ).join('') + `<label class="checkbox-item" onclick="toggleGemeinde(event,'keine')">
+        <input type="radio" name="gemeinde" value="keine">
+        <span class="check-box radio-box"></span>
+        <span class="check-label" style="color:var(--muted)">Keine</span>
+      </label>`;
   } catch(e) {
     grid.innerHTML = '<div style="grid-column:1/-1;font-size:13px;color:var(--muted);font-weight:300">Gemeinden konnten nicht geladen werden.</div>';
   }
