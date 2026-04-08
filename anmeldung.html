@@ -459,6 +459,11 @@ function toggleLevel(id, checked) {
 async function handleSubmit(e) {
   e.preventDefault();
 
+  if (!telegramAuthOk) {
+    showToast('Telegram-Authentifizierung fehlgeschlagen. Bitte App neu öffnen.', 'error');
+    return;
+  }
+
   // Validate required fields
   var required = [
     document.getElementById('f-vorname'),
@@ -541,6 +546,8 @@ async function handleSubmit(e) {
 <script type="module">
 import { apiFetch, authenticateWithTelegram, getCurrentTelegramUser } from "./js/api.js";
 
+let telegramAuthOk = false;
+
 // ── Save / upsert Anmeldung ──
 // Wir senden es einfach als POST, unser Backend kümmert sich um Einfügen / Überschreiben
 window._saveAnmeldung = async function(payload) {
@@ -607,7 +614,17 @@ async function loadGewerke() {
 
 window.addEventListener('DOMContentLoaded', async function() {
   // Sofortige Telegram Auth beim Booten versuchen
-  await authenticateWithTelegram();
+  try {
+    telegramAuthOk = !!(await authenticateWithTelegram());
+  } catch (e) {
+    telegramAuthOk = false;
+  }
+
+  // Für non-Telegram-Kontext nicht blockieren (normaler Browser)
+  if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initData) {
+    telegramAuthOk = true;
+  }
+
   loadGemeinden();
   loadGewerke();
 });
