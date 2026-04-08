@@ -275,6 +275,7 @@ function showToast(msg, type) {
   el.classList.add('show');
   toastTimer = setTimeout(function() { el.classList.remove('show'); }, 3500);
 }
+window.showToast = showToast;
 
 // ─────────────────────────────────────────────
 // COLLECT FORM DATA
@@ -458,6 +459,7 @@ function toggleLevel(id, checked) {
 // ─────────────────────────────────────────────
 async function handleSubmit(e) {
   e.preventDefault();
+  console.log('[Submit] handleSubmit ausgelöst');
 
   if (!telegramAuthOk) {
     showToast('Telegram-Authentifizierung fehlgeschlagen. Bitte App neu öffnen.', 'error');
@@ -540,6 +542,7 @@ async function handleSubmit(e) {
   var lBh = document.getElementById('level-bauhelfer_allgemein');
   if (lBh) lBh.classList.remove('visible');
 }
+window.handleSubmit = handleSubmit;
 
 </script>
 
