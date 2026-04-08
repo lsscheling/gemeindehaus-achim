@@ -608,20 +608,41 @@ window._setStandardBedarf = async (ns, gwId, inputId) => {
   if (val === '' || val == null) return;
   const bedarf = Number(val);
   const d = window._bedarfData[ns]; if (!d) return;
-  await Promise.all(
-    d.tage.filter(t => t.bars.some(b => b.gewerkId === gwId)).map(async ({ iso }) => {
-      const docId = `${iso}_${gwId}`;
-      const existing = d.anmMap[docId] || {};
-      await setDoc(doc(db, 'einsatzAnmeldungen', docId),
-        { date: iso, gewerkId: gwId, angemeldete: existing.angemeldete || {}, bedarf }, { merge: true });
-      d.anmMap[docId] = { ...existing, bedarf };
-      const count = Object.keys(existing.angemeldete || {}).length;
-      const badge = document.getElementById(`bdg-${ns}-${docId}`);
-      if (badge) badge.innerHTML = bedarfBadgeUser(count, bedarf);
-      const inp = document.getElementById(`inp-${ns}-${docId}`);
-      if (inp) { inp.value = ''; inp.placeholder = String(bedarf); }
-    })
-  );
+
+  // 1. Standard in planung/bedarfConfig speichern
+  await setDoc(doc(db, 'planung', 'bedarfConfig'),
+    { [gwId]: bedarf }, { merge: true });
+
+  // 2. Alle Tage im Gantt-Zeitraum des Gewerks beschreiben (nicht nur 14 Tage)
+  const heute = new Date(); heute.setHours(0,0,0,0);
+  const gwBars = (window._allBars || []).filter(b => b.gewerkId === gwId);
+  const allFutureDates = [];
+  gwBars.forEach(bar => {
+    const s = parseLocalDate(bar.start), e = parseLocalDate(bar.end);
+    if (!s || !e) return;
+    const from = s < heute ? heute : s;
+    const cur = new Date(from);
+    while (cur <= e) {
+      if (cur.getDay() !== 0) {
+        allFutureDates.push(`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`);
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+  });
+
+  await Promise.all(allFutureDates.map(async iso => {
+    const docId = `${iso}_${gwId}`;
+    const existing = d.anmMap[docId] || {};
+    await setDoc(doc(db, 'einsatzAnmeldungen', docId),
+      { date: iso, gewerkId: gwId, angemeldete: existing.angemeldete || {}, bedarf }, { merge: true });
+    d.anmMap[docId] = { ...(d.anmMap[docId] || {}), bedarf };
+    const count = Object.keys(existing.angemeldete || {}).length;
+    const badge = document.getElementById(`bdg-${ns}-${docId}`);
+    if (badge) badge.innerHTML = bedarfBadgeUser(count, bedarf);
+    const inp = document.getElementById(`inp-${ns}-${docId}`);
+    if (inp) { inp.value = ''; inp.placeholder = String(bedarf); }
+  }));
+
   if (inputEl) { inputEl.value = ''; inputEl.placeholder = String(bedarf); }
 };
 
@@ -649,10 +670,34 @@ window._saveGanttKW = async (barId, sKWId, sYrId, eKWId, eYrId, btn) => {
     const snap = await getDoc(ref);
     if (!snap.exists()) throw new Error('ganttDaten nicht gefunden');
     const data    = snap.data();
+    const oldBar  = (data.gewerke || []).find(b => b.id === barId);
+    const gwId    = oldBar?.gewerkId;
     const updated = (data.gewerke || []).map(b =>
       b.id === barId ? { ...b, start: dateToISO(startMon), end: dateToISO(endSun) } : b
     );
     await setDoc(ref, { ...data, gewerke: updated });
+    window._allBars = updated; // lokalen Cache aktualisieren
+
+    // Standard-Bedarf für neue Tage übernehmen
+    if (gwId) {
+      const cfgSnap = await getDoc(doc(db, 'planung', 'bedarfConfig'));
+      const bedarf  = cfgSnap.exists() ? (cfgSnap.data()[gwId] ?? null) : null;
+      if (bedarf !== null) {
+        const heute = new Date(); heute.setHours(0,0,0,0);
+        const from  = startMon < heute ? heute : startMon;
+        const cur   = new Date(from);
+        while (cur <= endSun) {
+          if (cur.getDay() !== 0) {
+            const iso   = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
+            const docId = `${iso}_${gwId}`;
+            await setDoc(doc(db, 'einsatzAnmeldungen', docId),
+              { date: iso, gewerkId: gwId, bedarf }, { merge: true });
+          }
+          cur.setDate(cur.getDate() + 1);
+        }
+      }
+    }
+
     btn.textContent = 'Gespeichert ✓';
     setTimeout(() => { btn.textContent = 'Speichern'; btn.disabled = false; }, 2500);
   } catch(e) {
@@ -857,6 +902,7 @@ async function loadUserData() {
     const gewerkeMap = {};
     (gwSnap.exists() ? gwSnap.data().gewerke || [] : []).forEach(g => { gewerkeMap[g.id] = g; });
     const allBars = ganttSnap.exists() ? ganttSnap.data().gewerke || [] : [];
+    window._allBars = allBars;
 
     // ── Mein Team ──
     if (!gruppe || !gewerke.length) {
