@@ -277,6 +277,9 @@ function showToast(msg, type) {
 }
 window.showToast = showToast;
 
+// Globaler Auth-Status für submit handler (wird im module-script gesetzt)
+window.telegramAuthOk = true;
+
 // ─────────────────────────────────────────────
 // COLLECT FORM DATA
 // ─────────────────────────────────────────────
@@ -461,7 +464,7 @@ async function handleSubmit(e) {
   e.preventDefault();
   console.log('[Submit] handleSubmit ausgelöst');
 
-  if (!telegramAuthOk) {
+  if (!window.telegramAuthOk) {
     showToast('Telegram-Authentifizierung fehlgeschlagen. Bitte App neu öffnen.', 'error');
     return;
   }
@@ -549,7 +552,7 @@ window.handleSubmit = handleSubmit;
 <script type="module">
 import { apiFetch, authenticateWithTelegram, getCurrentTelegramUser } from "./js/api.js";
 
-let telegramAuthOk = false;
+window.telegramAuthOk = false;
 
 // ── Save / upsert Anmeldung ──
 // Wir senden es einfach als POST, unser Backend kümmert sich um Einfügen / Überschreiben
@@ -618,14 +621,14 @@ async function loadGewerke() {
 window.addEventListener('DOMContentLoaded', async function() {
   // Sofortige Telegram Auth beim Booten versuchen
   try {
-    telegramAuthOk = !!(await authenticateWithTelegram());
+    window.telegramAuthOk = !!(await authenticateWithTelegram());
   } catch (e) {
-    telegramAuthOk = false;
+    window.telegramAuthOk = false;
   }
 
   // Für non-Telegram-Kontext nicht blockieren (normaler Browser)
   if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initData) {
-    telegramAuthOk = true;
+    window.telegramAuthOk = true;
   }
 
   loadGemeinden();
