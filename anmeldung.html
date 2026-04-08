@@ -159,7 +159,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <button class="tab" onclick="switchTab('gewerk',1)">2 · Gewerke</button>
     </div>
 
-    <form id="anmeldeform" onsubmit="handleSubmit(event)" novalidate>
+    <form id="anmeldeform" novalidate>
 
       <!-- TAB 1 – Profil -->
       <div class="tab-panel active" id="tab-person">
@@ -227,7 +227,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
         </div>
         <div class="btn-row">
           <button type="button" class="btn-back" onclick="switchTab('person',0)">← Zurück</button>
-          <button type="submit" class="submit-btn">Jetzt anmelden →</button>
+          <button type="button" class="submit-btn" onclick="handleSubmit(event)">Jetzt anmelden →</button>
         </div>
       </div>
 
