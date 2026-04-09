@@ -7,7 +7,7 @@ services:
     ports:
       - "8080:80"  # Port 80 war belegt, nutzen wir 8080
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/:/etc/nginx/conf.d/:ro
       - ./:/usr/share/nginx/html:ro  # Gesamtes Verzeichnis laden (Backend & Co. wird via nginx.conf blockiert)
     depends_on:
       - backend
