@@ -76,7 +76,10 @@ export async function apiFetch(endpoint, options = {}) {
     if (!response.ok) {
       const errObj = await response.json().catch(() => ({}));
       console.error('[apiFetch] HTTP Error:', response.status, errObj);
-      throw new Error(errObj.error || `HTTP Error ${response.status}`);
+      const error = new Error(errObj.error || `HTTP Error ${response.status}`);
+      error.status = response.status;
+      error.code = errObj.code || null;
+      throw error;
     }
 
     const data = await response.json();
