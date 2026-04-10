@@ -16,13 +16,13 @@ function getApiBaseUrl() {
     return normalizeBaseUrl(apiBaseFromQuery);
   }
 
-  // 3) Lokal: direkt auf Backend
+  // 3) Lokal: direkt auf Backend (ohne nginx)
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:3000/api';
+    return 'http://localhost:3001/api';
   }
 
-  // 4) Production: gleicher Host + /api (nginx proxy)
-  const url = `${window.location.protocol}//${window.location.host}/api`;
+  // 4) Standard: gleicher Host auf dediziertem Backend-Port (ohne nginx proxy)
+  const url = `${window.location.protocol}//${window.location.hostname}:3001/api`;
   console.log('[API Config] hostname:', window.location.hostname, 'protocol:', window.location.protocol, 'host:', window.location.host);
   return normalizeBaseUrl(url);
 }

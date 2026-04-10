@@ -1,23 +1,13 @@
 version: '3.8'
 
 services:
-  nginx:
-    image: nginx:alpine
-    container_name: gemeindehaus_nginx
-    ports:
-      - "8080:80"  # Port 80 war belegt, nutzen wir 8080
-    volumes:
-      - ./nginx/:/etc/nginx/conf.d/:ro
-      - ./:/usr/share/nginx/html:ro  # Gesamtes Verzeichnis laden (Backend & Co. wird via nginx.conf blockiert)
-    depends_on:
-      - backend
-    restart: always
-
   backend:
     build: ./backend
     container_name: gemeindehaus_backend
     env_file:
       - ./backend/.env   # <- Hier sucht Docker nach den Keys (Supabase URL, Service Key, JWT Passwort etc.)
+    ports:
+      - "3001:3000"
     restart: always
 
   bot:
@@ -25,4 +15,6 @@ services:
     container_name: gemeindehaus_bot
     env_file:
       - ./bot/.env       # <- Hier sucht Docker nach dem (Bot Token, Backend URL etc.)
+    depends_on:
+      - backend
     restart: always
