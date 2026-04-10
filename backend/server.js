@@ -3,6 +3,7 @@ const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 
 // Umgebungsvariablen laden (nur für lokale Entwicklung, im Docker sind die direkt davor geschaltet)
 require('dotenv').config();
@@ -10,6 +11,10 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Frontend statisch ausliefern (Projekt-Root: HTML/CSS/JS)
+const frontendRoot = path.resolve(__dirname, '..');
+app.use(express.static(frontendRoot));
 
 // Logge jeden Request!
 app.use((req, res, next) => {
@@ -68,6 +73,11 @@ const authenticateToken = (req, res, next) => {
 // ==========================================
 // ROUTEN
 // ==========================================
+
+// Startseite ausliefern
+app.get('/', (req, res) => {
+  return res.sendFile(path.join(frontendRoot, 'index.html'));
+});
 
 // 1. Telegram Auth
 app.post('/api/auth/telegram', async (req, res) => {
