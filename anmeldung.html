@@ -1332,7 +1332,14 @@
     window.addEventListener('DOMContentLoaded', async function () {
       // Sofortige Telegram Auth beim Booten versuchen
       try {
-        window.telegramAuthOk = !!(await authenticateWithTelegram());
+        const authData = await authenticateWithTelegram();
+        window.telegramAuthOk = !!authData;
+        
+        // Wenn der Nutzer bereits eine Anmeldung in der Datenbank hat, direkt zum Dashboard
+        if (authData && authData.registered) {
+          window.location.replace('MiniAppDashboard.html');
+          return;
+        }
       } catch (e) {
         window.telegramAuthOk = false;
       }
