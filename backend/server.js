@@ -12,8 +12,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Frontend statisch ausliefern (Projekt-Root: HTML/CSS/JS)
-const frontendRoot = path.resolve(__dirname, '..');
+// Frontend statisch ausliefern (im Container unter /app/public)
+const frontendRoot = '/app/public';
 app.use(express.static(frontendRoot));
 
 // Logge jeden Request!

@@ -1,7 +1,17 @@
 FROM node:18-alpine
 WORKDIR /app
-COPY package*.json ./
+
+# Backend dependencies
+COPY backend/package*.json ./
 RUN npm install
-COPY *.js ./
+
+# Backend source
+COPY backend/*.js ./
+
+# Statisches Frontend ins Container-Dateisystem kopieren
+RUN mkdir -p /app/public/js
+COPY *.html /app/public/
+COPY js/*.js /app/public/js/
+
 EXPOSE 3000
 CMD ["npm", "start"]
