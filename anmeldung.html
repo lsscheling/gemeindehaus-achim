@@ -294,7 +294,7 @@ function collectPayload() {
     erfahrung[g] = el ? (el.value || '') : '';
   });
   var gemeindeEl = document.querySelector('input[name="gemeinde"]:checked');
-  var tgUser = getCurrentTelegramUser();
+  var tgUser = window.getCurrentTelegramUser ? window.getCurrentTelegramUser() : null;
   
   return {
     vorname: document.getElementById('f-vorname').value || '',
@@ -561,6 +561,7 @@ window.handleSubmit = handleSubmit;
 import { apiFetch, authenticateWithTelegram, getCurrentTelegramUser } from "./js/api.js";
 
 window.telegramAuthOk = false;
+window.getCurrentTelegramUser = getCurrentTelegramUser;
 
 // ── Save / upsert Anmeldung ──
 // Wir senden es einfach als POST, unser Backend kümmert sich um Einfügen / Überschreiben
