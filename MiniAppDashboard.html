@@ -888,6 +888,7 @@ async function loadUserData() {
     let userDoc = null;
     if (tgId) {
       const snap = await getDocs(query(collection(db, 'anmeldungen'), where('telegram_id', '==', tgId)));
+      showToast('DEBUG snap: ' + snap.size + ' Docs');
       if (!snap.empty) userDoc = snap.docs[0].data();
     }
 
