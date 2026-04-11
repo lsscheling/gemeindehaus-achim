@@ -12,6 +12,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// CSP Header setzen - erlaubt Inline-Styles/Scripts und externe Ressourcen
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', 
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' https://telegram.org; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "img-src 'self' data:; " +
+    "connect-src 'self'"
+  );
+  next();
+});
+
 // Frontend statisch ausliefern (im Container unter /app/public)
 const frontendRoot = '/app/public';
 app.use(express.static(frontendRoot));
@@ -77,6 +90,18 @@ const authenticateToken = (req, res, next) => {
 // Startseite ausliefern
 app.get('/', (req, res) => {
   return res.sendFile(path.join(frontendRoot, 'index.html'));
+});
+
+// SPA-Fallback: Wenn eine HTML-Route aufgerufen wird (z.B. /anmeldung), die entsprechende HTML-Datei laden
+app.get('/:page', (req, res, next) => {
+  const page = req.params.page;
+  // Nur HTML-Pages, nicht API-Routen
+  if (page.startsWith('api/') || page.startsWith('.')) return next();
+  
+  const filePath = path.join(frontendRoot, `${page}.html`);
+  res.sendFile(filePath, (err) => {
+    if (err) next(); // Falls nicht gefunden, weiter zum nächsten Middleware
+  });
 });
 
 // 1. Telegram Auth
