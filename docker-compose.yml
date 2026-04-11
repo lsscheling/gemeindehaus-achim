@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: gemeindehaus_backend
     env_file:
       - ./backend/.env   # <- Hier sucht Docker nach den Keys (Supabase URL, Service Key, JWT Passwort etc.)
