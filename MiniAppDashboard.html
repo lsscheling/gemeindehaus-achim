@@ -884,6 +884,7 @@ async function loadUserData() {
   try {
     // 1. User per telegram_id identifizieren
     const tgId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null;
+    showToast('DEBUG tgId: ' + tgId);
     let userDoc = null;
     if (tgId) {
       const snap = await getDocs(query(collection(db, 'anmeldungen'), where('telegram_id', '==', tgId)));
