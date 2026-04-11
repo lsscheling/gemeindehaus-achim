@@ -92,18 +92,6 @@ app.get('/', (req, res) => {
   return res.sendFile(path.join(frontendRoot, 'index.html'));
 });
 
-// SPA-Fallback: Wenn eine HTML-Route aufgerufen wird (z.B. /anmeldung), die entsprechende HTML-Datei laden
-app.get('/:page', (req, res, next) => {
-  const page = req.params.page;
-  // Nur HTML-Pages, nicht API-Routen
-  if (page.startsWith('api/') || page.startsWith('.')) return next();
-  
-  const filePath = path.join(frontendRoot, `${page}.html`);
-  res.sendFile(filePath, (err) => {
-    if (err) next(); // Falls nicht gefunden, weiter zum nächsten Middleware
-  });
-});
-
 // 1. Telegram Auth
 app.post('/api/auth/telegram', async (req, res) => {
   try {
@@ -411,6 +399,22 @@ app.delete('/api/admin/users/:id', authenticateAdmin, async (req, res) => {
   const { error } = await supabase.auth.admin.deleteUser(req.params.id);
   if (error) return res.status(500).json({ error: error.message });
   return res.json({ success: true });
+});
+
+// ==========================================
+// SPA-FALLBACK: Alle anderen Routes als HTML-Dateien laden
+// ==========================================
+app.use((req, res, next) => {
+  // Ignoriere API-Routen
+  if (req.path.startsWith('/api/')) return next();
+  
+  const filePath = path.join(frontendRoot, `${req.path}.html`);
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      // Falls HTML-Datei nicht existiert, 404 zurückgeben
+      res.status(404).json({ error: '404 - Seite nicht gefunden' });
+    }
+  });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
