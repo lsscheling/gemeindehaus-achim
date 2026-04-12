@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Angemeldet – Gemeindehaus Achim</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f0e8;
+      --card: #fffdf8;
+      --ink: #1c1917;
+      --muted: #78716c;
+      --accent: #2d6a4f;
+      --accent-light: #d8f3dc;
+      --phone-bg: #1c1917;
+      --phone-text: #f5f0e8;
+      --tg-bg: #29a2e0;
+      --tg-text: #ffffff;
+      --toast-bg: #1c1917;
+      --toast-text: #f5f0e8;
+      --radius: 14px;
+      --shadow: 0 4px 32px rgba(0,0,0,0.09);
+    }
+
+    body {
+      min-height: 100dvh;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse at 20% 30%, rgba(45,106,79,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 75%, rgba(41,162,224,0.06) 0%, transparent 55%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.25rem;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 3rem 2.5rem 2.5rem;
+      max-width: 460px;
+      width: 100%;
+      text-align: center;
+      animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .checkmark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      margin-bottom: 1.5rem;
+    }
+
+    .checkmark svg {
+      width: 28px;
+      height: 28px;
+      stroke: var(--accent);
+      stroke-width: 2.5;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      color: var(--ink);
+      line-height: 1.3;
+      margin-bottom: 0.9rem;
+    }
+
+    p {
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.7;
+      font-weight: 300;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(0,0,0,0.07);
+      margin: 2rem 0 1.75rem;
+    }
+
+    .contact-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.75rem 1.4rem;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover   { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+    .btn:active  { transform: translateY(0); box-shadow: none; }
+
+    .btn-phone {
+      background: var(--phone-bg);
+      color: var(--phone-text);
+    }
+
+    .btn-telegram {
+      background: var(--tg-bg);
+      color: var(--tg-text);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--toast-bg);
+      color: var(--toast-text);
+      padding: 0.65rem 1.25rem;
+      border-radius: 40px;
+      font-size: 0.88rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      white-space: nowrap;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="checkmark">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+
+    <h1>Du bist bereits angemeldet.</h1>
+    <p>
+      Wir organisieren die Gruppen und du wirst aktiv informiert, wenn das Dashboard abrufbar ist.<br><br>
+      Bei Fragen oder Anliegen bitte an <strong style="color:var(--ink); font-weight:500;">Luis Scheling</strong> wenden.
+    </p>
+
+    <hr class="divider" />
+
+    <div class="contact-label">Kontakt</div>
+    <div class="buttons">
+      <button class="btn btn-phone" onclick="copyPhone()">
+        <!-- Phone icon -->
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 12 19.79 19.79 0 0 1 1.08 3.4 2 2 0 0 1 3.07 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 9.09A16 16 0 0 0 13 15l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+        Telefon
+      </button>
+
+      <a class="btn btn-telegram" href="https://t.me/scheluis" target="_blank" rel="noopener">
+        <!-- Telegram plane icon -->
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M21.944 2.647a1.5 1.5 0 0 0-1.54-.21L2.37 9.71a1.5 1.5 0 0 0 .09 2.79l3.93 1.31 1.54 4.87a1.5 1.5 0 0 0 2.55.52l2.07-2.48 4.14 3.06a1.5 1.5 0 0 0 2.36-1l2.25-13.5a1.5 1.5 0 0 0-.31-1.43zM9.5 16.5l-1-3.13 7.38-5.56L9.5 16.5zm1.38.93 1.27-2.93 1.02.75-2.29 2.18zm5.89.19-4.7-3.47 6.44-8.15-1.74 11.62z"/>
+        </svg>
+        Telegram
+      </a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">📋 Nummer in der Zwischenablage</div>
+
+  <script>
+    function copyPhone() {
+      navigator.clipboard.writeText('+4915258137106').then(() => showToast()).catch(() => {
+        // Fallback for older browsers
+        const el = document.createElement('textarea');
+        el.value = '+4915258137106';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        showToast();
+      });
+    }
+
+    let toastTimer;
+    function showToast() {
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+    }
+  </script>
+</body>
+</html>
