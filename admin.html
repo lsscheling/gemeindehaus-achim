@@ -1317,30 +1317,20 @@ window.exportCSV = exportCSV;
 </script>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDoc, getDocs, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
-  authDomain: "gemeindehaus-achim.firebaseapp.com",
-  projectId: "gemeindehaus-achim",
-  storageBucket: "gemeindehaus-achim.firebasestorage.app",
-  messagingSenderId: "272798328583",
-  appId: "1:272798328583:web:388aa8db19886e9be507a2"
-};
+const SUPABASE_URL = 'https://upkbuxphiyenjhxntbto.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwa2J1eHBoaXllbmpoeG50YnRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMjUxOTMsImV4cCI6MjA5MDkwMTE5M30.0ErIMg4g78FKej5SrIAdSUfZ5StQk1tTyW2us6Dv1yc'
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-// Firestore-Funktionen global verfügbar machen (für nicht-module Scripts)
-window._db = db;
-window.updateDoc = updateDoc;
-window._docFn = doc;
-window._addDoc = addDoc;
-window._colFn = collection;
-window._deleteDoc = deleteDoc;
+// ── WRITE STUBS (read-only phase) ──
+window._db = null;
+window.updateDoc = async () => { console.warn('[Supabase] Schreiben noch nicht aktiviert'); };
+window._docFn = () => ({});
+window._addDoc = async () => { console.warn('[Supabase] Schreiben noch nicht aktiviert'); };
+window._colFn = () => ({});
+window._deleteDoc = async () => { console.warn('[Supabase] Schreiben noch nicht aktiviert'); };
 
 // ── LOGIN ──
 document.getElementById('login-btn').addEventListener('click', doLogin);
@@ -1352,24 +1342,24 @@ async function doLogin() {
   const errEl = document.getElementById('login-error');
   errEl.style.display = 'none';
   if (!email||!pw) { errEl.textContent='Bitte E-Mail und Passwort eingeben.'; errEl.style.display='block'; return; }
-  try { await signInWithEmailAndPassword(auth, email, pw); }
-  catch(e) { errEl.textContent='Anmeldung fehlgeschlagen.'; errEl.style.display='block'; }
+  const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
+  if (error) { errEl.textContent='Anmeldung fehlgeschlagen.'; errEl.style.display='block'; }
 }
-window.doLogout = async function() { await signOut(auth); };
+window.doLogout = async function() { await supabase.auth.signOut(); };
 
 // ── AUTH STATE ──
-onAuthStateChanged(auth, async user => {
-  if (user) {
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (session?.user) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     const info = document.getElementById('sidebar-user-info');
-    info.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${user.email}</div>
+    info.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${session.user.email}</div>
       <button onclick="window.doLogout()" style="margin-top:8px;width:100%;padding:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius);color:rgba(255,255,255,0.55);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer">Abmelden</button>`;
     await loadGewerke();
     await loadGemeindeKonfig();
-    loadAnmeldungen();
+    await loadAnmeldungen();
   } else {
-    currentUserRole = null;
+    window.currentUserRole = null;
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
   }
@@ -1378,35 +1368,30 @@ onAuthStateChanged(auth, async user => {
 // ── GEWERKE LADEN ──
 async function loadGewerke() {
   try {
-    const snap = await getDoc(doc(db,'planung','gewerkeKonfig'));
-    if (snap.exists()) {
-      allGewerkeKonfig = snap.data().gewerke || [];
-      gewerkeKonfig = allGewerkeKonfig.filter(g => g.active);
-      levelsKonfig = snap.data().levels || [];
-    } else {
-      allGewerkeKonfig = []; gewerkeKonfig = []; levelsKonfig = [];
-    }
+    const [{ data: gewerkeData }, { data: levelsData }] = await Promise.all([
+      supabase.from('gewerke_konfig').select('*').order('sort_order'),
+      supabase.from('levels').select('*')
+    ]);
+    allGewerkeKonfig = gewerkeData || [];
+    gewerkeKonfig = allGewerkeKonfig.filter(g => g.active);
+    levelsKonfig = levelsData || [];
   } catch(e) { allGewerkeKonfig = []; gewerkeKonfig = []; levelsKonfig = []; }
   buildGewerkFilters();
 }
 
 // ── ANMELDUNGEN ──
-function loadAnmeldungen() {
-  const q = collection(db,'anmeldungen');
-  onSnapshot(q, snap => {
-    allDocs = [];
-    snap.forEach(d => allDocs.push({ id:d.id, ...d.data() }));
-    allDocs.sort((a, b) => {
-      const ta = (a.createdAt?.seconds || a.angemeldet_am?.seconds || 0);
-      const tb = (b.createdAt?.seconds || b.angemeldet_am?.seconds || 0);
-      return tb - ta;
-    });
-    filteredDocs = [...allDocs];
-    renderStats();
-    applyFilters();
-    if (document.getElementById('panel-planung').classList.contains('active')) renderPlanungPanel();
-    if (document.getElementById('panel-nutzerverwaltung').classList.contains('active')) renderUsersTable();
-  });
+async function loadAnmeldungen() {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .order('registered_at', { ascending: false });
+  if (error) { console.error('Fehler beim Laden der Anmeldungen:', error); return; }
+  allDocs = data || [];
+  filteredDocs = [...allDocs];
+  renderStats();
+  applyFilters();
+  if (document.getElementById('panel-planung').classList.contains('active')) renderPlanungPanel();
+  if (document.getElementById('panel-nutzerverwaltung').classList.contains('active')) renderUsersTable();
 }
 
 // ── NUTZERVERWALTUNG / TEAMLEITER + ADMINS ──
@@ -1463,24 +1448,20 @@ function renderUsersTable() {
 window.showAddTeamleiterForm = function() {
   const form = document.getElementById('tl-add-form');
   form.style.display = 'block';
-  // populate person select (only non-teamleiter)
   const sel = document.getElementById('tl-person-select');
   const available = allDocs.filter(d => d.rolle !== 'teamleiter')
     .sort((a,b) => (a.vorname+a.nachname).localeCompare(b.vorname+b.nachname,'de'));
   sel.innerHTML = '<option value="">– Person auswählen –</option>' +
     available.map(d => `<option value="${d.id}">${d.vorname||''} ${d.nachname||''}</option>`).join('');
-  // reset gewerk rows, start with one
   document.getElementById('tl-gewerk-rows').innerHTML = '';
   window.addGewerkRow();
 };
-
 window.hideAddTeamleiterForm = function() {
   document.getElementById('tl-add-form').style.display = 'none';
 };
-
 window.addGewerkRow = function() {
   const container = document.getElementById('tl-gewerk-rows');
-  const aktive = gewerkeKonfig.filter(g => g.aktiv !== false);
+  const aktive = gewerkeKonfig.filter(g => g.active !== false);
   const div = document.createElement('div');
   div.style.cssText = 'display:flex;align-items:center;gap:8px';
   div.innerHTML = `<select class="tl-gewerk-sel" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;outline:none;background:var(--paper);flex:1;max-width:300px;cursor:pointer">
@@ -1490,19 +1471,11 @@ window.addGewerkRow = function() {
     <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;line-height:1">✕</button>`;
   container.appendChild(div);
 };
-
 window.saveNewTeamleiter = async function() {
-  const personId = document.getElementById('tl-person-select').value;
-  if (!personId) { alert('Bitte eine Person auswählen.'); return; }
-  const gewerke = [...document.querySelectorAll('.tl-gewerk-sel')]
-    .map(s => s.value).filter(Boolean);
-  await updateDoc(doc(db,'anmeldungen',personId), { rolle: 'teamleiter', teamleiterGewerke: [...new Set(gewerke)] });
-  window.hideAddTeamleiterForm();
+  console.warn('[Supabase] Schreiben noch nicht aktiviert');
 };
-
 window.removeTeamleiter = async (id) => {
-  if (!confirm('Teamleiter-Rolle entfernen?')) return;
-  await updateDoc(doc(db,'anmeldungen',id), { rolle: null, teamleiterGewerke: [] });
+  console.warn('[Supabase] Schreiben noch nicht aktiviert');
 };
 
 window.showAddAdminForm = function() {
@@ -1514,23 +1487,14 @@ window.showAddAdminForm = function() {
   sel.innerHTML = '<option value="">– Person auswählen –</option>' +
     available.map(d => `<option value="${d.id}">${d.vorname||''} ${d.nachname||''}</option>`).join('');
 };
-
 window.hideAddAdminForm = function() {
   document.getElementById('admin-add-form').style.display = 'none';
 };
-
 window.saveNewAdmin = async function() {
-  const personId = document.getElementById('admin-person-select').value;
-  if (!personId) { alert('Bitte eine Person auswählen.'); return; }
-  // Bestehende Rolle beibehalten wenn teamleiter, zusätzlich admin über rollen-Array oder separates Feld
-  const person = allDocs.find(d => d.id === personId);
-  await updateDoc(doc(db,'anmeldungen',personId), { admin: true });
-  window.hideAddAdminForm();
+  console.warn('[Supabase] Schreiben noch nicht aktiviert');
 };
-
 window.removeAdmin = async (id) => {
-  if (!confirm('Admin-Rolle entfernen?')) return;
-  await updateDoc(doc(db,'anmeldungen',id), { admin: false });
+  console.warn('[Supabase] Schreiben noch nicht aktiviert');
 };
 
 const SONDERROLLEN_LABELS = { organisation: 'Organisation', bauleitung: 'Bauleitung', 'bauküche': 'Bau-Küche', sicherheitsbeauftragter: 'Sicherheitsbeauftragter' };
@@ -1578,28 +1542,20 @@ window.hideAddSonderrolleForm = function() {
   document.getElementById('sonderrolle-add-form').style.display = 'none';
 };
 window.saveNewSonderrolle = async function() {
-  const rolle   = document.getElementById('sonderrolle-select').value;
-  const personId = document.getElementById('sonderrolle-person-select').value;
-  if (!rolle || !personId) { alert('Bitte Rolle und Person auswählen.'); return; }
-  await updateDoc(doc(db,'anmeldungen',personId), { sonderrolle: rolle });
-  window.hideAddSonderrolleForm();
+  console.warn('[Supabase] Schreiben noch nicht aktiviert');
 };
 window.removeSonderrolle = async (id) => {
-  if (!confirm('Sonderrolle entfernen?')) return;
-  await updateDoc(doc(db,'anmeldungen',id), { sonderrolle: null });
+  console.warn('[Supabase] Schreiben noch nicht aktiviert');
 };
 
 window.removeTeamleiterGewerk = async (id, gewerkId) => {
-  const d = allDocs.find(x => x.id === id); if (!d) return;
-  const updated = (d.teamleiterGewerke || []).filter(x => x !== gewerkId);
-  await updateDoc(doc(db,'anmeldungen',id), { teamleiterGewerke: updated });
+  console.warn('[Supabase] Schreiben noch nicht aktiviert');
 };
 
 window.addGewerkToExisting = function(id) {
-  const aktive = gewerkeKonfig.filter(g => g.aktiv !== false);
+  const aktive = gewerkeKonfig.filter(g => g.active !== false);
   const d = allDocs.find(x => x.id === id); if (!d) return;
   const assigned = d.teamleiterGewerke || [];
-  // Build a small inline select+confirm via prompt-style approach using a temporary popover
   const sel = document.createElement('select');
   sel.style.cssText = 'font-family:"DM Sans",sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;outline:none;background:var(--paper);cursor:pointer';
   sel.innerHTML = '<option value="">– Gewerk wählen –</option>' +
@@ -1613,15 +1569,12 @@ window.addGewerkToExisting = function(id) {
   const row = document.createElement('div');
   row.style.cssText = 'display:flex;align-items:center;gap:6px;margin-top:8px';
   row.appendChild(sel); row.appendChild(confirmBtn); row.appendChild(cancelBtn);
-  // insert after pills row of this card — re-render will clean it up
   const cards = document.getElementById('tl-list').children;
   const card = [...cards].find(c => c.innerHTML.includes(`'${id}'`));
   if (card) card.appendChild(row);
   cancelBtn.onclick = () => row.remove();
   confirmBtn.onclick = async () => {
-    const val = sel.value; if (!val) return;
-    const updated = [...new Set([...assigned, val])];
-    await updateDoc(doc(db,'anmeldungen',id), { teamleiterGewerke: updated });
+    console.warn('[Supabase] Schreiben noch nicht aktiviert');
     row.remove();
   };
 };
@@ -1633,8 +1586,8 @@ let gemeindeKonfig = [];
 
 async function loadGemeindeKonfig() {
   try {
-    const snap = await getDoc(doc(db, 'planung', 'gemeindeKonfig'));
-    gemeindeKonfig = snap.exists() ? (snap.data().gemeinden || []) : [];
+    const { data } = await supabase.from('gemeinden').select('*').order('sort_order');
+    gemeindeKonfig = data || [];
   } catch(e) { gemeindeKonfig = []; }
   window._gemeindeKonfig = gemeindeKonfig;
 }
@@ -1664,37 +1617,20 @@ window.showGemeindeForm = function(id, name) {
   document.getElementById('gemeinde-add-form').style.display = '';
   document.getElementById('gemeinde-name-input').focus();
 };
-
 window.hideGemeindeForm = function() {
   document.getElementById('gemeinde-add-form').style.display = 'none';
   document.getElementById('gemeinde-edit-id').value = '';
   document.getElementById('gemeinde-name-input').value = '';
 };
-
 window.editGemeinde = function(id) {
   const g = gemeindeKonfig.find(x => x.id === id);
   if (g) window.showGemeindeForm(g.id, g.name);
 };
-
 window.saveGemeinde = async function() {
-  const name = document.getElementById('gemeinde-name-input').value.trim();
-  if (!name) { document.getElementById('gemeinde-name-input').focus(); return; }
-  const editId = document.getElementById('gemeinde-edit-id').value;
-  if (editId) {
-    gemeindeKonfig = gemeindeKonfig.map(g => g.id === editId ? { ...g, name } : g);
-  } else {
-    gemeindeKonfig.push({ id: 'g_' + Date.now(), name });
-  }
-  await setDoc(doc(db, 'planung', 'gemeindeKonfig'), { gemeinden: gemeindeKonfig });
-  window.hideGemeindeForm();
-  window.renderGemeindePanel();
+  console.warn('[Supabase] Schreiben noch nicht aktiviert');
 };
-
 window.deleteGemeinde = async function(id) {
-  if (!confirm('Gemeinde wirklich löschen?')) return;
-  gemeindeKonfig = gemeindeKonfig.filter(g => g.id !== id);
-  await setDoc(doc(db, 'planung', 'gemeindeKonfig'), { gemeinden: gemeindeKonfig });
-  window.renderGemeindePanel();
+  console.warn('[Supabase] Schreiben noch nicht aktiviert');
 };
 </script>
 </body>
