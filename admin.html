@@ -1396,15 +1396,19 @@ async function handleSession(session) {
   }
 }
 
+let _sessionHandled = false;
+
 supabase.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-    await handleSession(session);
-  }
+  if (event === 'SIGNED_OUT') { _sessionHandled = false; await handleSession(null); return; }
+  if (!_sessionHandled && session?.user) { _sessionHandled = true; await handleSession(session); }
 });
 
-// Session beim Laden direkt prüfen
-const { data: { session: initialSession } } = await supabase.auth.getSession();
-await handleSession(initialSession);
+try {
+  const { data: { session: initialSession } } = await supabase.auth.getSession();
+  if (!_sessionHandled) { _sessionHandled = !!initialSession?.user; await handleSession(initialSession); }
+} catch(e) {
+  console.error('Supabase session error:', e);
+}
 
 // ── GEWERKE LADEN ──
 async function loadGewerke() {
@@ -1422,11 +1426,15 @@ async function loadGewerke() {
 
 // ── ANMELDUNGEN ──
 async function loadAnmeldungen() {
+  const tbody = document.getElementById('anmeldungen-tbody');
   const { data, error } = await supabase
     .from('users')
     .select('*')
     .order('registered_at', { ascending: false });
-  if (error) { console.error('Fehler beim Laden der Anmeldungen:', error); return; }
+  if (error) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Fehler beim Laden: ${error.message} <button class="btn btn-outline btn-sm" style="margin-left:10px" onclick="loadAnmeldungen()">Neu laden</button></div></td></tr>`;
+    return;
+  }
   allDocs = data || [];
   filteredDocs = [...allDocs];
   renderStats();
