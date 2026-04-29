@@ -720,7 +720,7 @@ function renderTable() {
   const countEl = document.getElementById('anmeldungen-count');
   if (countEl) {
     countEl.textContent = filteredDocs.length === allDocs.length
-      ? `${allDocs.length} Personen angemeldet`
+      ? `${allDocs.length} Personen`
       : `${filteredDocs.length} von ${allDocs.length} Personen`;
   }
   if (!filteredDocs.length) {
