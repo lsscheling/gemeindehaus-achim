@@ -1405,19 +1405,9 @@ window._reloadData = async function() {
   try { await loadGewerke(); await loadGemeindeKonfig(); await loadAnmeldungen(); } catch(e) { alert(e.message); }
 };
 
-let _sessionHandled = false;
-
 supabase.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'SIGNED_OUT') { _sessionHandled = false; await handleSession(null); return; }
-  if (!_sessionHandled && session?.user) { _sessionHandled = true; await handleSession(session); }
+  await handleSession(session);
 });
-
-try {
-  const { data: { session: initialSession } } = await supabase.auth.getSession();
-  if (!_sessionHandled) { _sessionHandled = !!initialSession?.user; await handleSession(initialSession); }
-} catch(e) {
-  console.error('Supabase session error:', e);
-}
 
 // ── GEWERKE LADEN ──
 async function loadGewerke() {
