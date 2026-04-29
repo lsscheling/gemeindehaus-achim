@@ -717,6 +717,12 @@ function buildGemeindeFilter() {
 
 function renderTable() {
   const tbody = document.getElementById('anmeldungen-tbody');
+  const countEl = document.getElementById('anmeldungen-count');
+  if (countEl) {
+    countEl.textContent = filteredDocs.length === allDocs.length
+      ? `${allDocs.length} Personen angemeldet`
+      : `${filteredDocs.length} von ${allDocs.length} Personen`;
+  }
   if (!filteredDocs.length) {
     tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state">Keine Einträge gefunden.</div></td></tr>';
     return;
