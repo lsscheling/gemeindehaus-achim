@@ -1386,15 +1386,24 @@ async function handleSession(session) {
     const info = document.getElementById('sidebar-user-info');
     info.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.75);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${session.user.email}</div>
       <button onclick="window.doLogout()" style="margin-top:8px;width:100%;padding:6px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:var(--radius);color:rgba(255,255,255,0.55);font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer">Abmelden</button>`;
-    await loadGewerke();
-    await loadGemeindeKonfig();
-    await loadAnmeldungen();
+    try {
+      await loadGewerke();
+      await loadGemeindeKonfig();
+      await loadAnmeldungen();
+    } catch(e) {
+      const tbody = document.getElementById('anmeldungen-tbody');
+      if (tbody) tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Fehler: ${e.message} <button class="btn btn-outline btn-sm" style="margin-left:10px" onclick="window._reloadData()">Neu laden</button></div></td></tr>`;
+    }
   } else {
     window.currentUserRole = null;
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
   }
 }
+
+window._reloadData = async function() {
+  try { await loadGewerke(); await loadGemeindeKonfig(); await loadAnmeldungen(); } catch(e) { alert(e.message); }
+};
 
 let _sessionHandled = false;
 
