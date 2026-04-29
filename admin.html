@@ -317,8 +317,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <div class="table-toolbar">
         <input class="search-input" type="text" placeholder="Name, E-Mail, Gewerk …" oninput="filterTable(this.value)" id="search-input">
         <select class="filter-select" onchange="applyFilters()" id="gewerk-filter"><option value="">Alle Gewerke</option></select>
+        <select class="filter-select" onchange="applyFilters()" id="gemeinde-filter"><option value="">Alle Gemeinden</option></select>
+        <select class="filter-select" onchange="applyFilters()" id="schicht-filter">
+          <option value="">Schichtarbeit: Alle</option>
+          <option value="ja">Schichtarbeit: Ja</option>
+          <option value="nein">Schichtarbeit: Nein</option>
+        </select>
         <select class="filter-select" onchange="applyFilters()" id="assign-filter">
-          <option value="">Alle</option>
+          <option value="">Zuweisung: Alle</option>
           <option value="assigned">Zugewiesen</option>
           <option value="unassigned">Nicht zugewiesen</option>
         </select>
@@ -633,7 +639,7 @@ let planSelectedIds = new Set();
 let gewerkeKonfig = [];
 let allGewerkeKonfig = [];
 let levelsKonfig = [];
-let currentFilter = '', currentGewerk = '', currentAssign = '';
+let currentFilter = '', currentGewerk = '', currentAssign = '', currentGemeinde = '', currentSchicht = '';
 let matrixFilter = '', matrixLevel = '', activeGewerkId = null;
 // Modal state
 let modalErfahrung = {};
@@ -685,15 +691,28 @@ function filterTable(val) { currentFilter = val.toLowerCase(); applyFilters(); }
 function applyFilters() {
   currentGewerk = document.getElementById('gewerk-filter').value;
   currentAssign = document.getElementById('assign-filter').value;
+  currentGemeinde = document.getElementById('gemeinde-filter').value;
+  currentSchicht = document.getElementById('schicht-filter').value;
   filteredDocs = allDocs.filter(d => {
     const name = ((d.vorname||'') + ' ' + (d.nachname||'') + ' ' + (d.email||'')).toLowerCase();
     const gw = (d.gewerke||[]).join(' ');
     const matchText = !currentFilter || name.includes(currentFilter) || gw.includes(currentFilter);
     const matchGewerk = !currentGewerk || (d.gewerke||[]).includes(currentGewerk);
     const matchAssign = !currentAssign || (currentAssign === 'assigned' ? getAssigned(d).length > 0 : getAssigned(d).length === 0);
-    return matchText && matchGewerk && matchAssign;
+    const matchGemeinde = !currentGemeinde || d.gemeinde === currentGemeinde;
+    const matchSchicht = !currentSchicht || (currentSchicht === 'ja' ? !!d.schichtarbeit : !d.schichtarbeit);
+    return matchText && matchGewerk && matchAssign && matchGemeinde && matchSchicht;
   });
   renderTable();
+}
+
+function buildGemeindeFilter() {
+  const sel = document.getElementById('gemeinde-filter');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Alle Gemeinden</option>' +
+    (window._gemeindeKonfig || []).sort((a,b) => a.name.localeCompare(b.name,'de'))
+      .map(g => `<option value="${g.id}" ${g.id===current?'selected':''}>${g.name}</option>`).join('');
 }
 
 function renderTable() {
@@ -1102,11 +1121,11 @@ function openDrawer(id) {
     return `<span style="display:inline-block;padding:3px 10px;border-radius:10px;font-size:12px;background:${bg};color:${col};border:1px solid ${col}40;margin:2px">${getGewerkLabel(g)}${lvl}</span>`;
   }).join('') || '–';
 
-  const abw = (d.abwesenheiten||[]).map(a => `<span class="abw-chip">🔴 ${a.von}${a.von!==a.bis?' – '+a.bis:''}</span>`).join('') || '–';
-
   const drawerAssigned = getAssigned(d);
   const drawerChips = drawerAssigned.map(gid => `<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 9px;border-radius:9px;background:var(--accent-light);border:1px solid var(--accent);color:var(--accent)">${getGewerkLabel(gid)}<button onclick="window.removeAssignment('${d.id}','${gid}')" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;line-height:1;padding:0">✕</button></span>`).join('');
   const drawerAddOpts = '<option value="">+ Gewerk hinzufügen …</option>' + gewerkeKonfig.filter(g => !drawerAssigned.includes(g.id)).map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+
+  const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '–';
 
   document.getElementById('drawer-body').innerHTML = `
     <div class="dsection"><div class="dsection-title">Kontakt</div>
@@ -1115,14 +1134,20 @@ function openDrawer(id) {
       <div class="drow"><span class="drow-label">Telegram ID</span><span class="drow-val">${d.telegram_id||'–'}</span></div>
       <div class="drow"><span class="drow-label">Telegram Username</span><span class="drow-val">${d.telegram_username ? '@'+d.telegram_username : '–'}</span></div>
     </div>
+    <div class="dsection"><div class="dsection-title">Anmeldung</div>
+      <div class="drow"><span class="drow-label">Angemeldet am</span><span class="drow-val">${fmtDate(d.registered_at)}</span></div>
+      ${d.updated_at ? `<div class="drow"><span class="drow-label">Zuletzt geändert</span><span class="drow-val">${fmtDate(d.updated_at)}</span></div>` : ''}
+      ${d.status ? `<div class="drow"><span class="drow-label">Status</span><span class="drow-val">${d.status}</span></div>` : ''}
+      <div class="drow"><span class="drow-label">Gemeinde</span><span class="drow-val">${getGemeindeLabel(d.gemeinde)}</span></div>
+      ${d.gruppe ? `<div class="drow"><span class="drow-label">Gruppe</span><span class="drow-val">${d.gruppe}</span></div>` : ''}
+    </div>
     <div class="dsection"><div class="dsection-title">Gewerk & Erfahrung</div>
       <div>${gewerkeHtml}</div>
-      ${d.qualifikationen?`<div class="drow" style="margin-top:6px"><span class="drow-label">Qualifikationen</span><span class="drow-val">${d.qualifikationen}</span></div>`:''}
+      ${d.qualifikationen?`<div class="drow" style="margin-top:6px"><span class="drow-label">Qualifikationen</span><span class="drow-val" style="text-align:left">${d.qualifikationen}</span></div>`:''}
     </div>
     <div class="dsection"><div class="dsection-title">Schichtarbeit</div>
       <div class="drow"><span class="drow-label">Im Schichtbetrieb</span><span class="drow-val">${d.schichtarbeit ? 'Ja' : 'Nein'}</span></div>
     </div>
-    <div class="dsection"><div class="dsection-title">Abwesenheiten</div><div>${abw}</div></div>
     ${d.gruppenwunsch||d.teamwunsch?`<div class="dsection"><div class="dsection-title">Gruppenwunsch</div><div class="note-box">${d.gruppenwunsch||d.teamwunsch}</div></div>`:''}
     ${d.verfueg_kommentar?`<div class="dsection"><div class="dsection-title">Anmerkungen</div><div class="note-box">${d.verfueg_kommentar}</div></div>`:''}
     <div class="dsection"><div class="dsection-title">Gewerk-Zuweisung</div>
@@ -1590,6 +1615,7 @@ async function loadGemeindeKonfig() {
     gemeindeKonfig = data || [];
   } catch(e) { gemeindeKonfig = []; }
   window._gemeindeKonfig = gemeindeKonfig;
+  if (typeof buildGemeindeFilter === 'function') buildGemeindeFilter();
 }
 
 window.renderGemeindePanel = function() {
