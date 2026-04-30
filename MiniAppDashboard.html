@@ -1428,9 +1428,9 @@ async function loadUserData() {
               style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
               + Neu
             </button>
-            <span id="adm-news-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0">▼</span>
+            <span id="adm-news-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
           </div>
-          <div id="adm-news-body" style="margin-top:12px">
+          <div id="adm-news-body" style="margin-top:12px;display:none">
             <div id="adm-news-form" style="display:none;background:var(--sand);border-radius:10px;padding:12px;margin-bottom:10px">
               <div style="font-size:12px;font-weight:600;margin-bottom:8px" id="adm-news-form-title">Neue Meldung</div>
               <input id="adm-news-datum" type="text" placeholder="Datum (z.B. 7. April 2026)" style="${inputStyle};margin-bottom:8px">
