@@ -325,30 +325,44 @@ async function saveToDb() {
     if (col) lv.color = col.value;
   });
 
-  // Gewerke speichern
+  // Gewerke speichern (explizit UPDATE + INSERT statt upsert wegen RLS)
   const gewerkeRows = gewerke.map((g, i) => ({
     id: g.id, name: g.name, active: g.active,
     visible_in_form: g.visibleInForm, min_persons: g.minPersons,
     color: g.color, allowed_levels: g.levels, sort_order: i
   }));
-  const { error: gErr } = await supabase.from('gewerke_konfig').upsert(gewerkeRows, { onConflict: 'id' });
-  if (gErr) throw new Error(gErr.message);
-
-  // Gelöschte Gewerke entfernen
-  const { data: existing } = await supabase.from('gewerke_konfig').select('id');
+  const { data: existingG } = await supabase.from('gewerke_konfig').select('id');
+  const existingGIds = new Set((existingG || []).map(r => r.id));
+  const gToUpdate = gewerkeRows.filter(r => existingGIds.has(r.id));
+  const gToInsert = gewerkeRows.filter(r => !existingGIds.has(r.id));
+  for (const row of gToUpdate) {
+    const { error } = await supabase.from('gewerke_konfig').update(row).eq('id', row.id);
+    if (error) throw new Error(error.message);
+  }
+  if (gToInsert.length) {
+    const { error } = await supabase.from('gewerke_konfig').insert(gToInsert);
+    if (error) throw new Error(error.message);
+  }
   const keepIds = new Set(gewerke.map(g => g.id));
-  const toDeleteGewerke = (existing || []).map(r => r.id).filter(id => !keepIds.has(id));
+  const toDeleteGewerke = [...existingGIds].filter(id => !keepIds.has(id));
   if (toDeleteGewerke.length) await supabase.from('gewerke_konfig').delete().in('id', toDeleteGewerke);
 
   // Levels speichern
   const levelsRows = levels.map(l => ({ id: l.id, name: l.name, color: l.color }));
-  const { error: lErr } = await supabase.from('levels').upsert(levelsRows, { onConflict: 'id' });
-  if (lErr) throw new Error(lErr.message);
-
-  // Gelöschte Levels entfernen
   const { data: existingLv } = await supabase.from('levels').select('id');
+  const existingLvIds = new Set((existingLv || []).map(r => r.id));
+  const lvToUpdate = levelsRows.filter(r => existingLvIds.has(r.id));
+  const lvToInsert = levelsRows.filter(r => !existingLvIds.has(r.id));
+  for (const row of lvToUpdate) {
+    const { error } = await supabase.from('levels').update(row).eq('id', row.id);
+    if (error) throw new Error(error.message);
+  }
+  if (lvToInsert.length) {
+    const { error } = await supabase.from('levels').insert(lvToInsert);
+    if (error) throw new Error(error.message);
+  }
   const keepLevelIds = new Set(levels.map(l => l.id));
-  const toDeleteLevels = (existingLv || []).map(r => r.id).filter(id => !keepLevelIds.has(id));
+  const toDeleteLevels = [...existingLvIds].filter(id => !keepLevelIds.has(id));
   if (toDeleteLevels.length) await supabase.from('levels').delete().in('id', toDeleteLevels);
 }
 
