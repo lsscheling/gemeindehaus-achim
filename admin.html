@@ -1379,13 +1379,38 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-// ── WRITE STUBS (read-only phase) ──
-window._db = null;
-window.updateDoc = async () => { console.warn('[Supabase] Schreiben noch nicht aktiviert'); };
-window._docFn = () => ({});
-window._addDoc = async () => { console.warn('[Supabase] Schreiben noch nicht aktiviert'); };
-window._colFn = () => ({});
-window._deleteDoc = async () => { console.warn('[Supabase] Schreiben noch nicht aktiviert'); };
+// ── WRITE OPERATIONS ──
+// Firebase-Kollektion 'anmeldungen' → Supabase-Tabelle 'users'
+const TABLE_MAP = { anmeldungen: 'users' };
+
+window._db = {}; // truthy, damit bestehende Guards (window._db && ...) greifen
+window._docFn = (db, col, id) => ({ _table: TABLE_MAP[col] || col, _id: id });
+window._colFn = (db, col)     => ({ _table: TABLE_MAP[col] || col });
+
+window.updateDoc = async (ref, data) => {
+  const { error } = await supabase.from(ref._table).update(data).eq('id', ref._id);
+  if (error) throw new Error(error.message);
+  const doc = allDocs.find(d => d.id === ref._id);
+  if (doc) Object.assign(doc, data);
+  applyFilters();
+};
+
+window._addDoc = async (ref, data) => {
+  delete data.createdAt;       // Firebase-spezifisch, nicht in Supabase
+  delete data.abwesenheiten;   // Altlast
+  data.registered_at = new Date().toISOString();
+  const { error } = await supabase.from(ref._table).insert(data);
+  if (error) throw new Error(error.message);
+  await loadAnmeldungen();
+};
+
+window._deleteDoc = async (ref) => {
+  const { error } = await supabase.from(ref._table).delete().eq('id', ref._id);
+  if (error) throw new Error(error.message);
+  allDocs = allDocs.filter(d => d.id !== ref._id);
+  filteredDocs = filteredDocs.filter(d => d.id !== ref._id);
+  applyFilters();
+};
 
 window._reloadData = async function() {
   try { await loadGewerke(); await loadGemeindeKonfig(); await loadAnmeldungen(); } catch(e) { alert(e.message); }
