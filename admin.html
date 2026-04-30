@@ -1470,6 +1470,7 @@ const SUPABASE_URL = 'https://upkbuxphiyenjhxntbto.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwa2J1eHBoaXllbmpoeG50YnRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMjUxOTMsImV4cCI6MjA5MDkwMTE5M30.0ErIMg4g78FKej5SrIAdSUfZ5StQk1tTyW2us6Dv1yc'
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+window.supabase = supabase
 
 // ── WRITE OPERATIONS ──
 // Firebase-Kollektion 'anmeldungen' → Supabase-Tabelle 'users'
