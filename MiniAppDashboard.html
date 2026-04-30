@@ -32,7 +32,11 @@
   .nav { display: flex; gap: 8px; padding: 10px 16px; background: var(--white); border-bottom: 1px solid var(--clay-pale); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); align-items: center; }
   .nav-btn { flex: 1; padding: 9px 0; border: 1.5px solid var(--clay-pale); border-radius: 10px; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; }
   .nav-btn.active { background: var(--clay); border-color: var(--clay); color: var(--white); font-weight: 600; }
-  .help-btn { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--clay-pale); background: var(--white); color: var(--clay-dark); font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-weight: 700; font-family: 'Playfair Display', serif; transition: all .2s; }
+  .help-btn { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--clay-pale); background: var(--white); color: var(--clay-dark); font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-weight: 700; font-family: 'DM Sans', sans-serif; transition: all .2s; }
+  .refresh-btn { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--clay-pale); background: var(--white); color: var(--clay-dark); font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all .2s; }
+  .refresh-btn:active { background: var(--sand); }
+  .refresh-btn.spinning { animation: spin .7s linear infinite; pointer-events: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .help-btn:active { background: var(--clay-pale); }
 
   /* VIEWS */
@@ -217,6 +221,7 @@
   <button class="nav-btn" id="nav-bk"  style="display:none" onclick="showView('baukueche',this)">Küche</button>
   <button class="nav-btn" id="nav-tl"  style="display:none" onclick="showView('teamleiter',this)">Teamleiter</button>
   <button class="nav-btn" id="nav-adm" style="display:none" onclick="showView('admin',this)">Orga</button>
+  <button class="refresh-btn" id="refresh-btn" onclick="refreshAll()" title="Aktualisieren">↺</button>
   <button class="help-btn" onclick="openHelp()">?</button>
 </nav>
 
@@ -1767,6 +1772,16 @@ async function loadUserData() {
 
 loadNews();
 loadUserData();
+
+window.refreshAll = async function() {
+  const btn = document.getElementById('refresh-btn');
+  if (btn) btn.classList.add('spinning');
+  try {
+    await Promise.all([loadNews(), loadUserData(), loadTeamleiter(), loadOrga()]);
+  } finally {
+    if (btn) btn.classList.remove('spinning');
+  }
+};
 </script>
 </body>
 </html>
