@@ -241,22 +241,11 @@ function closeSidebar() {
 </script>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
-  authDomain: "gemeindehaus-achim.firebaseapp.com",
-  projectId: "gemeindehaus-achim",
-  storageBucket: "gemeindehaus-achim.firebasestorage.app",
-  messagingSenderId: "272798328583",
-  appId: "1:272798328583:web:388aa8db19886e9be507a2"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const SUPABASE_URL = 'https://upkbuxphiyenjhxntbto.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwa2J1eHBoaXllbmpoeG50YnRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMjUxOTMsImV4cCI6MjA5MDkwMTE5M30.0ErIMg4g78FKej5SrIAdSUfZ5StQk1tTyW2us6Dv1yc'
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 const COLORS = ['#7a3a12','#2d6a4f','#185fa5','#633806','#534AB7','#993C1D','#854F0B','#3B6D11','#0F6E56','#993556','#5F5E5A','#A32D2D'];
 const BASIS = [
@@ -281,27 +270,35 @@ let editingId = null;
 let selColor  = COLORS[0];
 
 // ── INIT ──
-onAuthStateChanged(auth, async user => {
-  if (!user) { location.href = 'dashboard.html'; return; }
-  await load();
-  render();
-});
+load().then(() => render());
 
 async function load() {
   try {
-    const snap = await getDoc(doc(db, 'planung', 'gewerkeKonfig'));
-    if (snap.exists() && snap.data().gewerke?.length) {
-      gewerke = snap.data().gewerke;
-      // Migrate old data: if visibleInForm is missing, default to value of active
-      gewerke.forEach(g => {
-        if (g.visibleInForm === undefined) g.visibleInForm = g.active ?? true;
-      });
-      levels = snap.data().levels || defaultLevels();
+    const [{ data: gewerkeData }, { data: levelsData }] = await Promise.all([
+      supabase.from('gewerke_konfig').select('*').order('sort_order'),
+      supabase.from('levels').select('*')
+    ]);
+    if (gewerkeData?.length) {
+      gewerke = gewerkeData.map(g => ({
+        id: g.id,
+        name: g.name,
+        active: g.active ?? true,
+        visibleInForm: g.visible_in_form ?? (g.active ?? true),
+        minPersons: g.min_persons ?? 1,
+        color: g.color || COLORS[0],
+        levels: g.allowed_levels || []
+      }));
     } else {
       buildDefaults();
     }
+    if (levelsData?.length) {
+      levels = levelsData.map(l => ({ id: l.id, name: l.name, color: l.color || '#888888' }));
+    } else {
+      levels = defaultLevels();
+    }
   } catch(e) {
     buildDefaults();
+    levels = defaultLevels();
   }
 }
 
@@ -327,9 +324,32 @@ async function saveToDb() {
     const col = document.getElementById('lv-col-' + lv.id);
     if (col) lv.color = col.value;
   });
-  await setDoc(doc(db, 'planung', 'gewerkeKonfig'), {
-    gewerke, levels, savedAt: new Date().toISOString()
-  });
+
+  // Gewerke speichern
+  const gewerkeRows = gewerke.map((g, i) => ({
+    id: g.id, name: g.name, active: g.active,
+    visible_in_form: g.visibleInForm, min_persons: g.minPersons,
+    color: g.color, allowed_levels: g.levels, sort_order: i
+  }));
+  const { error: gErr } = await supabase.from('gewerke_konfig').upsert(gewerkeRows, { onConflict: 'id' });
+  if (gErr) throw new Error(gErr.message);
+
+  // Gelöschte Gewerke entfernen
+  const { data: existing } = await supabase.from('gewerke_konfig').select('id');
+  const keepIds = new Set(gewerke.map(g => g.id));
+  const toDeleteGewerke = (existing || []).map(r => r.id).filter(id => !keepIds.has(id));
+  if (toDeleteGewerke.length) await supabase.from('gewerke_konfig').delete().in('id', toDeleteGewerke);
+
+  // Levels speichern
+  const levelsRows = levels.map(l => ({ id: l.id, name: l.name, color: l.color }));
+  const { error: lErr } = await supabase.from('levels').upsert(levelsRows, { onConflict: 'id' });
+  if (lErr) throw new Error(lErr.message);
+
+  // Gelöschte Levels entfernen
+  const { data: existingLv } = await supabase.from('levels').select('id');
+  const keepLevelIds = new Set(levels.map(l => l.id));
+  const toDeleteLevels = (existingLv || []).map(r => r.id).filter(id => !keepLevelIds.has(id));
+  if (toDeleteLevels.length) await supabase.from('levels').delete().in('id', toDeleteLevels);
 }
 
 window.saveAll = async function() {
