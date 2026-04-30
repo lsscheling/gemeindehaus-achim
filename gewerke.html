@@ -286,7 +286,7 @@ async function load() {
         visibleInForm: g.visible_in_form ?? (g.active ?? true),
         minPersons: g.min_persons ?? 1,
         color: g.color || COLORS[0],
-        levels: g.allowed_levels || []
+        levels: g.levels || []
       }));
     } else {
       buildDefaults();
@@ -329,15 +329,16 @@ async function saveToDb() {
   const gewerkeRows = gewerke.map((g, i) => ({
     id: g.id, name: g.name, active: g.active,
     visible_in_form: g.visibleInForm, min_persons: g.minPersons,
-    color: g.color, allowed_levels: g.levels, sort_order: i
+    color: g.color, levels: g.levels, sort_order: i
   }));
-  const { data: existingG } = await supabase.from('gewerke_konfig').select('id');
+  const { data: existingG, error: selErrG } = await supabase.from('gewerke_konfig').select('id');
+  if (selErrG) throw new Error('SELECT gewerke_konfig: ' + selErrG.message);
   const existingGIds = new Set((existingG || []).map(r => r.id));
   const gToUpdate = gewerkeRows.filter(r => existingGIds.has(r.id));
   const gToInsert = gewerkeRows.filter(r => !existingGIds.has(r.id));
   for (const { id, ...data } of gToUpdate) {
     const { error } = await supabase.from('gewerke_konfig').update(data).eq('id', id);
-    if (error) throw new Error(error.message);
+    if (error) throw new Error('UPDATE ' + id + ': ' + error.message);
   }
   if (gToInsert.length) {
     const { error } = await supabase.from('gewerke_konfig').insert(gToInsert);
