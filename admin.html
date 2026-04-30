@@ -1306,7 +1306,6 @@ async function savePerson(isEdit) {
     schichtarbeit: document.getElementById('mf-schichtarbeit')?.checked || false,
     qualifikationen: document.getElementById('mf-quali')?.value.trim()||'',
     gruppenwunsch: document.getElementById('mf-gruppenwunsch')?.value.trim()||'',
-    manuell_eingetragen: true,
   };
   try {
     if (isEdit && editingId) {
