@@ -1406,7 +1406,14 @@ window._reloadData = async function() {
   try { await loadGewerke(); await loadGemeindeKonfig(); await loadAnmeldungen(); } catch(e) { alert(e.message); }
 };
 
+// Beim Seitenaufruf: sofort gespeicherte Session prüfen (löst Reload-Problem)
+supabase.auth.getSession().then(({ data: { session } }) => {
+  handleSession(session);
+});
+
+// Nachfolgende Auth-Änderungen: Login, Logout, Token-Refresh
 supabase.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'INITIAL_SESSION') return; // bereits via getSession() behandelt
   await handleSession(session);
 });
 
