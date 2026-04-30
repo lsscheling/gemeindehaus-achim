@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin – Gemeindehaus Achim</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root { color-scheme: light; }
 html, body { background-color: #f4f1e8 !important; color: #1c1b18 !important; }
@@ -524,6 +525,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <div style="color:var(--muted);font-size:13px">Wird geladen…</div>
     </div>
     <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;margin-top:4px">Gewerk-Verteilung nach Gruppe</div>
+    <div id="gruppen-chart-wrap" style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px;display:none">
+      <canvas id="gruppen-chart"></canvas>
+    </div>
     <div id="gruppen-table-wrap">
       <div style="color:var(--muted);font-size:13px">Wird geladen…</div>
     </div>
@@ -662,6 +666,41 @@ async function loadGruppenPanel() {
       if (gr===1||gr===2||gr===3) mx[gwId][gr]++;
     });
   });
+
+  // ── Diagramm ──
+  const chartGewerke = allGewerke.filter(g => mx[g.id].total > 0);
+  const chartWrap = document.getElementById('gruppen-chart-wrap');
+  if (chartGewerke.length) {
+    chartWrap.style.display = '';
+    chartWrap.style.height = Math.max(300, chartGewerke.length * 28) + 'px';
+    if (window._gruppenChart) window._gruppenChart.destroy();
+    const ctx = document.getElementById('gruppen-chart').getContext('2d');
+    window._gruppenChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: chartGewerke.map(g => g.name),
+        datasets: [
+          { label: 'Gruppe 1', data: chartGewerke.map(g => mx[g.id][1]), backgroundColor: 'rgba(184,92,42,0.8)',  borderRadius: 3 },
+          { label: 'Gruppe 2', data: chartGewerke.map(g => mx[g.id][2]), backgroundColor: 'rgba(45,106,79,0.8)',  borderRadius: 3 },
+          { label: 'Gruppe 3', data: chartGewerke.map(g => mx[g.id][3]), backgroundColor: 'rgba(24,95,165,0.8)',  borderRadius: 3 }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { font: { family: 'DM Sans', size: 12 }, boxWidth: 14 } }
+        },
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0, font: { family: 'DM Sans', size: 11 } }, grid: { color: '#ece8dc' } },
+          y: { ticks: { font: { family: 'DM Sans', size: 11 } }, grid: { display: false } }
+        }
+      }
+    });
+  } else {
+    chartWrap.style.display = 'none';
+  }
 
   const cell = (n) => n > 0
     ? `<span style="font-weight:600">${n}</span>`
