@@ -192,6 +192,9 @@
 
   /* EINSATZ CHIPS */
   .einsatz-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .day-block { background: white; border: 1px solid var(--clay-pale); border-radius: 8px; padding: 7px 10px 6px; margin-bottom: 6px; }
+  .day-block-header { font-size: 11px; font-weight: 700; color: var(--clay-dark); margin-bottom: 6px; letter-spacing: .2px; }
+  .day-block-chips { display: flex; flex-wrap: wrap; gap: 5px; }
   .einsatz-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 10px; background: var(--sand); border: 1.5px solid var(--clay-pale); cursor: pointer; user-select: none; transition: all .15s; -webkit-tap-highlight-color: transparent; }
   .einsatz-chip.mine { background: var(--mine-light); border-color: rgba(58,107,156,0.25); }
   .einsatz-chip.signed { background: var(--green-light) !important; border-color: var(--green) !important; }
@@ -1619,20 +1622,22 @@ async function loadUserData() {
           const chipId = `chip-h-${docId}`;
           const badgeId= `bdg-h-${docId}`;
           if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
-          html += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">`;
-          html += `<span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>`;
+          html += `<div class="day-block">`;
+          html += `<div class="day-block-header">${WD[date.getDay()]}, ${fmtDateDE(date)}</div>`;
+          html += `<div class="day-block-chips">`;
           html += `<div class="einsatz-chip${istAn?' signed':''}" id="${chipId}"
             onclick="window._anmelden('${iso}','bauhelfer','${chipId}','${badgeId}')">
             <span class="chip-name">Bauhelfer</span>
             <span id="${badgeId}" style="font-size:10px;font-weight:700;color:inherit;opacity:.75">${bedarfBadgeMine(count, null)}</span>
             <span class="chip-state">${istAn?'✓':'+'}</span>
-          </div></div>`;
+          </div></div></div>`;
           return;
         }
 
         if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
-        html += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">`;
-        html += `<span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>`;
+        html += `<div class="day-block">`;
+        html += `<div class="day-block-header">${WD[date.getDay()]}, ${fmtDateDE(date)}</div>`;
+        html += `<div class="day-block-chips">`;
 
         visibleBars.forEach(bar => {
           const gw     = gewerkeMap[bar.gewerkId];
@@ -1653,7 +1658,7 @@ async function loadUserData() {
             <span class="chip-state">${istAn?'✓':'+'}</span>
           </div>`;
         });
-        html += `</div>`;
+        html += `</div></div>`;
       });
       bodyEl.innerHTML = html || '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
     };
@@ -1690,8 +1695,7 @@ async function loadUserData() {
       });
 
       const renderChips = (iso, date, dayBars) => {
-        let h = `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px">`;
-        h += `<span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>`;
+        let h = `<div class="day-block"><div class="day-block-header">${WD[date.getDay()]}, ${fmtDateDE(date)}</div><div class="day-block-chips">`;
         dayBars.forEach(bar => {
           const gw     = gewerkeMap[bar.gewerkId];
           const name   = gw?.name || bar.name || bar.gewerkId;
@@ -1709,7 +1713,7 @@ async function loadUserData() {
             <span class="chip-state">${istAn?'✓':'+'}</span>
           </div>`;
         });
-        return h + `</div>`;
+        return h + `</div></div>`;
       };
 
       let html = '';
