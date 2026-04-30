@@ -354,10 +354,14 @@ async function saveToDb() {
 
 window.saveAll = async function() {
   gewerke.sort((a, b) => a.name.localeCompare(b.name, 'de'));
-  await saveToDb();
-  const t = document.getElementById('toast');
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  try {
+    await saveToDb();
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  } catch(e) {
+    alert('Fehler beim Speichern: ' + e.message);
+  }
 };
 
 // ── RENDER ──
