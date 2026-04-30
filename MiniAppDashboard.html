@@ -41,33 +41,27 @@
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
   /* OVERLAY */
-  .overlay { display: none; position: fixed; inset: 0; z-index: 500; background: rgba(44,31,20,0.55); backdrop-filter: blur(2px); }
+  .overlay { display: none; position: fixed; inset: 0; z-index: 500; background: rgba(28,27,24,0.45); backdrop-filter: blur(2px); }
   .overlay.visible { display: flex; align-items: flex-end; }
-  .sheet { width: 100%; background: var(--white); border-radius: 20px 20px 0 0; padding: 0 0 36px; animation: slideUp .3s cubic-bezier(.2,.8,.3,1); max-height: 88vh; overflow-y: auto; }
+  .sheet { width: 100%; background: var(--white); border-radius: 12px 12px 0 0; padding: 0 0 36px; animation: slideUp .25s cubic-bezier(.2,.8,.3,1); max-height: 88vh; overflow-y: auto; }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .sheet-close { position: absolute; top: 16px; right: 16px; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.2); border: none; color: var(--white); font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1; }
+  .sheet-close { background: none; border: none; color: var(--text-muted); font-size: 20px; line-height: 1; cursor: pointer; padding: 0; flex-shrink: 0; }
 
   /* NEWS */
-  .news-header { background: linear-gradient(135deg, #8B5E3C 0%, #C4855A 60%, #E8C4A8 100%); border-radius: 20px 20px 0 0; padding: 20px 20px 16px; position: relative; overflow: hidden; }
-  .news-header::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
-  .news-header-title { font-family: 'Playfair Display', serif; font-style: italic; font-size: 24px; color: var(--white); position: relative; }
-  .news-header-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 4px; position: relative; }
-  .news-list { padding: 12px 16px 0; display: flex; flex-direction: column; gap: 10px; }
-  .news-card { background: var(--sand); border-radius: 12px; padding: 12px 14px; border-left: 4px solid var(--clay); }
-  .news-card:nth-child(2) { border-left-color: var(--green); }
-  .news-card:nth-child(3) { border-left-color: var(--clay-dark); }
+  .news-header { background: var(--white); border-radius: 12px 12px 0 0; padding: 15px 18px; border-bottom: 1px solid var(--clay-pale); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .news-header-title { font-family: 'DM Sans', sans-serif; font-style: normal; font-size: 15px; font-weight: 700; color: var(--text); }
+  .news-header-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .news-list { padding: 12px 16px 0; display: flex; flex-direction: column; gap: 8px; }
+  .news-card { background: var(--sand); border-radius: 8px; padding: 11px 14px; border-left: 3px solid var(--clay); }
   .news-date { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; letter-spacing: .4px; text-transform: uppercase; }
   .news-text { font-size: 14px; line-height: 1.55; }
 
   /* NEWS PILL */
-  .news-pill { display: flex; align-items: center; gap: 8px; background: linear-gradient(90deg, var(--clay-dark), var(--clay)); color: var(--white); border-radius: 30px; padding: 10px 16px; margin-bottom: 16px; cursor: pointer; box-shadow: 0 4px 16px rgba(139,94,60,0.25); position: relative; overflow: hidden; }
-  .news-pill::after { content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent); animation: shimmer 2.5s infinite; }
-  @keyframes shimmer { to { left: 160%; } }
-  .news-pill-dot { width: 8px; height: 8px; background: #FFD166; border-radius: 50%; animation: blink 1.8s infinite; flex-shrink: 0; }
-  @keyframes blink { 0%{box-shadow:0 0 0 0 rgba(255,209,102,.6)} 70%{box-shadow:0 0 0 6px rgba(255,209,102,0)} 100%{box-shadow:0 0 0 0 rgba(255,209,102,0)} }
+  .news-pill { display: flex; align-items: center; gap: 8px; background: var(--sand); color: var(--text); border: 1px solid var(--clay-pale); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; cursor: pointer; }
+  .news-pill-dot { width: 7px; height: 7px; background: var(--clay); border-radius: 50%; flex-shrink: 0; }
   .news-pill-text { font-size: 13px; font-weight: 600; flex: 1; }
-  .news-pill-count { background: rgba(255,255,255,.25); border-radius: 10px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
-  .news-pill-arrow { font-size: 14px; opacity: .7; }
+  .news-pill-count { background: var(--clay-pale); color: var(--clay-dark); border-radius: 8px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
+  .news-pill-arrow { font-size: 14px; color: var(--text-muted); }
 
   /* CARD */
   .card { background: var(--white); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow-sm); margin-bottom: 14px; }
@@ -158,12 +152,11 @@
   .tag-future { background: #F0EFED; color: #AAA; }
 
   /* HELP OVERLAY */
-  .help-header { background: var(--clay-dark); border-radius: 20px 20px 0 0; padding: 20px 20px 16px; position: relative; }
-  .help-header-title { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--white); }
-  .help-header-sub { font-size: 12px; color: rgba(255,255,255,.7); margin-top: 3px; }
-  .help-content { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-  .help-block { background: var(--sand); border-radius: 12px; padding: 14px; }
-  .help-block-title { font-weight: 700; font-size: 13px; color: var(--clay-dark); margin-bottom: 10px; }
+  .help-header { background: var(--white); border-radius: 12px 12px 0 0; padding: 15px 18px; border-bottom: 1px solid var(--clay-pale); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .help-header-title { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; color: var(--text); }
+  .help-content { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .help-block { background: var(--sand); border-radius: 8px; padding: 12px 14px; border: 1px solid var(--clay-pale); }
+  .help-block-title { font-weight: 700; font-size: 12px; color: var(--clay-dark); margin-bottom: 10px; letter-spacing: .4px; text-transform: uppercase; }
   .orga-card { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   .orga-card:last-child { margin-bottom: 0; }
   .orga-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--clay); color: var(--white); display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; flex-shrink: 0; }
@@ -298,8 +291,10 @@
 <div class="overlay" id="anm-overlay" onclick="overlayClose(event,'anm-overlay')">
   <div class="sheet">
     <div class="news-header">
-      <div class="news-header-title" id="anm-title">Anmeldungen</div>
-      <div class="news-header-sub" id="anm-sub"></div>
+      <div>
+        <div class="news-header-title" id="anm-title">Anmeldungen</div>
+        <div class="news-header-sub" id="anm-sub"></div>
+      </div>
       <button class="sheet-close" onclick="closeOverlay('anm-overlay')">✕</button>
     </div>
     <div id="anm-list" style="padding:12px 16px;display:flex;flex-direction:column;gap:8px"></div>
@@ -350,7 +345,7 @@
 <!-- ══════════ PERSON EDIT OVERLAY ══════════ -->
 <div class="overlay" id="person-edit-overlay" onclick="overlayClose(event,'person-edit-overlay')">
   <div class="sheet">
-    <div class="news-header" style="position:relative">
+    <div class="news-header">
       <div class="news-header-title" id="person-edit-name">Person</div>
       <button class="sheet-close" onclick="closeOverlay('person-edit-overlay')">✕</button>
     </div>
