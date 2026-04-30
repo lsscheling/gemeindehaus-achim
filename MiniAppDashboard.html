@@ -644,15 +644,41 @@ window._setStandardBedarf = async (ns, gwId, inputId) => {
   if (inputEl) { inputEl.value = ''; inputEl.placeholder = String(bedarf); }
 };
 
-window._showAnmeldungen = (ns, docId, dayLabel, gwName) => {
-  const data  = window._bedarfData[ns]?.anmMap[docId] || {};
-  const namen = Object.values(data.angemeldete || {});
+window._showAnmeldungen = async (ns, docId, dayLabel, gwName) => {
+  const data       = window._bedarfData[ns]?.anmMap[docId] || {};
+  const angemeldete = data.angemeldete || {};
+  const tgIds      = Object.keys(angemeldete);
+
   document.getElementById('anm-title').textContent = gwName;
   document.getElementById('anm-sub').textContent   = dayLabel;
-  document.getElementById('anm-list').innerHTML    = namen.length
-    ? namen.map(n => `<div style="padding:8px 12px;background:var(--sand);border-radius:10px;font-size:13px;font-weight:500">${n}</div>`).join('')
-    : '<div style="color:var(--text-muted);font-size:13px">Noch niemand angemeldet.</div>';
+  document.getElementById('anm-list').innerHTML    = '<div style="color:var(--text-muted);font-size:13px">Wird geladen …</div>';
   document.getElementById('anm-overlay').classList.add('visible');
+
+  if (!tgIds.length) {
+    document.getElementById('anm-list').innerHTML = '<div style="color:var(--text-muted);font-size:13px">Noch niemand angemeldet.</div>';
+    return;
+  }
+
+  const { data: users } = await supabase.from('users')
+    .select('telegram_id, vorname, nachname, telefon, telegram_username')
+    .in('telegram_id', tgIds);
+  const userMap = {};
+  (users || []).forEach(u => { userMap[String(u.telegram_id)] = u; });
+
+  document.getElementById('anm-list').innerHTML = tgIds.map(id => {
+    const name   = angemeldete[id] || id;
+    const u      = userMap[String(id)];
+    const tel    = u?.telefon || '';
+    const tguser = u?.telegram_username || '';
+    const tgHref = tguser ? 'https://t.me/' + tguser : '';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--sand);border-radius:10px">
+      <span style="font-size:13px;font-weight:500;flex:1">${name}</span>
+      <div style="display:flex;gap:6px">
+        ${tel    ? `<button class="icon-btn btn-call" onclick="copyTel('${tel}')" title="Nummer kopieren">📞</button>` : ''}
+        ${tgHref ? `<a href="${tgHref}" target="_blank" class="icon-btn btn-tg" title="Telegram">${tgSvg()}</a>` : ''}
+      </div>
+    </div>`;
+  }).join('');
 };
 
 window._saveGanttKW = async (barId, sKWId, sYrId, eKWId, eYrId, btn) => {
