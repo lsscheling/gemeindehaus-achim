@@ -822,14 +822,24 @@ async function loadGewerkeList() {
 
 async function loadGanttDaten() {
   const { data } = await supabase.from('gantt_daten').select('*').eq('id', 'main').single();
-  if (data) {
-    if (data.gewerke && data.gewerke.length > 0) {
-      _gewerke = data.gewerke.map(g => { const def = GEWERK_LIST.find(x => x.id === g.gewerkId); if (def) g.name = def.label; return g; });
-    } else {
-      _gewerke = getDefaultGewerke();
-    }
+  if (data?.gewerke?.length > 0) {
+    _gewerke = data.gewerke.map(g => { const def = GEWERK_LIST.find(x => x.id === g.gewerkId); if (def) g.name = def.label; return g; });
     if (data.proj_start) document.getElementById('proj-start').value = data.proj_start;
     if (data.proj_end)   document.getElementById('proj-end').value   = data.proj_end;
+  } else if (GEWERK_LIST.length > 0) {
+    // Keine gespeicherten Daten — echte Gewerke aus gewerke_konfig als Startpunkt
+    var projStart = document.getElementById('proj-start').value || new Date().toISOString().slice(0,10);
+    var startDate = new Date(projStart);
+    _gewerke = GEWERK_LIST.map(function(g, i) {
+      var s = new Date(startDate); s.setDate(s.getDate() + i * 7);
+      var e = new Date(s); e.setDate(e.getDate() + 30);
+      return {
+        id: 'g_' + g.id, gewerkId: g.id, name: g.label,
+        start: s.toISOString().slice(0,10),
+        end:   e.toISOString().slice(0,10),
+        done: false, color: COLORS[i % COLORS.length]
+      };
+    });
   } else {
     _gewerke = getDefaultGewerke();
   }
