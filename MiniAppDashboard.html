@@ -186,7 +186,9 @@
   /* EINSATZ CHIPS */
   .einsatz-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
   .day-block { background: white; border: 1px solid var(--clay-pale); border-radius: 8px; padding: 7px 10px 6px; margin-bottom: 6px; }
-  .day-block-header { font-size: 11px; font-weight: 700; color: var(--clay-dark); margin-bottom: 6px; letter-spacing: .2px; }
+  .day-block-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .day-block-label { font-size: 11px; font-weight: 700; color: var(--clay-dark); letter-spacing: .2px; }
+  .day-need-badge { font-size: 10px; font-weight: 700; color: var(--red); background: var(--red-light); border-radius: 6px; padding: 2px 7px; white-space: nowrap; }
   .day-block-chips { display: flex; flex-wrap: wrap; gap: 5px; }
   .einsatz-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 10px; background: var(--sand); border: 1.5px solid var(--clay-pale); cursor: pointer; user-select: none; transition: all .15s; -webkit-tap-highlight-color: transparent; }
   .einsatz-chip.mine { background: var(--mine-light); border-color: rgba(58,107,156,0.25); }
@@ -1618,7 +1620,7 @@ async function loadUserData() {
           const badgeId= `bdg-h-${docId}`;
           if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
           html += `<div class="day-block">`;
-          html += `<div class="day-block-header">${WD[date.getDay()]}, ${fmtDateDE(date)}</div>`;
+          html += `<div class="day-block-header"><span class="day-block-label">${WD[date.getDay()]}, ${fmtDateDE(date)}</span></div>`;
           html += `<div class="day-block-chips">`;
           html += `<div class="einsatz-chip${istAn?' signed':''}" id="${chipId}"
             onclick="window._anmelden('${iso}','bauhelfer','${chipId}','${badgeId}')">
@@ -1629,9 +1631,19 @@ async function loadUserData() {
           return;
         }
 
+        // Gesamtbedarf über alle sichtbaren Bars dieses Tages
+        let dayBedarf = 0, dayAngemeldet = 0;
+        visibleBars.forEach(bar => {
+          const r = anmeldungenMap[`${iso}_${bar.gewerkId}`] || { angemeldete: {}, bedarf: null };
+          if (r.bedarf != null) { dayBedarf += r.bedarf; dayAngemeldet += Object.keys(r.angemeldete).length; }
+        });
+        const dayOffen = dayBedarf - dayAngemeldet;
+        const dayBadgeHtml = dayOffen > 0
+          ? `<span class="day-need-badge">${dayOffen} offen</span>` : '';
+
         if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
         html += `<div class="day-block">`;
-        html += `<div class="day-block-header">${WD[date.getDay()]}, ${fmtDateDE(date)}</div>`;
+        html += `<div class="day-block-header"><span class="day-block-label">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>${dayBadgeHtml}</div>`;
         html += `<div class="day-block-chips">`;
 
         visibleBars.forEach(bar => {
@@ -1690,7 +1702,14 @@ async function loadUserData() {
       });
 
       const renderChips = (iso, date, dayBars) => {
-        let h = `<div class="day-block"><div class="day-block-header">${WD[date.getDay()]}, ${fmtDateDE(date)}</div><div class="day-block-chips">`;
+        let dayBedarf = 0, dayAngemeldet = 0;
+        dayBars.forEach(bar => {
+          const r = anmeldungenMap[`${iso}_${bar.gewerkId}`] || { angemeldete: {}, bedarf: null };
+          if (r.bedarf != null) { dayBedarf += r.bedarf; dayAngemeldet += Object.keys(r.angemeldete).length; }
+        });
+        const dayOffen = dayBedarf - dayAngemeldet;
+        const dayBadgeHtml = dayOffen > 0 ? `<span class="day-need-badge">${dayOffen} offen</span>` : '';
+        let h = `<div class="day-block"><div class="day-block-header"><span class="day-block-label">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>${dayBadgeHtml}</div><div class="day-block-chips">`;
         dayBars.forEach(bar => {
           const gw     = gewerkeMap[bar.gewerkId];
           const name   = gw?.name || bar.name || bar.gewerkId;
