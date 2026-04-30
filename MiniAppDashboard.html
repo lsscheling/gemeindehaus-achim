@@ -29,9 +29,10 @@
   body { font-family: 'DM Sans', sans-serif; background: var(--sand); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
   /* NAV */
-  .nav { display: flex; gap: 8px; padding: 10px 16px; background: var(--white); border-bottom: 1px solid var(--clay-pale); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); align-items: center; }
-  .nav-btn { flex: 1; padding: 9px 0; border: 1.5px solid var(--clay-pale); border-radius: 10px; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; }
-  .nav-btn.active { background: var(--clay); border-color: var(--clay); color: var(--white); font-weight: 600; }
+  .nav { display: flex; gap: 6px; padding: 8px 12px; background: var(--white); border-bottom: 1px solid var(--clay-pale); position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); align-items: center; }
+  .nav-btn { flex: 1; padding: 7px 0; border: 1.5px solid var(--clay-pale); border-radius: 10px; background: transparent; color: var(--text-muted); cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; }
+  .nav-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-btn.active { background: var(--clay); border-color: var(--clay); color: var(--white); }
   .help-btn { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--clay-pale); background: var(--white); color: var(--clay-dark); font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-weight: 700; font-family: 'DM Sans', sans-serif; transition: all .2s; }
   .refresh-btn { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--clay-pale); background: var(--white); color: var(--clay-dark); font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all .2s; }
   .refresh-btn:active { background: var(--sand); }
@@ -216,11 +217,26 @@
 
 <div id="toast"></div>
 <nav class="nav">
-  <button class="nav-btn active" onclick="showView('dashboard',this)">Dashboard</button>
-  <button class="nav-btn" onclick="showView('infos',this)">Ansprechpartner</button>
-  <button class="nav-btn" id="nav-bk"  style="display:none" onclick="showView('baukueche',this)">Küche</button>
-  <button class="nav-btn" id="nav-tl"  style="display:none" onclick="showView('teamleiter',this)">Teamleiter</button>
-  <button class="nav-btn" id="nav-adm" style="display:none" onclick="showView('admin',this)">Orga</button>
+  <!-- Dashboard: Werkzeug -->
+  <button class="nav-btn active" onclick="showView('dashboard',this)" title="Dashboard">
+    <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+  </button>
+  <!-- Ansprechpartner: Personen -->
+  <button class="nav-btn" onclick="showView('infos',this)" title="Ansprechpartner">
+    <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.87"/></svg>
+  </button>
+  <!-- Küche: Besteck -->
+  <button class="nav-btn" id="nav-bk" style="display:none" onclick="showView('baukueche',this)" title="Küche">
+    <svg viewBox="0 0 24 24"><path d="M3 2v7c0 1.66 1.34 3 3 3s3-1.34 3-3V2"/><line x1="6" y1="2" x2="6" y2="22"/><path d="M21 2v4a4 4 0 0 1-4 4v12"/></svg>
+  </button>
+  <!-- Teamleiter: Clipboard -->
+  <button class="nav-btn" id="nav-tl" style="display:none" onclick="showView('teamleiter',this)" title="Teamleiter">
+    <svg viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+  </button>
+  <!-- Orga: Schieberegler -->
+  <button class="nav-btn" id="nav-adm" style="display:none" onclick="showView('admin',this)" title="Orga">
+    <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
+  </button>
   <button class="refresh-btn" id="refresh-btn" onclick="refreshAll()" title="Aktualisieren">↺</button>
   <button class="help-btn" onclick="openHelp()">?</button>
 </nav>
