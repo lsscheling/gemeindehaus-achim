@@ -1480,7 +1480,10 @@ async function loadUserData() {
 
       // Alle relevanten einsatzAnmeldungen-Dokumente laden
       const bkDocIds = new Set();
-      bkDates.forEach(({ iso, bars }) => bars.forEach(b => bkDocIds.add(`${iso}_${b.gewerkId}`)));
+      bkDates.forEach(({ iso, bars }) => {
+        bars.forEach(b => bkDocIds.add(`${iso}_${b.gewerkId}`));
+        bkDocIds.add(`${iso}_bauhelfer`);
+      });
       const bkAnmMap = {};
       await Promise.all([...bkDocIds].map(async docId => {
         const { data: row } = await supabase.from('einsatz_anmeldungen').select('angemeldete').eq('id', docId).maybeSingle();
@@ -1492,11 +1495,12 @@ async function loadUserData() {
       bkDates.forEach(({ iso, date, bars }) => {
         const kw = 'KW ' + String(isoWeek(date)).padStart(2,'0');
         if (kw !== bkLastKW) { bkHtml += `<div class="kw-sep">${kw}</div>`; bkLastKW = kw; }
-        // Unique User-IDs über alle Gewerke dieses Tages
+        // Unique User-IDs über alle Gewerke + Bauhelfer dieses Tages
         const uniqueIds = new Set();
         bars.forEach(bar => {
           Object.keys(bkAnmMap[`${iso}_${bar.gewerkId}`] || {}).forEach(id => uniqueIds.add(id));
         });
+        Object.keys(bkAnmMap[`${iso}_bauhelfer`] || {}).forEach(id => uniqueIds.add(id));
         const count = uniqueIds.size;
         bkHtml += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
           <span style="font-size:11px;font-weight:600;color:var(--clay-dark);white-space:nowrap;min-width:52px">${WD_BK[date.getDay()]}, ${fmtDateDE(date)}</span>
