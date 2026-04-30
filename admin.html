@@ -355,11 +355,12 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
               <th>Schichtarbeit</th>
               <th>Gruppe</th>
               <th>Zugewiesen</th>
+              <th title="Q = Qualifikation angegeben · G = Gruppenwunsch angegeben">Notizen</th>
               <th></th>
             </tr>
           </thead>
           <tbody id="anmeldungen-tbody">
-            <tr><td colspan="8" class="loading-state">Wird geladen…</td></tr>
+            <tr><td colspan="9" class="loading-state">Wird geladen…</td></tr>
           </tbody>
         </table>
       </div>
@@ -865,7 +866,7 @@ function renderTable() {
       : `${filteredDocs.length} von ${allDocs.length} Personen`;
   }
   if (!filteredDocs.length) {
-    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state">Keine Einträge gefunden.</div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state">Keine Einträge gefunden.</div></td></tr>';
     return;
   }
   tbody.innerHTML = filteredDocs.map(d => {
@@ -880,6 +881,12 @@ function renderTable() {
     }).join('') || '–';
     const schichtHtml = d.schichtarbeit ? '<span class="badge badge-green">Ja</span>' : '<span class="badge badge-gray">–</span>';
     const assignedGw = getAssigned(d).length > 0 ? getAssigned(d).map(g => `<span class="badge badge-green">${getGewerkLabel(g)}</span>`).join(' ') : '<span class="badge badge-gray">–</span>';
+    const hasQuali = !!(d.qualifikationen?.trim());
+    const hasGruppenwunsch = !!(d.gruppenwunsch?.trim() || d.teamwunsch?.trim());
+    const notizBadges = [
+      hasQuali ? `<span title="${(d.qualifikationen||'').replace(/"/g,'&quot;')}" style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;cursor:default">Q</span>` : '',
+      hasGruppenwunsch ? `<span title="${((d.gruppenwunsch||d.teamwunsch)||'').replace(/"/g,'&quot;')}" style="display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:600;background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;cursor:default">G</span>` : ''
+    ].filter(Boolean).join(' ') || '–';
     const gruppeVal = d.gruppe ? String(d.gruppe) : '';
     const gruppeSelect = `<select onchange="window.assignGruppe('${d.id}',this.value)" onclick="event.stopPropagation()"
       style="font-family:'DM Sans',sans-serif;font-size:11px;border:1px solid var(--border);border-radius:var(--radius);padding:3px 6px;background:white;cursor:pointer;outline:none;color:var(--ink)">
@@ -896,6 +903,7 @@ function renderTable() {
       <td>${schichtHtml}</td>
       <td onclick="event.stopPropagation()">${gruppeSelect}</td>
       <td>${assignedGw}</td>
+      <td style="white-space:nowrap">${notizBadges}</td>
       <td onclick="event.stopPropagation()"><button class="btn btn-outline btn-sm" onclick="openDrawer('${d.id}')">Details</button></td>
     </tr>`;
   }).join('');
@@ -1560,7 +1568,7 @@ function showApp() {
   document.getElementById('app').style.display = 'block';
   loadGewerke().then(() => loadGemeindeKonfig()).then(() => loadAnmeldungen()).catch(e => {
     const tbody = document.getElementById('anmeldungen-tbody');
-    if (tbody) tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Fehler: ${e.message} <button class="btn btn-outline btn-sm" style="margin-left:10px" onclick="window._reloadData()">Neu laden</button></div></td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">Fehler: ${e.message} <button class="btn btn-outline btn-sm" style="margin-left:10px" onclick="window._reloadData()">Neu laden</button></div></td></tr>`;
   });
 }
 
@@ -1606,17 +1614,17 @@ async function loadGewerke() {
 // ── ANMELDUNGEN ──
 async function loadAnmeldungen() {
   const tbody = document.getElementById('anmeldungen-tbody');
-  if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="loading-state">Verbinde mit Supabase…</td></tr>';
+  if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="loading-state">Verbinde mit Supabase…</td></tr>';
   const { data, error } = await supabase
     .from('users')
     .select('*')
     .order('registered_at', { ascending: false });
   if (error) {
-    if (tbody) tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Supabase Fehler: ${error.message}</div></td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">Supabase Fehler: ${error.message}</div></td></tr>`;
     return;
   }
   if (!data) {
-    if (tbody) tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Keine Antwort von Supabase</div></td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">Keine Antwort von Supabase</div></td></tr>`;
     return;
   }
   allDocs = data;
@@ -1625,7 +1633,7 @@ async function loadAnmeldungen() {
   try {
     applyFilters();
   } catch(e) {
-    if (tbody) tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Render-Fehler: ${e.message}</div></td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">Render-Fehler: ${e.message}</div></td></tr>`;
     return;
   }
   if (document.getElementById('panel-planung')?.classList.contains('active')) renderPlanungPanel();
