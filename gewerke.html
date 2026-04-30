@@ -335,8 +335,8 @@ async function saveToDb() {
   const existingGIds = new Set((existingG || []).map(r => r.id));
   const gToUpdate = gewerkeRows.filter(r => existingGIds.has(r.id));
   const gToInsert = gewerkeRows.filter(r => !existingGIds.has(r.id));
-  for (const row of gToUpdate) {
-    const { error } = await supabase.from('gewerke_konfig').update(row).eq('id', row.id);
+  for (const { id, ...data } of gToUpdate) {
+    const { error } = await supabase.from('gewerke_konfig').update(data).eq('id', id);
     if (error) throw new Error(error.message);
   }
   if (gToInsert.length) {
@@ -353,8 +353,8 @@ async function saveToDb() {
   const existingLvIds = new Set((existingLv || []).map(r => r.id));
   const lvToUpdate = levelsRows.filter(r => existingLvIds.has(r.id));
   const lvToInsert = levelsRows.filter(r => !existingLvIds.has(r.id));
-  for (const row of lvToUpdate) {
-    const { error } = await supabase.from('levels').update(row).eq('id', row.id);
+  for (const { id, ...data } of lvToUpdate) {
+    const { error } = await supabase.from('levels').update(data).eq('id', id);
     if (error) throw new Error(error.message);
   }
   if (lvToInsert.length) {
