@@ -524,18 +524,11 @@ function sendMsg() {
 </script>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, addDoc, deleteDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const app = initializeApp({
-  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
-  authDomain: "gemeindehaus-achim.firebaseapp.com",
-  projectId: "gemeindehaus-achim",
-  storageBucket: "gemeindehaus-achim.firebasestorage.app",
-  messagingSenderId: "272798328583",
-  appId: "1:272798328583:web:388aa8db19886e9be507a2"
-});
-const db = getFirestore(app);
+const SUPABASE_URL      = 'https://upkbuxphiyenjhxntbto.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwa2J1eHBoaXllbmpoeG50YnRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMjUxOTMsImV4cCI6MjA5MDkwMTE5M30.0ErIMg4g78FKej5SrIAdSUfZ5StQk1tTyW2us6Dv1yc'
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 function initials(vorname, nachname) {
   return ((vorname||'').charAt(0) + (nachname||'').charAt(0)).toUpperCase();
@@ -546,8 +539,8 @@ let _newsItems = [];
 
 async function loadNews() {
   try {
-    const snap = await getDocs(query(collection(db, 'neuigkeiten'), orderBy('ts', 'desc')));
-    _newsItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const { data } = await supabase.from('neuigkeiten').select('*').order('ts', { ascending: false });
+    _newsItems = (data || []).map(n => ({ id: n.id, ts: Number(n.ts) || 0, datum: n.datum || '', text: n.text || '' }));
   } catch(e) {
     _newsItems = [];
   }
@@ -591,9 +584,12 @@ window._toggleBedarfCard = (bodyId, chevId) => {
 window._setBedarf = async (ns, docId, iso, gwId, val) => {
   const bedarf = val === '' ? null : Number(val);
   const d = window._bedarfData[ns]; if (!d) return;
-  const existing = d.anmMap[docId] || {};
-  await setDoc(doc(db, 'einsatzAnmeldungen', docId),
-    { date: iso, gewerkId: gwId, angemeldete: existing.angemeldete || {}, bedarf }, { merge: true });
+  const existing = d.anmMap[docId] || { angemeldete: {}, bedarf: null };
+  const { error } = await supabase.from('einsatz_anmeldungen').upsert({
+    id: docId, date: iso, gewerk_id: gwId,
+    angemeldete: existing.angemeldete || {}, bedarf
+  });
+  if (error) { console.error(error); return; }
   d.anmMap[docId] = { ...existing, bedarf };
   const count = Object.keys(existing.angemeldete || {}).length;
   const badge = document.getElementById(`bdg-${ns}-${docId}`);
@@ -609,9 +605,9 @@ window._setStandardBedarf = async (ns, gwId, inputId) => {
   const bedarf = Number(val);
   const d = window._bedarfData[ns]; if (!d) return;
 
-  // 1. Standard in planung/bedarfConfig speichern
-  await setDoc(doc(db, 'planung', 'bedarfConfig'),
-    { [gwId]: bedarf }, { merge: true });
+  // 1. Standard in bedarf_config speichern
+  const { error: cfgErr } = await supabase.from('bedarf_config').upsert({ id: gwId, bedarf });
+  if (cfgErr) { console.error(cfgErr); return; }
 
   // 2. Alle Tage im Gantt-Zeitraum des Gewerks beschreiben (nicht nur 14 Tage)
   const heute = new Date(); heute.setHours(0,0,0,0);
@@ -632,9 +628,11 @@ window._setStandardBedarf = async (ns, gwId, inputId) => {
 
   await Promise.all(allFutureDates.map(async iso => {
     const docId = `${iso}_${gwId}`;
-    const existing = d.anmMap[docId] || {};
-    await setDoc(doc(db, 'einsatzAnmeldungen', docId),
-      { date: iso, gewerkId: gwId, angemeldete: existing.angemeldete || {}, bedarf }, { merge: true });
+    const existing = d.anmMap[docId] || { angemeldete: {} };
+    await supabase.from('einsatz_anmeldungen').upsert({
+      id: docId, date: iso, gewerk_id: gwId,
+      angemeldete: existing.angemeldete || {}, bedarf
+    });
     d.anmMap[docId] = { ...(d.anmMap[docId] || {}), bedarf };
     const count = Object.keys(existing.angemeldete || {}).length;
     const badge = document.getElementById(`bdg-${ns}-${docId}`);
@@ -666,22 +664,21 @@ window._saveGanttKW = async (barId, sKWId, sYrId, eKWId, eYrId, btn) => {
   endSun.setDate(endSun.getDate() + 6); // Sonntag der End-KW
   btn.disabled = true; btn.textContent = '…';
   try {
-    const ref  = doc(db, 'planung', 'ganttDaten');
-    const snap = await getDoc(ref);
-    if (!snap.exists()) throw new Error('ganttDaten nicht gefunden');
-    const data    = snap.data();
-    const oldBar  = (data.gewerke || []).find(b => b.id === barId);
+    const { data: ganttData, error: ganttErr } = await supabase.from('gantt_daten').select('gewerke').eq('id', 'main').single();
+    if (ganttErr || !ganttData) throw new Error('ganttDaten nicht gefunden');
+    const oldBar  = (ganttData.gewerke || []).find(b => b.id === barId);
     const gwId    = oldBar?.gewerkId;
-    const updated = (data.gewerke || []).map(b =>
+    const updated = (ganttData.gewerke || []).map(b =>
       b.id === barId ? { ...b, start: dateToISO(startMon), end: dateToISO(endSun) } : b
     );
-    await setDoc(ref, { ...data, gewerke: updated });
-    window._allBars = updated; // lokalen Cache aktualisieren
+    const { error: saveErr } = await supabase.from('gantt_daten').update({ gewerke: updated }).eq('id', 'main');
+    if (saveErr) throw new Error(saveErr.message);
+    window._allBars = updated;
 
     // Standard-Bedarf für neue Tage übernehmen
     if (gwId) {
-      const cfgSnap = await getDoc(doc(db, 'planung', 'bedarfConfig'));
-      const bedarf  = cfgSnap.exists() ? (cfgSnap.data()[gwId] ?? null) : null;
+      const { data: cfgRow } = await supabase.from('bedarf_config').select('bedarf').eq('id', gwId).maybeSingle();
+      const bedarf = cfgRow?.bedarf ?? null;
       if (bedarf !== null) {
         const heute = new Date(); heute.setHours(0,0,0,0);
         const from  = startMon < heute ? heute : startMon;
@@ -690,8 +687,9 @@ window._saveGanttKW = async (barId, sKWId, sYrId, eKWId, eYrId, btn) => {
           if (cur.getDay() !== 0) {
             const iso   = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(cur.getDate()).padStart(2,'0')}`;
             const docId = `${iso}_${gwId}`;
-            await setDoc(doc(db, 'einsatzAnmeldungen', docId),
-              { date: iso, gewerkId: gwId, bedarf }, { merge: true });
+            await supabase.from('einsatz_anmeldungen').upsert({
+              id: docId, date: iso, gewerk_id: gwId, bedarf
+            });
           }
           cur.setDate(cur.getDate() + 1);
         }
@@ -764,17 +762,15 @@ window.filterContacts = function(q) {
 async function loadTeamleiter() {
   const list = document.getElementById('teamleiter-list');
   try {
-    const [gwSnap, allSnap] = await Promise.all([
-      getDoc(doc(db, 'planung', 'gewerkeKonfig')),
-      getDocs(collection(db, 'anmeldungen'))
+    const [{ data: gewerkeData }, { data: alle }] = await Promise.all([
+      supabase.from('gewerke_konfig').select('id, name').order('sort_order'),
+      supabase.from('users').select('*')
     ]);
     const gewerkeMap = {};
-    if (gwSnap.exists()) (gwSnap.data().gewerke || []).forEach(g => { gewerkeMap[g.id] = g.name; });
-
-    const alle = allSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    (gewerkeData || []).forEach(g => { gewerkeMap[g.id] = g.name; });
 
     // Alle Personen mit Teamleiter-Rolle oder Sonderrolle
-    const relevant = alle.filter(d =>
+    const relevant = (alle || []).filter(d =>
       d.rolle === 'teamleiter' || (d.sonderrolle && SONDERROLLEN_ORDER.includes(d.sonderrolle))
     );
 
@@ -811,9 +807,8 @@ loadTeamleiter();
 async function loadOrga() {
   const list = document.getElementById('orga-list');
   try {
-    const snap = await getDocs(query(collection(db, 'anmeldungen'), where('sonderrolle', '==', 'organisation')));
-    const admins = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
+    const { data } = await supabase.from('users').select('*').eq('sonderrolle', 'organisation');
+    const admins = (data || [])
       .sort((a, b) => (a.nachname || '').localeCompare(b.nachname || '', 'de') || (a.vorname || '').localeCompare(b.vorname || '', 'de'));
     if (!admins.length) {
       list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:4px 0">Keine Ansprechpartner eingetragen.</div>';
@@ -886,22 +881,22 @@ async function loadUserData() {
     const tgId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null;
     let userDoc = null;
     if (tgId) {
-      const snap = await getDocs(query(collection(db, 'anmeldungen'), where('telegram_id', '==', tgId)));
-      if (!snap.empty) userDoc = snap.docs[0].data();
+      const { data: userData } = await supabase.from('users').select('*').eq('telegram_id', tgId).limit(1);
+      if (userData?.length) userDoc = userData[0];
     }
 
     const gruppe  = userDoc?.gruppe  || null;
     const gewerke = userDoc?.gewerke_zugewiesen || [];
     renderKWTable(gruppe);
 
-    // 2. Gewerk-Namen + Gantt-Daten laden
-    const [gwSnap, ganttSnap] = await Promise.all([
-      getDoc(doc(db, 'planung', 'gewerkeKonfig')),
-      getDoc(doc(db, 'planung', 'ganttDaten'))
+    // 2. Gewerk-Konfig + Gantt-Daten laden
+    const [{ data: gewerkeData }, { data: ganttData }] = await Promise.all([
+      supabase.from('gewerke_konfig').select('*').order('sort_order'),
+      supabase.from('gantt_daten').select('gewerke').eq('id', 'main').single()
     ]);
     const gewerkeMap = {};
-    (gwSnap.exists() ? gwSnap.data().gewerke || [] : []).forEach(g => { gewerkeMap[g.id] = g; });
-    const allBars = ganttSnap.exists() ? ganttSnap.data().gewerke || [] : [];
+    (gewerkeData || []).forEach(g => { gewerkeMap[g.id] = g; });
+    const allBars = ganttData?.gewerke || [];
     window._allBars = allBars;
 
     // ── Mein Team ──
@@ -918,9 +913,8 @@ async function loadUserData() {
       }).join('');
 
       // Teamleiter der eigenen Gewerke, sortiert nach erstem passendem Gewerk-Namen
-      const tlSnap = await getDocs(query(collection(db, 'anmeldungen'), where('rolle', '==', 'teamleiter')));
-      const teamleiter = tlSnap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
+      const { data: tlData } = await supabase.from('users').select('*').eq('rolle', 'teamleiter');
+      const teamleiter = (tlData || [])
         .filter(d => (d.teamleiterGewerke || []).some(g => gewerke.includes(g)))
         .sort((a, b) => {
           const gwA = gewerke.find(g => (a.teamleiterGewerke||[]).includes(g));
@@ -986,8 +980,10 @@ async function loadUserData() {
       allDays.forEach(({ iso }) => docIds.add(`${iso}_bauhelfer`));
       const anmMap = {};
       await Promise.all([...docIds].map(async id => {
-        const s = await getDoc(doc(db, 'einsatzAnmeldungen', id));
-        anmMap[id] = s.exists() ? s.data() : { angemeldete: {}, bedarf: null };
+        const { data: row } = await supabase.from('einsatz_anmeldungen').select('*').eq('id', id).maybeSingle();
+        anmMap[id] = row
+          ? { angemeldete: row.angemeldete || {}, bedarf: row.bedarf ?? null }
+          : { angemeldete: {}, bedarf: null };
       }));
       return { tage, allDays, anmMap };
     }
@@ -1180,12 +1176,14 @@ async function loadUserData() {
         try {
           const ts = Date.now();
           if (window._admNewsEditId) {
-            await setDoc(doc(db,'neuigkeiten', window._admNewsEditId), { datum, text, ts }, { merge: true });
+            const { error } = await supabase.from('neuigkeiten').update({ datum, text, ts }).eq('id', window._admNewsEditId);
+            if (error) throw new Error(error.message);
             const idx = _newsItems.findIndex(x => x.id === window._admNewsEditId);
             if (idx >= 0) _newsItems[idx] = { ..._newsItems[idx], datum, text, ts };
           } else {
-            const ref = await addDoc(collection(db,'neuigkeiten'), { datum, text, ts });
-            _newsItems.unshift({ id: ref.id, datum, text, ts });
+            const { data: newRow, error } = await supabase.from('neuigkeiten').insert({ datum, text, ts }).select('id').single();
+            if (error) throw new Error(error.message);
+            _newsItems.unshift({ id: newRow.id, datum, text, ts });
           }
           window._admNewsCancel();
           window._renderAdmNews();
@@ -1197,7 +1195,8 @@ async function loadUserData() {
       };
       window._admNewsDel = async (id) => {
         if (!confirm('Meldung löschen?')) return;
-        await deleteDoc(doc(db,'neuigkeiten', id));
+        const { error } = await supabase.from('neuigkeiten').delete().eq('id', id);
+        if (error) { alert('Fehler: ' + error.message); return; }
         _newsItems = _newsItems.filter(x => x.id !== id);
         window._renderAdmNews();
         renderNewsOverlay();
@@ -1267,8 +1266,8 @@ async function loadUserData() {
       bkDates.forEach(({ iso, bars }) => bars.forEach(b => bkDocIds.add(`${iso}_${b.gewerkId}`)));
       const bkAnmMap = {};
       await Promise.all([...bkDocIds].map(async docId => {
-        const snap = await getDoc(doc(db, 'einsatzAnmeldungen', docId));
-        bkAnmMap[docId] = snap.exists() ? (snap.data().angemeldete || {}) : {};
+        const { data: row } = await supabase.from('einsatz_anmeldungen').select('angemeldete').eq('id', docId).maybeSingle();
+        bkAnmMap[docId] = row?.angemeldete || {};
       }));
 
       const WD_BK = ['So','Mo','Di','Mi','Do','Fr','Sa'];
@@ -1335,12 +1334,12 @@ async function loadUserData() {
     const docIds = new Set();
     [...meineTage, ...alleTage].forEach(({ iso, bars }) => {
       bars.forEach(bar => docIds.add(`${iso}_${bar.gewerkId}`));
-      docIds.add(`${iso}_bauhelfer`); // allgemeine Anmeldung
+      docIds.add(`${iso}_bauhelfer`);
     });
     await Promise.all([...docIds].map(async docId => {
-      const snap = await getDoc(doc(db, 'einsatzAnmeldungen', docId));
-      anmeldungenMap[docId] = snap.exists()
-        ? { angemeldete: snap.data().angemeldete || {}, bedarf: snap.data().bedarf ?? null }
+      const { data: row } = await supabase.from('einsatz_anmeldungen').select('*').eq('id', docId).maybeSingle();
+      anmeldungenMap[docId] = row
+        ? { angemeldete: row.angemeldete || {}, bedarf: row.bedarf ?? null }
         : { angemeldete: {}, bedarf: null };
     }));
 
@@ -1350,11 +1349,13 @@ async function loadUserData() {
     // Anmelden / Abmelden
     window._anmelden = async (iso, gewerkId, chipId, badgeId) => {
       const docId = `${iso}_${gewerkId}`;
-      const ref   = doc(db, 'einsatzAnmeldungen', docId);
       const rec   = anmeldungenMap[docId] || { angemeldete: {}, bedarf: null };
       const entry = rec.angemeldete;
       if (entry[myId]) delete entry[myId]; else entry[myId] = myName;
-      await setDoc(ref, { date: iso, gewerkId, angemeldete: entry, bedarf: rec.bedarf }, { merge: true });
+      const { error } = await supabase.from('einsatz_anmeldungen').upsert({
+        id: docId, date: iso, gewerk_id: gewerkId, angemeldete: entry, bedarf: rec.bedarf
+      });
+      if (error) { console.error(error); return; }
       anmeldungenMap[docId] = rec;
       const count = Object.keys(entry).length;
       const chip  = document.getElementById(chipId);
