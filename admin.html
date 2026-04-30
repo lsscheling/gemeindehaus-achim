@@ -302,6 +302,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
     <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
     <div><div class="topbar-title">Anmeldungen</div><div class="topbar-sub" id="anmeldungen-count">Wird geladen…</div></div>
     <div class="topbar-actions">
+      <button class="btn btn-outline" onclick="window._reloadData()" title="Daten neu laden">↺</button>
       <button class="btn btn-accent" onclick="openAddModal()">+ Person eintragen</button>
       <button class="btn btn-outline" onclick="exportCSV()">CSV</button>
     </div>
@@ -1426,20 +1427,21 @@ async function loadGewerke() {
 // ── ANMELDUNGEN ──
 async function loadAnmeldungen() {
   const tbody = document.getElementById('anmeldungen-tbody');
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .order('registered_at', { ascending: false });
-  if (error) {
-    if (tbody) tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Fehler beim Laden: ${error.message} <button class="btn btn-outline btn-sm" style="margin-left:10px" onclick="loadAnmeldungen()">Neu laden</button></div></td></tr>`;
-    return;
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('registered_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    allDocs = data || [];
+    filteredDocs = [...allDocs];
+    try { renderStats(); } catch(_) {}
+    applyFilters();
+    if (document.getElementById('panel-planung')?.classList.contains('active')) renderPlanungPanel();
+    if (document.getElementById('panel-nutzerverwaltung')?.classList.contains('active')) renderUsersTable();
+  } catch(e) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Fehler beim Laden: ${e.message} <button class="btn btn-outline btn-sm" style="margin-left:10px" onclick="window._reloadData()">Neu laden</button></div></td></tr>`;
   }
-  allDocs = data || [];
-  filteredDocs = [...allDocs];
-  renderStats();
-  applyFilters();
-  if (document.getElementById('panel-planung').classList.contains('active')) renderPlanungPanel();
-  if (document.getElementById('panel-nutzerverwaltung').classList.contains('active')) renderUsersTable();
 }
 
 // ── NUTZERVERWALTUNG / TEAMLEITER + ADMINS ──
