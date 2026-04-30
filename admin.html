@@ -286,6 +286,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Gantt ↗
     </button>
+    <button class="nav-item" onclick="showPanel('gruppen')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg>
+      Gruppen
+    </button>
     <button class="nav-item" onclick="showPanel('gemeinden')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       Gemeinden
@@ -506,6 +510,26 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 </div>
 
 <!-- ══════════════════════════════════════ GEMEINDEN ══ -->
+<!-- ══════════════════════════════════════════ GRUPPEN ══ -->
+<div id="panel-gruppen" class="panel">
+  <div class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+    <div><div class="topbar-title">Gruppen</div><div class="topbar-sub">Gruppengrößen & Gewerk-Verteilung</div></div>
+    <div class="topbar-actions">
+      <button class="btn btn-outline" onclick="loadGruppenPanel()">↺ Aktualisieren</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="stats-row" id="gruppen-stats">
+      <div style="color:var(--muted);font-size:13px">Wird geladen…</div>
+    </div>
+    <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;margin-top:4px">Gewerk-Verteilung nach Gruppe</div>
+    <div id="gruppen-table-wrap">
+      <div style="color:var(--muted);font-size:13px">Wird geladen…</div>
+    </div>
+  </div>
+</div>
+
 <div id="panel-gemeinden" class="panel">
   <div class="topbar">
     <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
@@ -599,8 +623,80 @@ function showPanel(id) {
   if (id === 'planung') renderPlanungPanel();
   if (id === 'nutzerverwaltung') renderUsersTable();
   if (id === 'gemeinden') window.renderGemeindePanel && window.renderGemeindePanel();
+  if (id === 'gruppen') loadGruppenPanel();
   closeSidebar();
 }
+async function loadGruppenPanel() {
+  document.getElementById('gruppen-stats').innerHTML = '<div style="color:var(--muted);font-size:13px">Wird geladen…</div>';
+  document.getElementById('gruppen-table-wrap').innerHTML = '<div style="color:var(--muted);font-size:13px">Wird geladen…</div>';
+  const [{ data: users }, { data: gewerkeData }] = await Promise.all([
+    supabase.from('users').select('gruppe, gewerke_zugewiesen'),
+    supabase.from('gewerke_konfig').select('id, name, active').order('sort_order')
+  ]);
+  const allUsers   = users || [];
+  const allGewerke = (gewerkeData || []).filter(g => g.active);
+
+  // ── Gruppengrößen ──
+  const gc = { 1:0, 2:0, 3:0, 0:0 };
+  allUsers.forEach(u => { const g = u.gruppe; gc[g===1||g===2||g===3 ? g : 0]++; });
+  document.getElementById('gruppen-stats').innerHTML = [
+    { label:'Gruppe 1', count:gc[1], color:'var(--accent)' },
+    { label:'Gruppe 2', count:gc[2], color:'#2d6a4f' },
+    { label:'Gruppe 3', count:gc[3], color:'#185fa5' },
+    { label:'Keine Gruppe', count:gc[0], color:'var(--muted)' }
+  ].map(({ label, count, color }) => `
+    <div class="stat-card">
+      <div class="stat-label">${label}</div>
+      <div class="stat-value" style="color:${color}">${count}</div>
+      <div class="stat-sub">Personen</div>
+    </div>`).join('');
+
+  // ── Gewerk × Gruppe Matrix ──
+  const mx = {};
+  allGewerke.forEach(g => { mx[g.id] = { 1:0, 2:0, 3:0, total:0 }; });
+  allUsers.forEach(u => {
+    const gr = u.gruppe;
+    (u.gewerke_zugewiesen || []).forEach(gwId => {
+      if (!mx[gwId]) return;
+      mx[gwId].total++;
+      if (gr===1||gr===2||gr===3) mx[gwId][gr]++;
+    });
+  });
+
+  const cell = (n) => n > 0
+    ? `<span style="font-weight:600">${n}</span>`
+    : `<span style="color:var(--muted)">–</span>`;
+
+  document.getElementById('gruppen-table-wrap').innerHTML = `
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;background:white;border-radius:var(--radius);border:1px solid var(--border)">
+        <thead>
+          <tr style="background:var(--cream)">
+            <th style="text-align:left;padding:10px 14px;font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border)">Gewerk</th>
+            <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border);color:var(--accent)">Gr. 1</th>
+            <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border);color:#2d6a4f">Gr. 2</th>
+            <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border);color:#185fa5">Gr. 3</th>
+            <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border)">Gesamt</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${allGewerke.map((g, i) => {
+            const m = mx[g.id];
+            const last = i === allGewerke.length - 1;
+            return `<tr style="${last?'':'border-bottom:1px solid var(--border);'}background:white"
+                        onmouseover="this.style.background='var(--paper)'" onmouseout="this.style.background='white'">
+              <td style="padding:9px 14px;font-weight:${m.total>0?'500':'400'};color:${m.total===0?'var(--muted)':'inherit'}">${g.name}</td>
+              <td style="text-align:center;padding:9px 14px">${cell(m[1])}</td>
+              <td style="text-align:center;padding:9px 14px">${cell(m[2])}</td>
+              <td style="text-align:center;padding:9px 14px">${cell(m[3])}</td>
+              <td style="text-align:center;padding:9px 14px">${cell(m.total)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('sidebar-overlay').classList.toggle('open');
