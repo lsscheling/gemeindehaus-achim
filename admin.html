@@ -367,7 +367,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
   <div class="topbar">
     <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
     <div><div class="topbar-title">Planung</div><div class="topbar-sub">Gewerk-Zuweisung & Verfügbarkeitsmatrix</div></div>
-    <div class="topbar-actions"></div>
+    <div class="topbar-actions">
+      <button class="btn btn-outline" onclick="exportGewerkeCSV()">CSV exportieren</button>
+    </div>
   </div>
   <div class="content">
     <div class="plan-layout">
@@ -1345,6 +1347,28 @@ function exportCSV() {
   a.download = 'gemeindehaus-achim-' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
 }
 window.exportCSV = exportCSV;
+
+function exportGewerkeCSV() {
+  const headers = ['Gewerk', 'Erfahrung', 'Vorname', 'Nachname', 'E-Mail', 'Telefon', 'Schichtarbeit', 'Gruppe', 'Gemeinde', 'Zugewiesenes Gewerk'];
+  const rows = [];
+  allDocs.forEach(d => {
+    const gewerke = d.gewerke || [];
+    const assigned = getAssigned(d).map(g => getGewerkLabel(g)).join('; ');
+    const base = [d.vorname||'', d.nachname||'', d.email||'', d.telefon||'', d.schichtarbeit ? 'Ja' : 'Nein', d.gruppe||'', getGemeindeLabel(d.gemeinde), assigned];
+    if (!gewerke.length) {
+      rows.push(['(kein Gewerk)', '', ...base]);
+    } else {
+      gewerke.forEach(gid => {
+        rows.push([getGewerkLabel(gid), (d.erfahrung||{})[gid]||'', ...base]);
+      });
+    }
+  });
+  const csv = [headers, ...rows].map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'gewerke-' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
+}
+window.exportGewerkeCSV = exportGewerkeCSV;
 </script>
 
 <script type="module">
@@ -1525,10 +1549,23 @@ window.addGewerkRow = function() {
   container.appendChild(div);
 };
 window.saveNewTeamleiter = async function() {
-  console.warn('[Supabase] Schreiben noch nicht aktiviert');
+  const personId = document.getElementById('tl-person-select').value;
+  if (!personId) { alert('Bitte eine Person auswählen.'); return; }
+  const gewerke = [...document.querySelectorAll('.tl-gewerk-sel')].map(s => s.value).filter(Boolean);
+  const { error } = await supabase.from('users').update({ rolle: 'teamleiter', teamleiterGewerke: gewerke }).eq('id', personId);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  const doc = allDocs.find(d => d.id === personId);
+  if (doc) { doc.rolle = 'teamleiter'; doc.teamleiterGewerke = gewerke; }
+  window.hideAddTeamleiterForm();
+  renderUsersTable();
 };
 window.removeTeamleiter = async (id) => {
-  console.warn('[Supabase] Schreiben noch nicht aktiviert');
+  if (!confirm('Teamleiter-Rolle entfernen?')) return;
+  const { error } = await supabase.from('users').update({ rolle: null, teamleiterGewerke: [] }).eq('id', id);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  const doc = allDocs.find(d => d.id === id);
+  if (doc) { doc.rolle = null; doc.teamleiterGewerke = []; }
+  renderUsersTable();
 };
 
 window.showAddAdminForm = function() {
@@ -1544,10 +1581,22 @@ window.hideAddAdminForm = function() {
   document.getElementById('admin-add-form').style.display = 'none';
 };
 window.saveNewAdmin = async function() {
-  console.warn('[Supabase] Schreiben noch nicht aktiviert');
+  const personId = document.getElementById('admin-person-select').value;
+  if (!personId) { alert('Bitte eine Person auswählen.'); return; }
+  const { error } = await supabase.from('users').update({ admin: true }).eq('id', personId);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  const doc = allDocs.find(d => d.id === personId);
+  if (doc) doc.admin = true;
+  window.hideAddAdminForm();
+  renderUsersTable();
 };
 window.removeAdmin = async (id) => {
-  console.warn('[Supabase] Schreiben noch nicht aktiviert');
+  if (!confirm('Admin-Rolle entfernen?')) return;
+  const { error } = await supabase.from('users').update({ admin: false }).eq('id', id);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  const doc = allDocs.find(d => d.id === id);
+  if (doc) doc.admin = false;
+  renderUsersTable();
 };
 
 const SONDERROLLEN_LABELS = { organisation: 'Organisation', bauleitung: 'Bauleitung', 'bauküche': 'Bau-Küche', sicherheitsbeauftragter: 'Sicherheitsbeauftragter' };
@@ -1595,14 +1644,31 @@ window.hideAddSonderrolleForm = function() {
   document.getElementById('sonderrolle-add-form').style.display = 'none';
 };
 window.saveNewSonderrolle = async function() {
-  console.warn('[Supabase] Schreiben noch nicht aktiviert');
+  const rolle = document.getElementById('sonderrolle-select').value;
+  const personId = document.getElementById('sonderrolle-person-select').value;
+  if (!rolle || !personId) { alert('Bitte Rolle und Person auswählen.'); return; }
+  const { error } = await supabase.from('users').update({ sonderrolle: rolle }).eq('id', personId);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  const doc = allDocs.find(d => d.id === personId);
+  if (doc) doc.sonderrolle = rolle;
+  window.hideAddSonderrolleForm();
+  renderUsersTable();
 };
 window.removeSonderrolle = async (id) => {
-  console.warn('[Supabase] Schreiben noch nicht aktiviert');
+  const { error } = await supabase.from('users').update({ sonderrolle: null }).eq('id', id);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  const doc = allDocs.find(d => d.id === id);
+  if (doc) doc.sonderrolle = null;
+  renderUsersTable();
 };
 
 window.removeTeamleiterGewerk = async (id, gewerkId) => {
-  console.warn('[Supabase] Schreiben noch nicht aktiviert');
+  const doc = allDocs.find(d => d.id === id); if (!doc) return;
+  const newGewerke = (doc.teamleiterGewerke || []).filter(g => g !== gewerkId);
+  const { error } = await supabase.from('users').update({ teamleiterGewerke: newGewerke }).eq('id', id);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  doc.teamleiterGewerke = newGewerke;
+  renderUsersTable();
 };
 
 window.addGewerkToExisting = function(id) {
@@ -1627,8 +1693,14 @@ window.addGewerkToExisting = function(id) {
   if (card) card.appendChild(row);
   cancelBtn.onclick = () => row.remove();
   confirmBtn.onclick = async () => {
-    console.warn('[Supabase] Schreiben noch nicht aktiviert');
+    const gid = sel.value; if (!gid) return;
+    const doc = allDocs.find(x => x.id === id); if (!doc) return;
+    const newGewerke = [...(doc.teamleiterGewerke || []), gid];
+    const { error } = await supabase.from('users').update({ teamleiterGewerke: newGewerke }).eq('id', id);
+    if (error) { alert('Fehler: ' + error.message); row.remove(); return; }
+    doc.teamleiterGewerke = newGewerke;
     row.remove();
+    renderUsersTable();
   };
 };
 
