@@ -52,7 +52,7 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 /* ── Column header ── */
 .gewerk-col-header {
   display: grid;
-  grid-template-columns: 38px 12px 1fr 90px 90px 70px;
+  grid-template-columns: 38px 12px 1fr 90px 70px;
   align-items: center;
   gap: 12px;
   padding: 7px 20px;
@@ -70,7 +70,7 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
 /* ── Gewerk row ── */
 .gewerk-row {
   display: grid;
-  grid-template-columns: 38px 12px 1fr 90px 90px 70px;
+  grid-template-columns: 38px 12px 1fr 90px 70px;
   align-items: center;
   gap: 12px;
   padding: 12px 20px;
@@ -159,7 +159,7 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
   .topbar { padding: 12px 16px; }
   .content { padding: 16px; }
   .gewerk-col-header,
-  .gewerk-row { grid-template-columns: 38px 12px 1fr 50px 50px 60px; gap: 8px; padding: 10px 12px; }
+  .gewerk-row { grid-template-columns: 38px 12px 1fr 50px 60px; gap: 8px; padding: 10px 12px; }
 }
 </style>
 </head>
@@ -205,10 +205,6 @@ body { font-family: 'DM Sans', sans-serif; min-height: 100vh; font-size: 14px; }
     <div class="mfield">
       <label>Bezeichnung *</label>
       <input type="text" id="m-name">
-    </div>
-    <div class="mfield">
-      <label>Mindestpersonen</label>
-      <input type="number" id="m-min" min="1" value="1" style="width:100px">
     </div>
     <div class="mfield">
       <label>Farbe</label>
@@ -284,7 +280,6 @@ async function load() {
         name: g.name,
         active: g.active ?? true,
         visibleInForm: g.visible_in_form ?? (g.active ?? true),
-        minPersons: g.min_persons ?? 1,
         color: g.color || COLORS[0],
         levels: g.levels || []
       }));
@@ -309,7 +304,6 @@ function buildDefaults() {
     id: 'gw_' + i, name,
     active: true,          // nicht archiviert
     visibleInForm: true,   // in Anmeldung sichtbar
-    minPersons: 1,
     color: COLORS[i % COLORS.length],
     levels: name === 'Allgemeiner Helfer / -in' ? [] : allLvIds
   }));
@@ -328,7 +322,7 @@ async function saveToDb() {
   // Gewerke speichern (explizit UPDATE + INSERT statt upsert wegen RLS)
   const gewerkeRows = gewerke.map((g, i) => ({
     id: g.id, name: g.name, active: g.active,
-    visible_in_form: g.visibleInForm, min_persons: g.minPersons,
+    visible_in_form: g.visibleInForm,
     color: g.color, levels: g.levels, sort_order: i
   }));
   const { data: existingG, error: selErrG } = await supabase.from('gewerke_konfig').select('id');
@@ -416,7 +410,6 @@ function render() {
     <span></span><!-- color dot -->
     <span class="col-label">Bezeichnung</span>
     <span class="col-label" style="text-align:center" title="Im Anmeldeformular anzeigen">Anmeldung</span>
-    <span class="col-label" style="text-align:center">Min.</span>
     <span></span><!-- actions -->
   </div>`;
 
@@ -451,14 +444,6 @@ function render() {
         <input class="vis-cb" type="checkbox"
           ${visInForm ? 'checked' : ''}
           onchange="setVisible('${g.id}',this.checked)">
-      </div>
-
-      <!-- Min. Personen -->
-      <div style="text-align:center">
-        <input type="number" inputmode="numeric" min="1" max="99" value="${g.minPersons || 1}"
-          style="width:54px;font-size:13px;font-family:'DM Sans',sans-serif;border:1px solid var(--border);border-radius:var(--radius);padding:5px 6px;text-align:center;outline:none;background:white"
-          onchange="setMinPersons('${g.id}',this.value)"
-          onfocus="this.select()">
       </div>
 
       <!-- Aktionen -->
@@ -525,11 +510,6 @@ window.setActive = function(id, val) {
   render();
 };
 
-window.setMinPersons = function(id, val) {
-  const g = gewerke.find(x => x.id === id);
-  if (g) g.minPersons = parseInt(val) || 1;
-};
-
 // Checkbox: in Anmeldung sichtbar
 window.setVisible = function(id, val) {
   const g = gewerke.find(x => x.id === id);
@@ -543,7 +523,7 @@ window.addGewerk = function() {
   gewerke.push({
     id: 'gw_' + Date.now(), name,
     active: true, visibleInForm: false,
-    minPersons: 1, color: COLORS[gewerke.length % COLORS.length],
+    color: COLORS[gewerke.length % COLORS.length],
     levels: []
   });
   render();
@@ -562,7 +542,6 @@ window.editGewerk = function(id) {
   editingId = id; selColor = g.color;
   document.getElementById('modal-title').textContent = g.name + ' bearbeiten';
   document.getElementById('m-name').value = g.name;
-  document.getElementById('m-min').value = g.minPersons || 1;
   document.getElementById('m-del').style.display = 'block';
   document.getElementById('m-colors').innerHTML = COLORS.map(c =>
     `<div class="cpick${c===selColor?' sel':''}" style="background:${c}" onclick="pickColor('${c}',this)"></div>`
@@ -591,11 +570,10 @@ window.closeModal = function() {
 
 window.saveGewerk = function() {
   const name = document.getElementById('m-name').value.trim();
-  const min  = parseInt(document.getElementById('m-min').value) || 1;
   if (!name) { alert('Bitte einen Namen eingeben.'); return; }
   const selLevels = [...document.querySelectorAll('#m-levels input:checked')].map(cb => cb.value);
   const g = gewerke.find(x => x.id === editingId);
-  if (g) { g.name = name; g.minPersons = min; g.color = selColor; g.levels = selLevels; }
+  if (g) { g.name = name; g.color = selColor; g.levels = selLevels; }
   closeModal(); render();
 };
 
