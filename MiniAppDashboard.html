@@ -1644,7 +1644,7 @@ async function loadUserData() {
         });
         const dayOffen = dayBedarf - dayAngemeldet;
         const dayBadgeHtml = dayOffen > 0
-          ? `<span class="day-need-badge">${dayOffen} offen</span>` : '';
+          ? `<span class="day-need-badge">${dayOffen}</span>` : '';
 
         if (kw !== lastKW) { html += `<div class="kw-sep">${kw}</div>`; lastKW = kw; }
         html += `<div class="day-block">`;
@@ -1713,7 +1713,7 @@ async function loadUserData() {
           if (r.bedarf != null) { dayBedarf += r.bedarf; dayAngemeldet += Object.keys(r.angemeldete).length; }
         });
         const dayOffen = dayBedarf - dayAngemeldet;
-        const dayBadgeHtml = dayOffen > 0 ? `<span class="day-need-badge">${dayOffen} offen</span>` : '';
+        const dayBadgeHtml = dayOffen > 0 ? `<span class="day-need-badge">${dayOffen}</span>` : '';
         let h = `<div class="day-block"><div class="day-block-header"><span class="day-block-label">${WD[date.getDay()]}, ${fmtDateDE(date)}</span>${dayBadgeHtml}</div><div class="day-block-chips">`;
         dayBars.forEach(bar => {
           const gw     = gewerkeMap[bar.gewerkId];
