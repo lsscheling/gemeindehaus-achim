@@ -1152,8 +1152,53 @@ async function loadUserData() {
     if (isOrga || isAdmin) {
       document.getElementById('nav-adm').style.display = '';
       const admGewerke = Object.keys(gewerkeMap);
-      const { tage: admTage, allDays: admAllDays, anmMap: admAnmMap } = await loadBedarfData(admGewerke);
+      const [{ tage: admTage, allDays: admAllDays, anmMap: admAnmMap }, { data: allUsers }] = await Promise.all([
+        loadBedarfData(admGewerke),
+        supabase.from('users').select('id, vorname, nachname, dashboard_aktiv').order('nachname')
+      ]);
       window._bedarfData['adm'] = { tage: admTage, anmMap: admAnmMap };
+      window._admUsers = allUsers || [];
+
+      window._renderPersonenListe = () => {
+        const pending = window._admUsers.filter(u => !u.dashboard_aktiv);
+        const active  = window._admUsers.filter(u =>  u.dashboard_aktiv);
+        const renderRow = (u) => {
+          const name = ((u.vorname||'') + ' ' + (u.nachname||'')).trim() || '(kein Name)';
+          const isAct = u.dashboard_aktiv;
+          return `<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--clay-pale)">
+            <span style="flex:1;font-size:13px;font-weight:500">${name}</span>
+            <button onclick="window._toggleDashboard('${u.id}')"
+              style="border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;
+                     font-family:'DM Sans',sans-serif;cursor:pointer;
+                     background:${isAct ? 'var(--red-light)' : 'var(--green-light)'};
+                     color:${isAct ? 'var(--red)' : 'var(--green)'}">
+              ${isAct ? 'Sperren' : 'Freischalten'}
+            </button>
+          </div>`;
+        };
+        const pendingEl    = document.getElementById('adm-persons-pending');
+        const activeEl     = document.getElementById('adm-persons-active');
+        const pendingBadge = document.getElementById('adm-persons-pending-badge');
+        const activeBadge  = document.getElementById('adm-persons-active-badge');
+        if (pendingEl) pendingEl.innerHTML = pending.length
+          ? pending.map(renderRow).join('')
+          : '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
+        if (activeEl) activeEl.innerHTML = active.length
+          ? active.map(renderRow).join('')
+          : '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
+        if (pendingBadge) pendingBadge.textContent = pending.length;
+        if (activeBadge)  activeBadge.textContent  = active.length;
+      };
+
+      window._toggleDashboard = async (userId) => {
+        const user = window._admUsers.find(u => u.id === userId);
+        if (!user) return;
+        const newVal = !user.dashboard_aktiv;
+        const { error } = await supabase.from('users').update({ dashboard_aktiv: newVal }).eq('id', userId);
+        if (error) { alert('Fehler: ' + error.message); return; }
+        user.dashboard_aktiv = newVal;
+        window._renderPersonenListe();
+      };
 
       // News-Verwaltung
       window._admNewsEditId = null;
@@ -1232,6 +1277,24 @@ async function loadUserData() {
       document.getElementById('adm-view-body').innerHTML = `
         <div class="card" style="margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
+               onclick="window._toggleBedarfCard('adm-persons-pending','adm-persons-pending-chev')">
+            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Noch nicht freigeschaltet</span>
+            <span id="adm-persons-pending-badge" style="background:var(--clay-pale);color:var(--clay-dark);border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600">0</span>
+            <span id="adm-persons-pending-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0">▼</span>
+          </div>
+          <div id="adm-persons-pending" style="margin-top:8px"></div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
+               onclick="window._toggleBedarfCard('adm-persons-active','adm-persons-active-chev')">
+            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Freigeschaltet</span>
+            <span id="adm-persons-active-badge" style="background:var(--green-light);color:var(--green);border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600">0</span>
+            <span id="adm-persons-active-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
+          </div>
+          <div id="adm-persons-active" style="margin-top:8px;display:none"></div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
                onclick="window._toggleBedarfCard('adm-news-body','adm-news-chev')">
             <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Neuigkeiten / Informationen</span>
             <button onclick="event.stopPropagation();window._admNewsNew()"
@@ -1265,6 +1328,7 @@ async function loadUserData() {
         ${renderBauhelferCard('adm', admAllDays, admAnmMap)}
       `;
       window._renderAdmNews();
+      window._renderPersonenListe();
     }
 
     // ── Bauküche-Tab ──
