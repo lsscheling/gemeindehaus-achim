@@ -807,51 +807,29 @@ document.getElementById('proj-end').value = offsetDate(today, 130);
 </script>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDSZ6yuKgdGFhymzHMLrdl_P3zGMCpj9kM",
-  authDomain: "gemeindehaus-achim.firebaseapp.com",
-  projectId: "gemeindehaus-achim",
-  storageBucket: "gemeindehaus-achim.firebasestorage.app",
-  messagingSenderId: "272798328583",
-  appId: "1:272798328583:web:388aa8db19886e9be507a2"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-onAuthStateChanged(auth, user => {
-  if (user) {
-    init();
-  } else {
-    window.location.href = 'dashboard.html';
-  }
-});
+const SUPABASE_URL = 'https://upkbuxphiyenjhxntbto.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwa2J1eHBoaXllbmpoeG50YnRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMjUxOTMsImV4cCI6MjA5MDkwMTE5M30.0ErIMg4g78FKej5SrIAdSUfZ5StQk1tTyW2us6Dv1yc'
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 async function loadGewerkeList() {
-  const snap = await getDoc(doc(db, "planung", "gewerkeKonfig"));
-  if (snap.exists()) {
-    GEWERK_LIST = (snap.data().gewerke || []).filter(g => g.active).map(g => ({
-      id: g.id, label: g.name, gruppe: 'Gewerke'
-    }));
+  const { data } = await supabase.from('gewerke_konfig').select('id, name, active').order('sort_order');
+  if (data?.length) {
+    GEWERK_LIST = data.filter(g => g.active).map(g => ({ id: g.id, label: g.name, gruppe: 'Gewerke' }));
   }
 }
 
 async function loadGanttDaten() {
-  const snap = await getDoc(doc(db, "planung", "ganttDaten"));
-  if (snap.exists()) {
-    const data = snap.data();
+  const { data } = await supabase.from('gantt_daten').select('*').eq('id', 'main').single();
+  if (data) {
     if (data.gewerke && data.gewerke.length > 0) {
       _gewerke = data.gewerke.map(g => { const def = GEWERK_LIST.find(x => x.id === g.gewerkId); if (def) g.name = def.label; return g; });
     } else {
       _gewerke = getDefaultGewerke();
     }
-    if (data.projStart) document.getElementById('proj-start').value = data.projStart;
-    if (data.projEnd)   document.getElementById('proj-end').value   = data.projEnd;
+    if (data.proj_start) document.getElementById('proj-start').value = data.proj_start;
+    if (data.proj_end)   document.getElementById('proj-end').value   = data.proj_end;
   } else {
     _gewerke = getDefaultGewerke();
   }
@@ -864,7 +842,10 @@ window.saveToFirebase = async function() {
   try {
     const startVal = document.getElementById('proj-start').value;
     const endVal   = document.getElementById('proj-end').value;
-    await setDoc(doc(db, "planung", "ganttDaten"), { gewerke: _gewerke, projStart: startVal, projEnd: endVal });
+    const { error } = await supabase.from('gantt_daten')
+      .update({ gewerke: _gewerke, proj_start: startVal, proj_end: endVal })
+      .eq('id', 'main');
+    if (error) throw new Error(error.message);
     btn.textContent = 'Gespeichert ✓';
     setTimeout(() => { btn.textContent = 'Speichern'; btn.disabled = false; }, 2000);
   } catch(e) {
@@ -879,6 +860,8 @@ async function init() {
   await loadGanttDaten();
   rebuildGantt();
 }
+
+init();
 </script>
 </body>
 </html>
