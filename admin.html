@@ -1221,7 +1221,6 @@ function buildPersonForm(data) {
       ${field('Nachname *','nachname','text',val('nachname'),'Mustermann')}
     </div>
     <div class="mrow">
-      ${field('E-Mail','email','email',val('email'),'max@beispiel.de')}
       ${field('Telefon','telefon','tel',val('telefon'),'+49 170 …')}
     </div>
     <div class="mrow">
@@ -1299,7 +1298,6 @@ async function savePerson(isEdit) {
   const gewerke = [...document.querySelectorAll('input[name="mf-gewerk"]:checked')].map(cb => cb.value);
   const data = {
     vorname, nachname,
-    email: document.getElementById('mf-email')?.value.trim()||'',
     telefon: document.getElementById('mf-telefon')?.value.trim()||'',
     telegram_id: Number(document.getElementById('mf-telegram-id')?.value.trim())||null,
     telegram_username: document.getElementById('mf-telegram-username')?.value.trim()||null,
