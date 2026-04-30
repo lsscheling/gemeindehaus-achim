@@ -23,8 +23,25 @@ html, body { background-color: #f4f1e8 !important; color: #1c1b18 !important; }
 }
 body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.6; }
 
+/* ── LOGIN ── */
+#login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.login-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 40px 36px; width: 100%; max-width: 380px; }
+.login-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 32px; }
+.login-logo-mark { width: 28px; height: 28px; background: var(--accent); border-radius: 5px; display: flex; align-items: center; justify-content: center; }
+.login-logo-mark svg { width: 14px; height: 14px; fill: white; }
+.login-logo-text { font-size: 13px; font-weight: 500; }
+.login-logo-sub { font-size: 11px; color: var(--muted); font-weight: 300; }
+.login-card h2 { font-family: 'DM Serif Display', serif; font-size: 24px; font-weight: 400; margin-bottom: 24px; }
+.login-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.login-field label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.login-field input { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 300; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; outline: none; transition: border-color 0.15s; background: var(--paper); }
+.login-field input:focus { border-color: var(--accent); }
+.login-btn { width: 100%; padding: 12px; background: var(--ink); color: white; border: none; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 8px; transition: background 0.15s; }
+.login-btn:hover { background: #2e2d28; }
+.login-error { font-size: 12px; color: var(--danger); margin-top: 10px; display: none; }
+
 /* ── APP SHELL ── */
-#app { display: block; }
+#app { display: none; }
 .shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
 .sidebar { background: var(--ink); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
 .sidebar-logo { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
@@ -215,6 +232,21 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
 </style>
 </head>
 <body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-mark"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+      <div><div class="login-logo-text">Gemeindehaus Achim</div><div class="login-logo-sub">Admin-Bereich</div></div>
+    </div>
+    <h2>Anmelden</h2>
+    <div class="login-field"><label>E-Mail</label><input type="email" id="login-email" placeholder="admin@beispiel.de" autocomplete="email"></div>
+    <div class="login-field"><label>Passwort</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="login-btn" id="login-btn">Anmelden</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
 
 <!-- APP -->
 <div id="app">
@@ -1335,11 +1367,42 @@ window._reloadData = async function() {
   try { await loadGewerke(); await loadGemeindeKonfig(); await loadAnmeldungen(); } catch(e) { alert(e.message); }
 };
 
-// Daten direkt beim Seitenaufruf laden
-loadGewerke().then(() => loadGemeindeKonfig()).then(() => loadAnmeldungen()).catch(e => {
-  const tbody = document.getElementById('anmeldungen-tbody');
-  if (tbody) tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Fehler: ${e.message} <button class="btn btn-outline btn-sm" style="margin-left:10px" onclick="window._reloadData()">Neu laden</button></div></td></tr>`;
-});
+// ── AUTH ──
+const AUTH_KEY = 'gha_admin_auth';
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadGewerke().then(() => loadGemeindeKonfig()).then(() => loadAnmeldungen()).catch(e => {
+    const tbody = document.getElementById('anmeldungen-tbody');
+    if (tbody) tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">Fehler: ${e.message} <button class="btn btn-outline btn-sm" style="margin-left:10px" onclick="window._reloadData()">Neu laden</button></div></td></tr>`;
+  });
+}
+
+window.doLogout = function() {
+  localStorage.removeItem(AUTH_KEY);
+  location.reload();
+};
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  if (!email || !pw) { errEl.textContent = 'Bitte E-Mail und Passwort eingeben.'; errEl.style.display = 'block'; return; }
+  const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
+  if (error) { errEl.textContent = 'Anmeldung fehlgeschlagen.'; errEl.style.display = 'block'; return; }
+  localStorage.setItem(AUTH_KEY, '1');
+  showApp();
+}
+
+document.getElementById('login-btn').addEventListener('click', doLogin);
+document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// Beim Seitenaufruf: bereits eingeloggt?
+if (localStorage.getItem(AUTH_KEY)) {
+  showApp();
+}
 
 // ── GEWERKE LADEN ──
 async function loadGewerke() {
