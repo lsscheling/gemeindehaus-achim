@@ -315,7 +315,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
     </div>
     <div class="table-card">
       <div class="table-toolbar">
-        <input class="search-input" type="text" placeholder="Name, E-Mail, Gewerk …" oninput="filterTable(this.value)" id="search-input">
+        <input class="search-input" type="text" placeholder="Name, Gewerk …" oninput="filterTable(this.value)" id="search-input">
         <select class="filter-select" onchange="applyFilters()" id="gewerk-filter"><option value="">Alle Gewerke</option></select>
         <select class="filter-select" onchange="applyFilters()" id="gemeinde-filter"><option value="">Alle Gemeinden</option></select>
         <select class="filter-select" onchange="applyFilters()" id="schicht-filter">
@@ -696,7 +696,7 @@ function applyFilters() {
   currentGemeinde = document.getElementById('gemeinde-filter').value;
   currentSchicht = document.getElementById('schicht-filter').value;
   filteredDocs = allDocs.filter(d => {
-    const name = ((d.vorname||'') + ' ' + (d.nachname||'') + ' ' + (d.email||'')).toLowerCase();
+    const name = ((d.vorname||'') + ' ' + (d.nachname||'')).toLowerCase();
     const gw = (d.gewerke||[]).join(' ');
     const matchText = !currentFilter || name.includes(currentFilter) || gw.includes(currentFilter);
     const matchGewerk = !currentGewerk || (d.gewerke||[]).includes(currentGewerk);
@@ -751,7 +751,7 @@ function renderTable() {
     </select>`;
     return `<tr class="${isSelected ? 'selected' : ''}" onclick="rowClick(event,'${d.id}')">
       <td class="cb-col" onclick="event.stopPropagation()"><input type="checkbox" ${isSelected?'checked':''} onchange="toggleSelect('${d.id}',this.checked)" onclick="event.stopPropagation()"></td>
-      <td><strong>${name}</strong><br><span style="font-size:11px;color:var(--muted)">${d.email||''}</span></td>
+      <td><strong>${name}</strong></td>
       <td style="font-size:12px">${getGemeindeLabel(d.gemeinde)}</td>
       <td>${gewerkeHtml}</td>
       <td>${schichtHtml}</td>
@@ -1137,7 +1137,6 @@ function openDrawer(id) {
 
   document.getElementById('drawer-body').innerHTML = `
     <div class="dsection"><div class="dsection-title">Kontakt</div>
-      <div class="drow"><span class="drow-label">E-Mail</span><span class="drow-val">${d.email||'–'}</span></div>
       <div class="drow"><span class="drow-label">Telefon</span><span class="drow-val">${d.telefon||'–'}</span></div>
       <div class="drow"><span class="drow-label">Telegram ID</span><span class="drow-val">${d.telegram_id||'–'}</span></div>
       <div class="drow"><span class="drow-label">Telegram Username</span><span class="drow-val">${d.telegram_username ? '@'+d.telegram_username : '–'}</span></div>
@@ -1329,9 +1328,9 @@ window.savePerson = savePerson;
 // EXPORT CSV
 // ═══════════════════════════════════════════════
 function exportCSV() {
-  const headers = ['Vorname','Nachname','E-Mail','Telefon','Gewerke','Erfahrung','Schichtarbeit','Zugewiesenes Gewerk','Qualifikationen','Gruppenwunsch'];
+  const headers = ['Vorname','Nachname','Telefon','Gewerke','Erfahrung','Schichtarbeit','Zugewiesenes Gewerk','Qualifikationen','Gruppenwunsch'];
   const rows = allDocs.map(d => [
-    d.vorname||'', d.nachname||'', d.email||'', d.telefon||'',
+    d.vorname||'', d.nachname||'', d.telefon||'',
     (d.gewerke||[]).map(g=>getGewerkLabel(g)).join('; '),
     (d.gewerke||[]).map(g=>(d.erfahrung||{})[g]||'').join('; '),
     d.schichtarbeit ? 'Ja' : 'Nein',
@@ -1347,12 +1346,12 @@ function exportCSV() {
 window.exportCSV = exportCSV;
 
 function exportGewerkeCSV() {
-  const headers = ['Gewerk', 'Erfahrung', 'Vorname', 'Nachname', 'E-Mail', 'Telefon', 'Schichtarbeit', 'Gruppe', 'Gemeinde', 'Zugewiesenes Gewerk'];
+  const headers = ['Gewerk', 'Erfahrung', 'Vorname', 'Nachname', 'Telefon', 'Schichtarbeit', 'Gruppe', 'Gemeinde', 'Zugewiesenes Gewerk'];
   const rows = [];
   allDocs.forEach(d => {
     const gewerke = d.gewerke || [];
     const assigned = getAssigned(d).map(g => getGewerkLabel(g)).join('; ');
-    const base = [d.vorname||'', d.nachname||'', d.email||'', d.telefon||'', d.schichtarbeit ? 'Ja' : 'Nein', d.gruppe||'', getGemeindeLabel(d.gemeinde), assigned];
+    const base = [d.vorname||'', d.nachname||'', d.telefon||'', d.schichtarbeit ? 'Ja' : 'Nein', d.gruppe||'', getGemeindeLabel(d.gemeinde), assigned];
     if (!gewerke.length) {
       rows.push(['(kein Gewerk)', '', ...base]);
     } else {
