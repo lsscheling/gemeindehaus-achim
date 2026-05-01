@@ -457,11 +457,24 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
     <!-- Add form (hidden by default) -->
     <div id="tl-add-form" style="display:none;background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:20px">
       <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Neuer Teamleiter</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+          <input type="checkbox" id="tl-placeholder-toggle" onchange="window.togglePlaceholderMode()" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+          Person noch nicht angemeldet (Platzhalter)
+        </label>
+      </div>
       <div style="margin-bottom:12px">
         <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Person</div>
         <select id="tl-person-select" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);width:100%;max-width:340px;cursor:pointer">
           <option value="">– Person auswählen –</option>
         </select>
+      </div>
+      <div id="tl-placeholder-name-row" style="display:none;margin-bottom:12px">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Name</div>
+        <div style="display:flex;gap:8px">
+          <input id="tl-placeholder-vorname" type="text" placeholder="Vorname" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);flex:1;max-width:160px">
+          <input id="tl-placeholder-nachname" type="text" placeholder="Nachname" style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;outline:none;background:var(--paper);flex:1;max-width:160px">
+        </div>
       </div>
       <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Gewerke</div>
       <div id="tl-gewerk-rows" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
@@ -643,7 +656,7 @@ async function loadGruppenPanel() {
   document.getElementById('gruppen-stats').innerHTML = '<div style="color:var(--muted);font-size:13px">Wird geladen…</div>';
 
   const [{ data: users }, { data: gewerkeData }, { data: levelsData }] = await Promise.all([
-    supabase.from('users').select('gruppe, gewerke_zugewiesen, erfahrung'),
+    supabase.from('users').select('gruppe, gewerke_zugewiesen, erfahrung, schichtarbeit'),
     supabase.from('gewerke_konfig').select('id, name, active').order('sort_order'),
     supabase.from('levels').select('*')
   ]);
@@ -672,11 +685,19 @@ async function loadGruppenPanel() {
   allGewerke.forEach(g => { mxTotal[g.id] = { 1:0, 2:0, 3:0, 0:0, total:0 }; });
 
   const bauhelferByGruppe = { 1:0, 2:0, 3:0, 0:0 };
+  const bauhelferSchichtByGruppe = { 1:0, 2:0, 3:0, 0:0 };
+  // mxSchicht[gwId][gruppe] = count of Schichtarbeiter
+  const mxSchicht = {};
+  allGewerke.forEach(g => { mxSchicht[g.id] = { 1:0, 2:0, 3:0, 0:0 }; });
 
   allUsers.forEach(u => {
     const gr = (u.gruppe===1||u.gruppe===2||u.gruppe===3) ? u.gruppe : 0;
     const gws = u.gewerke_zugewiesen || [];
-    if (gws.length === 0) { bauhelferByGruppe[gr]++; return; }
+    if (gws.length === 0) {
+      bauhelferByGruppe[gr]++;
+      if (u.schichtarbeit) bauhelferSchichtByGruppe[gr]++;
+      return;
+    }
     gws.forEach(gwId => {
       if (!mxLevel[gwId]) return;
       mxTotal[gwId].total++;
@@ -684,18 +705,21 @@ async function loadGruppenPanel() {
       const rawLv = ((u.erfahrung || {})[gwId]) || '__kein';
       const lv = CHART_LEVELS.find(l => l.id === rawLv) ? rawLv : '__kein';
       mxLevel[gwId][gr][lv] = (mxLevel[gwId][gr][lv] || 0) + 1;
+      if (u.schichtarbeit) mxSchicht[gwId][gr]++;
     });
   });
 
   // ── Flache Label + Daten für gestapelte Gruppen-Balken ──
   const chartLabels = [];   // display labels (gewerk name only on middle row)
   const chartTooltips = []; // full labels for tooltips
+  const chartSchicht = [];  // Schichtarbeiter count per row
   const chartData = {}; // levelId → flat array
   [...CHART_LEVELS, KEIN_LEVEL].forEach(l => { chartData[l.id] = []; });
 
-  const pushRow = (displayLabel, tooltipLabel, byLevel) => {
+  const pushRow = (displayLabel, tooltipLabel, byLevel, schichtCount) => {
     chartLabels.push(displayLabel);
     chartTooltips.push(tooltipLabel);
+    chartSchicht.push(schichtCount);
     [...CHART_LEVELS, KEIN_LEVEL].forEach(l => {
       chartData[l.id].push(byLevel[l.id] || 0);
     });
@@ -703,23 +727,24 @@ async function loadGruppenPanel() {
   const pushSpacer = () => {
     chartLabels.push('');
     chartTooltips.push('');
+    chartSchicht.push(0);
     [...CHART_LEVELS, KEIN_LEVEL].forEach(l => { chartData[l.id].push(0); });
   };
 
-  const addGewerkRows = (name, byGrpByLv, totals) => {
+  const addGewerkRows = (name, byGrpByLv, totals, schichtByGr) => {
     const activeGrs = [1,2,3,0].filter(gr => (totals[gr] || 0) > 0);
     if (!activeGrs.length) return;
     const midIdx = Math.floor((activeGrs.length - 1) / 2);
     activeGrs.forEach((gr, i) => {
       const grLabel = GR_LABELS[gr];
       const displayLabel = i === midIdx ? name : grLabel;
-      pushRow(displayLabel, `${name}  ·  ${grLabel}`, byGrpByLv[gr] || {});
+      pushRow(displayLabel, `${name}  ·  ${grLabel}`, byGrpByLv[gr] || {}, schichtByGr[gr] || 0);
     });
     pushSpacer();
   };
 
   allGewerke.filter(g => mxTotal[g.id].total > 0).forEach(g => {
-    addGewerkRows(g.name, mxLevel[g.id], mxTotal[g.id]);
+    addGewerkRows(g.name, mxLevel[g.id], mxTotal[g.id], mxSchicht[g.id]);
   });
 
   // Bauhelfer allgemein
@@ -727,7 +752,7 @@ async function loadGruppenPanel() {
   if (bhTotal > 0) {
     const bhByGrpLv = { 1:{}, 2:{}, 3:{}, 0:{} };
     [1,2,3,0].forEach(gr => { if (bauhelferByGruppe[gr]) bhByGrpLv[gr]['__kein'] = bauhelferByGruppe[gr]; });
-    addGewerkRows('Bauhelfer allgemein', bhByGrpLv, bauhelferByGruppe);
+    addGewerkRows('Bauhelfer allgemein', bhByGrpLv, bauhelferByGruppe, bauhelferSchichtByGruppe);
   }
 
   // Letzten Spacer entfernen
@@ -769,7 +794,12 @@ async function loadGruppenPanel() {
           },
           tooltip: {
             callbacks: {
-              title: (items) => chartTooltips[items[0]?.dataIndex] || items[0]?.label || '',
+              title: (items) => {
+                const idx = items[0]?.dataIndex;
+                const lbl = chartTooltips[idx] || items[0]?.label || '';
+                const sc  = chartSchicht[idx] || 0;
+                return sc > 0 ? [lbl, `davon ${sc} Schichtarbeiter`] : lbl;
+              },
               label: (item) => item.parsed.x > 0 ? ` ${item.dataset.label}: ${item.parsed.x}` : null
             }
           }
@@ -898,6 +928,7 @@ function getLevelBg(id) {
 // STATE
 // ═══════════════════════════════════════════════
 let allDocs = [];
+let placeholderDocs = [];
 let filteredDocs = [];
 let selectedIds = new Set();
 let planSelectedIds = new Set();
@@ -1803,6 +1834,8 @@ async function loadAnmeldungen() {
     return;
   }
   allDocs = data;
+  placeholderDocs = allDocs.filter(d => d.placeholder === true);
+  allDocs = allDocs.filter(d => !d.placeholder);
   filteredDocs = [...allDocs];
   try { renderStats(); } catch(_) {}
   try {
@@ -1836,7 +1869,9 @@ function renderUsersTable() {
   renderSonderrollenList();
 
   // Teamleiter
-  const teamleiter = allDocs.filter(d => d.rolle === 'teamleiter')
+  const realTL = allDocs.filter(d => d.rolle === 'teamleiter');
+  const phTL = (placeholderDocs || []).filter(d => d.rolle === 'teamleiter');
+  const teamleiter = [...realTL, ...phTL]
     .sort((a,b) => (a.nachname||'').localeCompare(b.nachname||'','de') || (a.vorname||'').localeCompare(b.vorname||'','de'));
   if (!teamleiter.length) {
     list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">Noch keine Teamleiter angelegt.</div>';
@@ -1853,10 +1888,18 @@ function renderUsersTable() {
       </span>`;
     }).join('');
     const noPills = `<span style="color:var(--muted);font-size:12px;font-style:italic">Kein Gewerk zugeordnet</span>`;
-    return `<div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px">
+    const isPlaceholder = !!d.placeholder;
+    const borderStyle = isPlaceholder ? 'border:1.5px solid #f59e0b' : 'border:1px solid var(--border)';
+    const placeholderBadge = isPlaceholder
+      ? `<span style="font-size:10px;font-weight:600;background:#fef3c7;color:#92400e;border-radius:6px;padding:2px 8px;margin-left:8px">⚠ Noch nicht angemeldet</span>`
+      : '';
+    const replaceBtn = isPlaceholder
+      ? `<button class="btn btn-outline btn-sm" style="margin-right:6px;color:#92400e;border-color:#f59e0b" onclick="window.openReplaceModal('${d.id}')">Ersetzen</button>`
+      : '';
+    return `<div style="background:white;${borderStyle};border-radius:var(--radius);padding:16px 20px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-weight:500;font-size:14px">${d.vorname||''} ${d.nachname||''}</div>
-        <button class="btn btn-danger btn-sm" onclick="window.removeTeamleiter('${d.id}')">Entfernen</button>
+        <div style="font-weight:500;font-size:14px">${d.vorname||''} ${d.nachname||''}${placeholderBadge}</div>
+        <div style="display:flex;gap:4px">${replaceBtn}<button class="btn btn-danger btn-sm" onclick="window.removeTeamleiter('${d.id}')">Entfernen</button></div>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
         ${assigned.length ? pills : noPills}
@@ -1877,8 +1920,15 @@ window.showAddTeamleiterForm = function() {
   document.getElementById('tl-gewerk-rows').innerHTML = '';
   window.addGewerkRow();
 };
+window.togglePlaceholderMode = function() {
+  const isPlaceholder = document.getElementById('tl-placeholder-toggle').checked;
+  document.getElementById('tl-person-select').closest('div').style.display = isPlaceholder ? 'none' : '';
+  document.getElementById('tl-placeholder-name-row').style.display = isPlaceholder ? '' : 'none';
+};
 window.hideAddTeamleiterForm = function() {
   document.getElementById('tl-add-form').style.display = 'none';
+  document.getElementById('tl-placeholder-toggle').checked = false;
+  window.togglePlaceholderMode();
 };
 window.addGewerkRow = function() {
   const container = document.getElementById('tl-gewerk-rows');
@@ -1893,24 +1943,50 @@ window.addGewerkRow = function() {
   container.appendChild(div);
 };
 window.saveNewTeamleiter = async function() {
-  const personId = document.getElementById('tl-person-select').value;
-  if (!personId) { alert('Bitte eine Person auswählen.'); return; }
+  const isPlaceholder = document.getElementById('tl-placeholder-toggle').checked;
   const gewerke = [...document.querySelectorAll('.tl-gewerk-sel')].map(s => s.value).filter(Boolean);
-  const doc = allDocs.find(d => d.id === personId);
-  const existingZugewiesen = getAssigned(doc) || [];
-  const mergedZugewiesen = [...new Set([...existingZugewiesen, ...gewerke])];
-  const { error } = await supabase.from('users').update({ rolle: 'teamleiter', teamleiterGewerke: gewerke, gewerke_zugewiesen: mergedZugewiesen }).eq('id', personId);
-  if (error) { alert('Fehler: ' + error.message); return; }
-  if (doc) { doc.rolle = 'teamleiter'; doc.teamleiterGewerke = gewerke; doc.gewerke_zugewiesen = mergedZugewiesen; }
+
+  if (isPlaceholder) {
+    const vorname = document.getElementById('tl-placeholder-vorname').value.trim();
+    const nachname = document.getElementById('tl-placeholder-nachname').value.trim();
+    if (!vorname && !nachname) { alert('Bitte einen Namen eingeben.'); return; }
+    const mergedZugewiesen = [...new Set(gewerke)];
+    const { data, error } = await supabase.from('users').insert({
+      vorname, nachname,
+      rolle: 'teamleiter',
+      teamleiterGewerke: gewerke,
+      gewerke_zugewiesen: mergedZugewiesen,
+      placeholder: true,
+      dashboard_aktiv: false
+    }).select().single();
+    if (error) { alert('Fehler: ' + error.message); return; }
+    placeholderDocs.push(data);
+  } else {
+    const personId = document.getElementById('tl-person-select').value;
+    if (!personId) { alert('Bitte eine Person auswählen.'); return; }
+    const doc = allDocs.find(d => d.id === personId);
+    const existingZugewiesen = getAssigned(doc) || [];
+    const mergedZugewiesen = [...new Set([...existingZugewiesen, ...gewerke])];
+    const { error } = await supabase.from('users').update({ rolle: 'teamleiter', teamleiterGewerke: gewerke, gewerke_zugewiesen: mergedZugewiesen }).eq('id', personId);
+    if (error) { alert('Fehler: ' + error.message); return; }
+    if (doc) { doc.rolle = 'teamleiter'; doc.teamleiterGewerke = gewerke; doc.gewerke_zugewiesen = mergedZugewiesen; }
+  }
   window.hideAddTeamleiterForm();
   renderUsersTable();
 };
 window.removeTeamleiter = async (id) => {
   if (!confirm('Teamleiter-Rolle entfernen?')) return;
-  const { error } = await supabase.from('users').update({ rolle: null, teamleiterGewerke: [] }).eq('id', id);
-  if (error) { alert('Fehler: ' + error.message); return; }
-  const doc = allDocs.find(d => d.id === id);
-  if (doc) { doc.rolle = null; doc.teamleiterGewerke = []; }
+  const isPlaceholder = placeholderDocs.some(d => d.id === id);
+  if (isPlaceholder) {
+    const { error } = await supabase.from('users').delete().eq('id', id);
+    if (error) { alert('Fehler: ' + error.message); return; }
+    placeholderDocs = placeholderDocs.filter(d => d.id !== id);
+  } else {
+    const { error } = await supabase.from('users').update({ rolle: null, teamleiterGewerke: [] }).eq('id', id);
+    if (error) { alert('Fehler: ' + error.message); return; }
+    const doc = allDocs.find(d => d.id === id);
+    if (doc) { doc.rolle = null; doc.teamleiterGewerke = []; }
+  }
   renderUsersTable();
 };
 
@@ -2054,6 +2130,95 @@ window.addGewerkToExisting = function(id) {
 
 window.renderUsersTable = renderUsersTable;
 
+// ── PLACEHOLDER REPLACE ──
+function nameSimilarity(a, b) {
+  a = (a || '').toLowerCase().trim();
+  b = (b || '').toLowerCase().trim();
+  if (!a || !b) return 0;
+  if (a === b) return 1;
+  const m = a.length, n = b.length;
+  const dp = [];
+  for (let i = 0; i <= m; i++) { dp[i] = [i]; }
+  for (let j = 0; j <= n; j++) { dp[0][j] = j; }
+  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++)
+    dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return 1 - dp[m][n] / Math.max(m, n);
+}
+
+function personMatchScore(placeholder, candidate) {
+  const pFull = ((placeholder.vorname||'') + ' ' + (placeholder.nachname||'')).trim();
+  const cFull = ((candidate.vorname||'') + ' ' + (candidate.nachname||'')).trim();
+  return Math.max(
+    nameSimilarity(pFull, cFull),
+    nameSimilarity(placeholder.vorname, candidate.vorname),
+    nameSimilarity(placeholder.nachname, candidate.nachname),
+    nameSimilarity(placeholder.vorname, candidate.nachname),
+    nameSimilarity(placeholder.nachname, candidate.vorname)
+  );
+}
+
+window.openReplaceModal = function(placeholderId) {
+  const ph = placeholderDocs.find(d => d.id === placeholderId); if (!ph) return;
+  const phName = ((ph.vorname||'') + ' ' + (ph.nachname||'')).trim();
+  const overlay = document.getElementById('replace-modal-overlay');
+  document.getElementById('replace-modal-title').textContent = `Ersetzen: ${phName}`;
+
+  const candidates = allDocs
+    .filter(d => d.rolle !== 'teamleiter')
+    .map(d => ({ d, score: personMatchScore(ph, d) }))
+    .sort((a, b) => b.score - a.score);
+
+  const suggestions = candidates.filter(c => c.score >= 0.6);
+  const rest = candidates.filter(c => c.score < 0.6);
+
+  const rowHtml = ({ d, score }) => {
+    const name = ((d.vorname||'') + ' ' + (d.nachname||'')).trim() || '(kein Name)';
+    const isSuggestion = score >= 0.6;
+    const badge = isSuggestion
+      ? `<span style="font-size:10px;font-weight:600;background:#d1fae5;color:#065f46;border-radius:6px;padding:2px 7px;margin-left:6px">Vorschlag</span>`
+      : '';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0ede4">
+      <div style="font-size:13px">${name}${badge}</div>
+      <button class="btn btn-accent btn-sm" onclick="window.confirmReplace('${placeholderId}','${d.id}')">Zuordnen</button>
+    </div>`;
+  };
+
+  let body = '';
+  if (suggestions.length) {
+    body += `<div style="font-size:10px;font-weight:700;color:#92400e;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">Mögliche Übereinstimmungen</div>`;
+    body += suggestions.map(rowHtml).join('');
+    if (rest.length) body += `<div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin:12px 0 6px">Alle anderen</div>`;
+  } else {
+    body += `<div style="font-size:12px;color:var(--muted);margin-bottom:10px">Keine automatischen Vorschläge gefunden.</div>`;
+  }
+  body += rest.map(rowHtml).join('');
+  if (!candidates.length) body = '<div style="color:var(--muted);font-size:13px">Keine angemeldeten Personen verfügbar.</div>';
+
+  document.getElementById('replace-modal-body').innerHTML = body;
+  overlay.style.display = 'flex';
+};
+
+window.confirmReplace = async function(placeholderId, realPersonId) {
+  const ph = placeholderDocs.find(d => d.id === placeholderId); if (!ph) return;
+  const real = allDocs.find(d => d.id === realPersonId); if (!real) return;
+  const tlGewerke = ph.teamleiterGewerke || [];
+  const mergedZugewiesen = [...new Set([...(real.gewerke_zugewiesen || []), ...tlGewerke])];
+  const { error } = await supabase.from('users').update({
+    rolle: 'teamleiter',
+    teamleiterGewerke: tlGewerke,
+    gewerke_zugewiesen: mergedZugewiesen
+  }).eq('id', realPersonId);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  // Delete placeholder
+  await supabase.from('users').delete().eq('id', placeholderId);
+  real.rolle = 'teamleiter';
+  real.teamleiterGewerke = tlGewerke;
+  real.gewerke_zugewiesen = mergedZugewiesen;
+  placeholderDocs = placeholderDocs.filter(d => d.id !== placeholderId);
+  document.getElementById('replace-modal-overlay').style.display = 'none';
+  renderUsersTable();
+};
+
 // ── GEMEINDEN ──
 let gemeindeKonfig = [];
 
@@ -2107,5 +2272,16 @@ window.deleteGemeinde = async function(id) {
   console.warn('[Supabase] Schreiben noch nicht aktiviert');
 };
 </script>
+
+<!-- ══════ REPLACE PLACEHOLDER MODAL ══════ -->
+<div id="replace-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(28,27,24,0.5);z-index:9000;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:white;border-radius:12px;padding:24px;max-width:460px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.18)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700" id="replace-modal-title">Platzhalter ersetzen</div>
+      <button onclick="document.getElementById('replace-modal-overlay').style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;line-height:1">✕</button>
+    </div>
+    <div id="replace-modal-body"></div>
+  </div>
+</div>
 </body>
 </html>
