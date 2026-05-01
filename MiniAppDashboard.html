@@ -1297,6 +1297,11 @@ async function loadUserData() {
           : '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Einträge.</div>';
         if (pendingBadge) pendingBadge.textContent = pending.length;
         if (activeBadge)  activeBadge.textContent  = active.length;
+        const topBadge = document.getElementById('adm-personal-pending-badge');
+        if (topBadge) {
+          topBadge.textContent = pending.length;
+          topBadge.style.display = pending.length > 0 ? '' : 'none';
+        }
       };
 
       window._toggleDashboard = async (userId) => {
@@ -1552,28 +1557,87 @@ async function loadUserData() {
 
       const inputStyle = 'width:100%;font-family:"DM Sans",sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:8px 10px;outline:none;background:white;box-sizing:border-box';
       document.getElementById('adm-view-body').innerHTML = `
-        <input type="search" placeholder="🔍 Person suchen …"
-          oninput="window._renderPersonenListe(this.value)"
-          style="width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid var(--clay-pale);
-                 background:white;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;
-                 margin-bottom:12px;box-sizing:border-box">
         <div class="card" style="margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
-               onclick="window._toggleBedarfCard('adm-persons-pending','adm-persons-pending-chev')">
-            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Noch nicht freigeschaltet</span>
-            <span id="adm-persons-pending-badge" style="background:var(--clay-pale);color:var(--clay-dark);border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600">0</span>
-            <span id="adm-persons-pending-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
+               onclick="window._toggleBedarfCard('adm-personal-body','adm-personal-chev')">
+            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Personal</span>
+            <span id="adm-personal-pending-badge" style="display:none;background:var(--red-light);color:var(--red);border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600">0</span>
+            <span id="adm-personal-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
           </div>
-          <div id="adm-persons-pending" style="margin-top:8px;display:none"></div>
-        </div>
-        <div class="card" style="margin-bottom:12px">
-          <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
-               onclick="window._toggleBedarfCard('adm-persons-active','adm-persons-active-chev')">
-            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Freigeschaltet</span>
-            <span id="adm-persons-active-badge" style="background:var(--green-light);color:var(--green);border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600">0</span>
-            <span id="adm-persons-active-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
+          <div id="adm-personal-body" style="margin-top:12px;display:none">
+            <input type="search" placeholder="🔍 Person suchen …"
+              oninput="window._renderPersonenListe(this.value)"
+              style="width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid var(--clay-pale);
+                     background:white;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;
+                     margin-bottom:12px;box-sizing:border-box">
+            <div class="card" style="margin-bottom:12px;box-shadow:none;border:1px solid var(--clay-pale)">
+              <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
+                   onclick="window._toggleBedarfCard('adm-persons-pending','adm-persons-pending-chev')">
+                <span style="font-size:13px;font-weight:600;flex:1;color:var(--text)">Noch nicht freigeschaltet</span>
+                <span id="adm-persons-pending-badge" style="background:var(--clay-pale);color:var(--clay-dark);border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600">0</span>
+                <span id="adm-persons-pending-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
+              </div>
+              <div id="adm-persons-pending" style="margin-top:8px;display:none"></div>
+            </div>
+            <div class="card" style="margin-bottom:12px;box-shadow:none;border:1px solid var(--clay-pale)">
+              <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
+                   onclick="window._toggleBedarfCard('adm-persons-active','adm-persons-active-chev')">
+                <span style="font-size:13px;font-weight:600;flex:1;color:var(--text)">Freigeschaltet</span>
+                <span id="adm-persons-active-badge" style="background:var(--green-light);color:var(--green);border-radius:8px;padding:2px 8px;font-size:12px;font-weight:600">0</span>
+                <span id="adm-persons-active-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
+              </div>
+              <div id="adm-persons-active" style="margin-top:8px;display:none"></div>
+            </div>
+            <div class="card" style="box-shadow:none;border:1px solid var(--clay-pale)">
+              <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
+                   onclick="window._toggleBedarfCard('adm-roles-body','adm-roles-chev')">
+                <span style="font-size:13px;font-weight:600;flex:1;color:var(--text)">ℹ️ Rollen &amp; Berechtigungen</span>
+                <span id="adm-roles-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
+              </div>
+              <div id="adm-roles-body" style="margin-top:12px;display:none;font-size:12px;line-height:1.5">
+                ${[
+                  { label: 'Helfer', color: 'var(--clay-pale)', textColor: 'var(--clay-dark)', rows: [
+                    'Reiter: Dashboard, Ansprechpartner',
+                    'Muss von einem Admin freigeschaltet werden',
+                  ]},
+                  { label: 'Teamleiter', color: '#e8f4e8', textColor: '#2d7a2d', rows: [
+                    'Zusätzlich: Reiter „Teamleiter" & „Bau-Küche"',
+                    'Sieht Bedarf & Anmeldungen seiner zugewiesenen Gewerke',
+                    'Erscheint im Ansprechpartner-Tab unter „Gewerke"',
+                  ]},
+                  { label: 'Bau-Küche', color: '#fff3e0', textColor: '#b36200', rows: [
+                    'Zusätzlich: Reiter „Bau-Küche"',
+                    'Sieht alle Anmeldungen der Bau-Küche-Gewerke',
+                    'Erscheint im Ansprechpartner-Tab unter „Gewerke"',
+                  ]},
+                  { label: 'Bauleitung', color: '#fdecea', textColor: '#c0392b', rows: [
+                    'Erscheint oben im Ansprechpartner-Tab',
+                    'Zusätzlich: Reiter „Bau-Küche"',
+                  ]},
+                  { label: 'Sicherheitsbeauftragter', color: '#f0f0f0', textColor: '#555', rows: [
+                    'Erscheint im Ansprechpartner-Tab',
+                    'Keine zusätzlichen Reiter oder Verwaltungsfunktionen',
+                  ]},
+                  { label: 'Organisation', color: '#ede9fe', textColor: '#5b21b6', rows: [
+                    'Erscheint in „Hilfe & Infos" als Ansprechpartner',
+                    'Erhält zusätzlich: Reiter „Admin", „Teamleiter" & „Bau-Küche"',
+                  ]},
+                  { label: 'Admin', color: '#1c1b18', textColor: '#fff', rows: [
+                    'Reiter „Admin": Personenverwaltung, Rollen, Neuigkeiten, Bedarf',
+                    'Kann Dashboard freischalten/sperren & Rollen vergeben',
+                    'Erhält zusätzlich: Reiter „Teamleiter" & „Bau-Küche"',
+                  ]},
+                ].map(role => \`
+                  <div style="margin-bottom:10px">
+                    <div style="display:inline-block;background:\${role.color};color:\${role.textColor};border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;margin-bottom:5px">\${role.label}</div>
+                    <ul style="margin:0;padding-left:16px;color:var(--text-muted)">
+                      \${role.rows.map(r => \`<li>\${r}</li>\`).join('')}
+                    </ul>
+                  </div>
+                \`).join('')}
+              </div>
+            </div>
           </div>
-          <div id="adm-persons-active" style="margin-top:8px;display:none"></div>
         </div>
         <div class="card" style="margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
@@ -1608,55 +1672,6 @@ async function loadUserData() {
         <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">Bedarf verwalten</div>
         ${renderBedarfCards('adm', admGewerke, admTage, admAnmMap)}
         ${renderBauhelferCard('adm', admAllDays, admAnmMap)}
-        <div class="card" style="margin-top:12px">
-          <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
-               onclick="window._toggleBedarfCard('adm-roles-body','adm-roles-chev')">
-            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">ℹ️ Rollen &amp; Berechtigungen</span>
-            <span id="adm-roles-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
-          </div>
-          <div id="adm-roles-body" style="margin-top:12px;display:none;font-size:12px;line-height:1.5">
-            ${[
-              { label: 'Helfer', color: 'var(--clay-pale)', textColor: 'var(--clay-dark)', rows: [
-                'Reiter: Dashboard, Ansprechpartner',
-                'Muss von einem Admin freigeschaltet werden',
-              ]},
-              { label: 'Teamleiter', color: '#e8f4e8', textColor: '#2d7a2d', rows: [
-                'Zusätzlich: Reiter „Teamleiter" & „Bau-Küche"',
-                'Sieht Bedarf & Anmeldungen seiner zugewiesenen Gewerke',
-                'Erscheint im Ansprechpartner-Tab unter „Gewerke"',
-              ]},
-              { label: 'Bau-Küche', color: '#fff3e0', textColor: '#b36200', rows: [
-                'Zusätzlich: Reiter „Bau-Küche"',
-                'Sieht alle Anmeldungen der Bau-Küche-Gewerke',
-                'Erscheint im Ansprechpartner-Tab unter „Gewerke"',
-              ]},
-              { label: 'Bauleitung', color: '#fdecea', textColor: '#c0392b', rows: [
-                'Erscheint oben im Ansprechpartner-Tab',
-                'Zusätzlich: Reiter „Bau-Küche"',
-              ]},
-              { label: 'Sicherheitsbeauftragter', color: '#f0f0f0', textColor: '#555', rows: [
-                'Erscheint im Ansprechpartner-Tab',
-                'Keine zusätzlichen Reiter oder Verwaltungsfunktionen',
-              ]},
-              { label: 'Organisation', color: '#ede9fe', textColor: '#5b21b6', rows: [
-                'Erscheint in „Hilfe & Infos" als Ansprechpartner',
-                'Erhält zusätzlich: Reiter „Admin", „Teamleiter" & „Bau-Küche"',
-              ]},
-              { label: 'Admin', color: '#1c1b18', textColor: '#fff', rows: [
-                'Reiter „Admin": Personenverwaltung, Rollen, Neuigkeiten, Bedarf',
-                'Kann Dashboard freischalten/sperren & Rollen vergeben',
-                'Erhält zusätzlich: Reiter „Teamleiter" & „Bau-Küche"',
-              ]},
-            ].map(role => `
-              <div style="margin-bottom:10px">
-                <div style="display:inline-block;background:${role.color};color:${role.textColor};border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;margin-bottom:5px">${role.label}</div>
-                <ul style="margin:0;padding-left:16px;color:var(--text-muted)">
-                  ${role.rows.map(r => `<li>${r}</li>`).join('')}
-                </ul>
-              </div>
-            `).join('')}
-          </div>
-        </div>
       `;
       window._renderAdmNews();
       window._renderPersonenListe();
