@@ -1224,6 +1224,7 @@ async function loadUserData() {
     const isAdmin = userDoc?.admin === true;
     const isOrga  = userDoc?.sonderrolle === 'organisation';
     const isBK    = userDoc?.sonderrolle === 'bauküche';
+    const isBL    = userDoc?.sonderrolle === 'bauleitung';
     if (isTL || isOrga || isAdmin) {
       document.getElementById('nav-tl').style.display = '';
       const tlGewerke = userDoc?.teamleiterGewerke || [];
@@ -1627,10 +1628,11 @@ async function loadUserData() {
               { label: 'Bau-Küche', color: '#fff3e0', textColor: '#b36200', rows: [
                 'Zusätzlich: Reiter „Bau-Küche"',
                 'Sieht alle Anmeldungen der Bau-Küche-Gewerke',
+                'Erscheint im Ansprechpartner-Tab unter „Gewerke"',
               ]},
               { label: 'Bauleitung', color: '#fdecea', textColor: '#c0392b', rows: [
                 'Erscheint oben im Ansprechpartner-Tab',
-                'Keine zusätzlichen Reiter oder Verwaltungsfunktionen',
+                'Zusätzlich: Reiter „Bau-Küche"',
               ]},
               { label: 'Sicherheitsbeauftragter', color: '#f0f0f0', textColor: '#555', rows: [
                 'Erscheint im Ansprechpartner-Tab',
@@ -1661,7 +1663,7 @@ async function loadUserData() {
     }
 
     // ── Bauküche-Tab ──
-    if (isTL || isBK || isOrga || isAdmin) {
+    if (isTL || isBK || isBL || isOrga || isAdmin) {
       document.getElementById('nav-bk').style.display = '';
 
       const bkToday = new Date(); bkToday.setHours(0,0,0,0);
