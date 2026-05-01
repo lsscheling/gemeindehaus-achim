@@ -710,16 +710,25 @@ async function loadGruppenPanel() {
   });
 
   // ── Flache Label + Daten für gestapelte Gruppen-Balken ──
-  const chartLabels = [];   // display labels (gewerk name only on middle row)
+  const chartLabels   = []; // y-axis labels
   const chartTooltips = []; // full labels for tooltips
-  const chartSchicht = [];  // Schichtarbeiter count per row
+  const chartSchicht  = []; // Schichtarbeiter count per row
+  const chartIsHeader = []; // true = gewerk-name header row (0 data, no bar)
   const chartData = {}; // levelId → flat array
   [...CHART_LEVELS, KEIN_LEVEL].forEach(l => { chartData[l.id] = []; });
 
-  const pushRow = (displayLabel, tooltipLabel, byLevel, schichtCount) => {
-    chartLabels.push(displayLabel);
+  const pushHeader = (name) => {
+    chartLabels.push(name);
+    chartTooltips.push('');
+    chartSchicht.push(0);
+    chartIsHeader.push(true);
+    [...CHART_LEVELS, KEIN_LEVEL].forEach(l => { chartData[l.id].push(0); });
+  };
+  const pushRow = (grLabel, tooltipLabel, byLevel, schichtCount) => {
+    chartLabels.push(grLabel);
     chartTooltips.push(tooltipLabel);
     chartSchicht.push(schichtCount);
+    chartIsHeader.push(false);
     [...CHART_LEVELS, KEIN_LEVEL].forEach(l => {
       chartData[l.id].push(byLevel[l.id] || 0);
     });
@@ -728,17 +737,16 @@ async function loadGruppenPanel() {
     chartLabels.push('');
     chartTooltips.push('');
     chartSchicht.push(0);
+    chartIsHeader.push(false);
     [...CHART_LEVELS, KEIN_LEVEL].forEach(l => { chartData[l.id].push(0); });
   };
 
   const addGewerkRows = (name, byGrpByLv, totals, schichtByGr) => {
     const activeGrs = [1,2,3,0].filter(gr => (totals[gr] || 0) > 0);
     if (!activeGrs.length) return;
-    const midIdx = Math.floor((activeGrs.length - 1) / 2);
-    activeGrs.forEach((gr, i) => {
-      const grLabel = GR_LABELS[gr];
-      const displayLabel = i === midIdx ? name : grLabel;
-      pushRow(displayLabel, `${name}  ·  ${grLabel}`, byGrpByLv[gr] || {}, schichtByGr[gr] || 0);
+    pushHeader(name);
+    activeGrs.forEach(gr => {
+      pushRow(GR_LABELS[gr], `${name}  ·  ${GR_LABELS[gr]}`, byGrpByLv[gr] || {}, schichtByGr[gr] || 0);
     });
     pushSpacer();
   };
@@ -765,7 +773,7 @@ async function loadGruppenPanel() {
   const chartWrap = document.getElementById('gruppen-chart-wrap');
   if (chartLabels.length) {
     chartWrap.style.display = '';
-    chartWrap.style.height = Math.max(280, chartLabels.length * 20 + 80) + 'px';
+    chartWrap.style.height = Math.max(280, chartLabels.length * 18 + 80) + 'px';
     if (window._gruppenChart) window._gruppenChart.destroy();
     const ctx = document.getElementById('gruppen-chart').getContext('2d');
 
@@ -793,6 +801,7 @@ async function loadGruppenPanel() {
             labels: { font: { family: 'DM Sans', size: 11 }, boxWidth: 12, padding: 14 }
           },
           tooltip: {
+            filter: (item) => !chartIsHeader[item.dataIndex],
             callbacks: {
               title: (items) => {
                 const idx = items[0]?.dataIndex;
@@ -815,15 +824,13 @@ async function loadGruppenPanel() {
             stacked: true,
             ticks: {
               font: (ctx) => {
-                const lbl = ctx.tick?.label || '';
-                const isGrLabel = lbl.startsWith('Gr.') || lbl === 'Keine Gr.';
-                return { family: 'DM Sans', size: isGrLabel ? 9 : 10, weight: isGrLabel ? '400' : '600' };
+                const isHeader = chartIsHeader[ctx.index];
+                return { family: 'DM Sans', size: isHeader ? 10 : 9, weight: isHeader ? '700' : '400' };
               },
               color: (ctx) => {
                 const lbl = ctx.tick?.label || '';
                 if (lbl === '') return 'transparent';
-                const isGrLabel = lbl.startsWith('Gr.') || lbl === 'Keine Gr.';
-                return isGrLabel ? '#999' : '#1c1b18';
+                return chartIsHeader[ctx.index] ? '#1c1b18' : '#999';
               }
             },
             grid: { display: false }
