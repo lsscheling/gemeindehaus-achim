@@ -687,29 +687,34 @@ async function loadGruppenPanel() {
   });
 
   // ── Flache Label + Daten für gestapelte Gruppen-Balken ──
-  const chartLabels = [];
+  const chartLabels = [];   // display labels (gewerk name only on middle row)
+  const chartTooltips = []; // full labels for tooltips
   const chartData = {}; // levelId → flat array
   [...CHART_LEVELS, KEIN_LEVEL].forEach(l => { chartData[l.id] = []; });
 
-  const pushRow = (grLabel, byLevel) => {
-    chartLabels.push(grLabel);
+  const pushRow = (displayLabel, tooltipLabel, byLevel) => {
+    chartLabels.push(displayLabel);
+    chartTooltips.push(tooltipLabel);
     [...CHART_LEVELS, KEIN_LEVEL].forEach(l => {
       chartData[l.id].push(byLevel[l.id] || 0);
     });
   };
   const pushSpacer = () => {
     chartLabels.push('');
+    chartTooltips.push('');
     [...CHART_LEVELS, KEIN_LEVEL].forEach(l => { chartData[l.id].push(0); });
   };
 
   const addGewerkRows = (name, byGrpByLv, totals) => {
-    let added = 0;
-    [1,2,3,0].forEach(gr => {
-      if ((totals[gr] || 0) === 0) return;
-      pushRow(`${name}  ·  ${GR_LABELS[gr]}`, byGrpByLv[gr] || {});
-      added++;
+    const activeGrs = [1,2,3,0].filter(gr => (totals[gr] || 0) > 0);
+    if (!activeGrs.length) return;
+    const midIdx = Math.floor((activeGrs.length - 1) / 2);
+    activeGrs.forEach((gr, i) => {
+      const grLabel = GR_LABELS[gr];
+      const displayLabel = i === midIdx ? name : grLabel;
+      pushRow(displayLabel, `${name}  ·  ${grLabel}`, byGrpByLv[gr] || {});
     });
-    if (added > 0) pushSpacer();
+    pushSpacer();
   };
 
   allGewerke.filter(g => mxTotal[g.id].total > 0).forEach(g => {
@@ -763,7 +768,7 @@ async function loadGruppenPanel() {
           },
           tooltip: {
             callbacks: {
-              title: (items) => items[0]?.label || '',
+              title: (items) => chartTooltips[items[0]?.dataIndex] || items[0]?.label || '',
               label: (item) => item.parsed.x > 0 ? ` ${item.dataset.label}: ${item.parsed.x}` : null
             }
           }
@@ -779,13 +784,15 @@ async function loadGruppenPanel() {
             stacked: true,
             ticks: {
               font: (ctx) => {
-                // Gewerk-Zeilen (mit ·) fett, Spacer unsichtbar
                 const lbl = ctx.tick?.label || '';
-                return { family: 'DM Sans', size: lbl.includes('·') ? 10 : 10, weight: lbl.includes('allgemein') || (!lbl.includes('·') && lbl !== '') ? '600' : '400' };
+                const isGrLabel = lbl.startsWith('Gr.') || lbl === 'Keine Gr.';
+                return { family: 'DM Sans', size: isGrLabel ? 9 : 10, weight: isGrLabel ? '400' : '600' };
               },
               color: (ctx) => {
                 const lbl = ctx.tick?.label || '';
-                return lbl === '' ? 'transparent' : '#1c1b18';
+                if (lbl === '') return 'transparent';
+                const isGrLabel = lbl.startsWith('Gr.') || lbl === 'Keine Gr.';
+                return isGrLabel ? '#999' : '#1c1b18';
               }
             },
             grid: { display: false }
