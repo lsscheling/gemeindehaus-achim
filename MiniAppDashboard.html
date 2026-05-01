@@ -1252,7 +1252,7 @@ async function loadUserData() {
       const admGewerke = Object.keys(gewerkeMap);
       const [{ tage: admTage, allDays: admAllDays, anmMap: admAnmMap }, { data: allUsers }] = await Promise.all([
         loadBedarfData(admGewerke),
-        supabase.from('users').select('id, vorname, nachname, dashboard_aktiv, gruppe, gewerke_zugewiesen, rolle, sonderrolle, admin, teamleiterGewerke, registered_at, gemeinde, gewerke, erfahrung, gruppenwunsch, qualifikationen, schichtarbeit, teamwunsch').order('nachname')
+        supabase.from('users').select('*').order('nachname')
       ]);
       window._bedarfData['adm'] = { tage: admTage, anmMap: admAnmMap };
       window._admUsers = allUsers || [];
@@ -1351,7 +1351,7 @@ async function loadUserData() {
         // Gewerke aus Anmeldung mit Erfahrungslevel
         const LEVEL_NAMES = { profi: 'Beruflich ausgebildet', erfahren: 'Hobbymäßig erfahren', grundkenntnisse: 'Grundkenntnisse', anfaenger: 'Anfänger' };
         const gwList = (u.gewerke || []).map(gid => {
-          const gwName = gewerkeMap[gid] || gid;
+          const gwName = gewerkeMap[gid]?.name || gid;
           const lv = (u.erfahrung || {})[gid];
           const lvLabel = lv ? (LEVEL_NAMES[lv] || lv) : '–';
           return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--clay-pale);font-size:12px">
