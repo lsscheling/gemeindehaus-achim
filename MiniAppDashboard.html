@@ -842,7 +842,18 @@ function renderContactList(items) {
     list.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Keine Treffer.</div>';
     return;
   }
-  list.innerHTML = items.map(({ d, roleLabel }) => contactRow(d, roleLabel, false)).join('');
+  const bauleitung = items.filter(i => i.section === 'bauleitung');
+  const rest       = items.filter(i => i.section !== 'bauleitung');
+  let html = '';
+  if (bauleitung.length) {
+    html += `<div style="font-size:10px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px">Bauleitung</div>`;
+    html += bauleitung.map(({ d, roleLabel }) => contactRow(d, roleLabel, false)).join('');
+    if (rest.length) {
+      html += `<div style="border-top:1px solid var(--clay-pale);margin:8px 0 6px"></div>`;
+    }
+  }
+  html += rest.map(({ d, roleLabel }) => contactRow(d, roleLabel, false)).join('');
+  list.innerHTML = html;
 }
 
 window.filterContacts = function(q) {
@@ -879,7 +890,8 @@ async function loadTeamleiter() {
         if (gwLabel) parts.push(gwLabel);
         else if (!parts.length) parts.push('Teamleiter');
       }
-      return { d, roleLabel: parts.join(', ') };
+      const section = d.sonderrolle === 'bauleitung' ? 'bauleitung' : 'rest';
+      return { d, roleLabel: parts.join(', '), section };
     });
 
     _contactItems.sort((a, b) =>
