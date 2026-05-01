@@ -388,6 +388,21 @@
         <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Gewerke</div>
         <div id="person-edit-gewerke" style="display:flex;flex-wrap:wrap;gap:6px"></div>
       </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Rolle</div>
+        <div id="person-edit-rolle-btns" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        <div id="person-edit-tl-gewerke-wrap" style="display:none;margin-top:10px">
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px">Gewerke als Teamleiter</div>
+          <div id="person-edit-tl-gewerke" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Zugang</div>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+          <input type="checkbox" id="pe-admin" style="width:18px;height:18px;accent-color:var(--clay);cursor:pointer">
+          <span style="font-size:13px">Admin-Zugang</span>
+        </label>
+      </div>
       <button onclick="window._admSavePerson()"
         style="background:var(--clay);color:white;border:none;border-radius:10px;padding:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%">
         Speichern
@@ -1210,7 +1225,7 @@ async function loadUserData() {
       const admGewerke = Object.keys(gewerkeMap);
       const [{ tage: admTage, allDays: admAllDays, anmMap: admAnmMap }, { data: allUsers }] = await Promise.all([
         loadBedarfData(admGewerke),
-        supabase.from('users').select('id, vorname, nachname, dashboard_aktiv, gruppe, gewerke_zugewiesen').order('nachname')
+        supabase.from('users').select('id, vorname, nachname, dashboard_aktiv, gruppe, gewerke_zugewiesen, rolle, sonderrolle, admin, teamleiterGewerke').order('nachname')
       ]);
       window._bedarfData['adm'] = { tage: admTage, anmMap: admAnmMap };
       window._admUsers = allUsers || [];
@@ -1225,13 +1240,17 @@ async function loadUserData() {
         );
         const pending = users.filter(u => !u.dashboard_aktiv);
         const active  = users.filter(u =>  u.dashboard_aktiv);
+        const SONDERROLLEN_LABELS_ADM = { organisation: 'Organisation', bauleitung: 'Bauleitung', 'bauküche': 'Bau-Küche', sicherheitsbeauftragter: 'Sicherheitsbeauftragter' };
         const renderRow = (u) => {
           const name  = ((u.vorname||'') + ' ' + (u.nachname||'')).trim() || '(kein Name)';
           const isAct = u.dashboard_aktiv;
           const gruppe = u.gruppe ? `Gr. ${u.gruppe}` : '';
           const gwCount = (u.gewerke_zugewiesen || []).length;
           const gwLabel = gwCount ? `${gwCount} Gewerk${gwCount>1?'e':''}` : '';
-          const meta = [gruppe, gwLabel].filter(Boolean).join(' · ');
+          const rolleLabel = u.rolle === 'teamleiter' ? 'Teamleiter'
+            : u.sonderrolle ? (SONDERROLLEN_LABELS_ADM[u.sonderrolle] || u.sonderrolle) : '';
+          const adminLabel = u.admin ? 'Admin' : '';
+          const meta = [gruppe, gwLabel, rolleLabel, adminLabel].filter(Boolean).join(' · ');
           return `<div style="padding:8px 0;border-bottom:1px solid var(--clay-pale)">
             <div style="display:flex;align-items:center;gap:6px">
               <div style="flex:1;min-width:0">
@@ -1274,14 +1293,27 @@ async function loadUserData() {
         window._renderPersonenListe();
       };
 
+      const SONDERROLLEN_LIST = [
+        { key: 'organisation', label: 'Organisation' },
+        { key: 'bauleitung',   label: 'Bauleitung' },
+        { key: 'bauküche',     label: 'Bau-Küche' },
+        { key: 'sicherheitsbeauftragter', label: 'Sicherheitsbeauftragter' }
+      ];
+
       window._admOpenPersonEdit = (userId) => {
         const user = window._admUsers.find(u => u.id === userId);
         if (!user) return;
-        window._admEditUserId = userId;
+        window._admEditUserId      = userId;
+        window._admEditGruppe      = user.gruppe || null;
+        window._admEditGewerke     = new Set(user.gewerke_zugewiesen || []);
+        window._admEditRolle       = user.rolle || null;
+        window._admEditSonderrolle = user.sonderrolle || null;
+        window._admEditAdmin       = !!user.admin;
+        window._admEditTLGewerke   = new Set(user.teamleiterGewerke || []);
+
         document.getElementById('person-edit-name').textContent =
           ((user.vorname||'') + ' ' + (user.nachname||'')).trim();
-        window._admEditGruppe  = user.gruppe || null;
-        window._admEditGewerke = new Set(user.gewerke_zugewiesen || []);
+
         // Gruppe buttons
         document.getElementById('person-edit-gruppe').innerHTML = [1,2,3].map(g => `
           <button onclick="window._admSelectGruppe(${g})" id="pe-gruppe-${g}"
@@ -1290,7 +1322,8 @@ async function loadUserData() {
                    ${user.gruppe===g ? 'background:var(--clay);color:white;border-color:var(--clay)' : 'background:white;color:var(--clay-dark);border-color:var(--clay-pale)'}">
             ${g}
           </button>`).join('');
-        // Gewerke chips
+
+        // Gewerke (persönliche Zuweisung)
         const gMap = window._gewerkeMapForEdit || {};
         const activeGw = Object.values(gMap).filter(g => g.active).sort((a,b) => a.sort_order - b.sort_order);
         document.getElementById('person-edit-gewerke').innerHTML = activeGw.map(g => {
@@ -1301,7 +1334,70 @@ async function loadUserData() {
             ${g.name}
           </div>`;
         }).join('');
+
+        // Rollen-Picker
+        const rolleBtn = (key, label) => {
+          const isAct = (key === 'teamleiter' && window._admEditRolle === 'teamleiter') ||
+                        (key !== 'teamleiter' && window._admEditSonderrolle === key);
+          return `<button onclick="window._admSelectRolle('${key}')" id="pe-rolle-${key}"
+            style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:1.5px solid;
+                   ${isAct ? 'background:var(--clay);color:white;border-color:var(--clay)' : 'background:var(--sand);color:var(--text);border-color:var(--clay-pale)'}">
+            ${label}
+          </button>`;
+        };
+        document.getElementById('person-edit-rolle-btns').innerHTML =
+          rolleBtn('teamleiter','Teamleiter') +
+          SONDERROLLEN_LIST.map(r => rolleBtn(r.key, r.label)).join('');
+
+        // TL-Gewerke
+        document.getElementById('person-edit-tl-gewerke').innerHTML = activeGw.map(g => {
+          const sel = window._admEditTLGewerke.has(g.id);
+          return `<div onclick="window._admToggleTLGewerk('${g.id}',this)" id="pe-tlgw-${g.id}"
+            style="padding:5px 11px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;border:1.5px solid;
+                   ${sel ? 'background:var(--clay);color:white;border-color:var(--clay)' : 'background:var(--sand);color:var(--text);border-color:var(--clay-pale)'}">
+            ${g.name}
+          </div>`;
+        }).join('');
+        document.getElementById('person-edit-tl-gewerke-wrap').style.display =
+          window._admEditRolle === 'teamleiter' ? '' : 'none';
+
+        // Admin
+        document.getElementById('pe-admin').checked = window._admEditAdmin;
+
         document.getElementById('person-edit-overlay').classList.add('visible');
+      };
+
+      window._admSelectRolle = (key) => {
+        // Toggle: nochmal klicken = abwählen
+        if (key === 'teamleiter') {
+          window._admEditRolle = window._admEditRolle === 'teamleiter' ? null : 'teamleiter';
+          window._admEditSonderrolle = null;
+        } else {
+          window._admEditSonderrolle = window._admEditSonderrolle === key ? null : key;
+          window._admEditRolle = null;
+        }
+        // Buttons aktualisieren
+        ['teamleiter', ...SONDERROLLEN_LIST.map(r => r.key)].forEach(k => {
+          const btn = document.getElementById('pe-rolle-' + k);
+          if (!btn) return;
+          const isAct = (k === 'teamleiter' && window._admEditRolle === 'teamleiter') ||
+                        (k !== 'teamleiter' && window._admEditSonderrolle === k);
+          btn.style.background  = isAct ? 'var(--clay)' : 'var(--sand)';
+          btn.style.color       = isAct ? 'white' : 'var(--text)';
+          btn.style.borderColor = isAct ? 'var(--clay)' : 'var(--clay-pale)';
+        });
+        document.getElementById('person-edit-tl-gewerke-wrap').style.display =
+          window._admEditRolle === 'teamleiter' ? '' : 'none';
+      };
+
+      window._admToggleTLGewerk = (gwId, el) => {
+        if (window._admEditTLGewerke.has(gwId)) {
+          window._admEditTLGewerke.delete(gwId);
+          el.style.background = 'var(--sand)'; el.style.color = 'var(--text)'; el.style.borderColor = 'var(--clay-pale)';
+        } else {
+          window._admEditTLGewerke.add(gwId);
+          el.style.background = 'var(--clay)'; el.style.color = 'white'; el.style.borderColor = 'var(--clay)';
+        }
       };
 
       window._admSelectGruppe = (g) => {
@@ -1335,15 +1431,26 @@ async function loadUserData() {
         const btn = document.querySelector('#person-edit-overlay .sheet button:last-child');
         if (btn) { btn.textContent = '…'; btn.disabled = true; }
         try {
+          const adminVal = document.getElementById('pe-admin')?.checked || false;
           const { error } = await supabase.from('users').update({
-            gruppe: window._admEditGruppe,
-            gewerke_zugewiesen: [...(window._admEditGewerke || [])]
+            gruppe:             window._admEditGruppe,
+            gewerke_zugewiesen: [...(window._admEditGewerke || [])],
+            rolle:              window._admEditRolle || null,
+            sonderrolle:        window._admEditSonderrolle || null,
+            admin:              adminVal,
+            teamleiterGewerke:  window._admEditRolle === 'teamleiter'
+                                  ? [...(window._admEditTLGewerke || [])] : []
           }).eq('id', userId);
           if (error) throw new Error(error.message);
           const user = window._admUsers.find(u => u.id === userId);
           if (user) {
-            user.gruppe = window._admEditGruppe;
+            user.gruppe             = window._admEditGruppe;
             user.gewerke_zugewiesen = [...(window._admEditGewerke || [])];
+            user.rolle              = window._admEditRolle || null;
+            user.sonderrolle        = window._admEditSonderrolle || null;
+            user.admin              = adminVal;
+            user.teamleiterGewerke  = window._admEditRolle === 'teamleiter'
+                                        ? [...(window._admEditTLGewerke || [])] : [];
           }
           closeOverlay('person-edit-overlay');
           window._renderPersonenListe();
