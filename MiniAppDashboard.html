@@ -373,6 +373,17 @@
 </div>
 
 <!-- ══════════ PERSON EDIT OVERLAY ══════════ -->
+<!-- ══════════ PERSON DETAIL OVERLAY ══════════ -->
+<div class="overlay" id="person-detail-overlay" onclick="overlayClose(event,'person-detail-overlay')">
+  <div class="sheet">
+    <div class="news-header">
+      <div class="news-header-title" id="person-detail-title">Details</div>
+      <button class="sheet-close" onclick="closeOverlay('person-detail-overlay')">✕</button>
+    </div>
+    <div id="person-detail-body" style="padding:12px 16px;display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+</div>
+
 <div class="overlay" id="person-edit-overlay" onclick="overlayClose(event,'person-edit-overlay')">
   <div class="sheet">
     <div class="news-header">
@@ -1241,7 +1252,7 @@ async function loadUserData() {
       const admGewerke = Object.keys(gewerkeMap);
       const [{ tage: admTage, allDays: admAllDays, anmMap: admAnmMap }, { data: allUsers }] = await Promise.all([
         loadBedarfData(admGewerke),
-        supabase.from('users').select('id, vorname, nachname, dashboard_aktiv, gruppe, gewerke_zugewiesen, rolle, sonderrolle, admin, teamleiterGewerke').order('nachname')
+        supabase.from('users').select('id, vorname, nachname, dashboard_aktiv, gruppe, gewerke_zugewiesen, rolle, sonderrolle, admin, teamleiterGewerke, registered_at, gemeinde, gewerke, erfahrung, gruppenwunsch, qualifikationen, schichtarbeit, teamwunsch').order('nachname')
       ]);
       window._bedarfData['adm'] = { tage: admTage, anmMap: admAnmMap };
       window._admUsers = allUsers || [];
@@ -1269,8 +1280,8 @@ async function loadUserData() {
           const meta = [gruppe, gwLabel, rolleLabel, adminLabel].filter(Boolean).join(' · ');
           return `<div style="padding:8px 0;border-bottom:1px solid var(--clay-pale)">
             <div style="display:flex;align-items:center;gap:6px">
-              <div style="flex:1;min-width:0">
-                <div style="font-size:13px;font-weight:500">${name}</div>
+              <div style="flex:1;min-width:0;cursor:pointer" onclick="window._admOpenPersonDetail('${u.id}')">
+                <div style="font-size:13px;font-weight:500;text-decoration:underline;text-underline-offset:2px">${name}</div>
                 ${meta ? `<div style="font-size:11px;color:var(--text-muted);margin-top:1px">${meta}</div>` : ''}
               </div>
               <button onclick="window._admOpenPersonEdit('${u.id}')"
@@ -1320,6 +1331,48 @@ async function loadUserData() {
         { key: 'bauküche',     label: 'Bau-Küche' },
         { key: 'sicherheitsbeauftragter', label: 'Sicherheitsbeauftragter' }
       ];
+
+      window._admOpenPersonDetail = (userId) => {
+        const u = window._admUsers.find(x => x.id === userId);
+        if (!u) return;
+        const name = ((u.vorname||'') + ' ' + (u.nachname||'')).trim() || '(kein Name)';
+        document.getElementById('person-detail-title').textContent = name;
+
+        const row = (label, value) => value
+          ? `<div style="display:flex;gap:8px;font-size:13px">
+               <span style="color:var(--text-muted);flex-shrink:0;min-width:110px">${label}</span>
+               <span style="font-weight:500">${value}</span>
+             </div>`
+          : '';
+
+        // Anmeldezeitpunkt
+        const ts = u.registered_at ? new Date(u.registered_at).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : null;
+
+        // Gewerke aus Anmeldung mit Erfahrungslevel
+        const LEVEL_NAMES = { profi: 'Beruflich ausgebildet', erfahren: 'Hobbymäßig erfahren', grundkenntnisse: 'Grundkenntnisse', anfaenger: 'Anfänger' };
+        const gwList = (u.gewerke || []).map(gid => {
+          const gwName = gewerkeMap[gid] || gid;
+          const lv = (u.erfahrung || {})[gid];
+          const lvLabel = lv ? (LEVEL_NAMES[lv] || lv) : '–';
+          return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--clay-pale);font-size:12px">
+            <span>${gwName}</span><span style="color:var(--text-muted)">${lvLabel}</span>
+          </div>`;
+        }).join('');
+
+        document.getElementById('person-detail-body').innerHTML = [
+          row('Angemeldet', ts),
+          row('Gemeinde', u.gemeinde),
+          u.schichtarbeit ? row('Schichtarbeit', 'Ja') : '',
+          row('Gruppenwunsch', u.gruppenwunsch || u.teamwunsch),
+          row('Qualifikationen', u.qualifikationen),
+          gwList ? `<div>
+            <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px">Gewerke (Anmeldung)</div>
+            ${gwList}
+          </div>` : row('Gewerke', '–'),
+        ].filter(Boolean).join('') || '<div style="color:var(--text-muted);font-size:13px">Keine Angaben.</div>';
+
+        document.getElementById('person-detail-overlay').style.display = 'flex';
+      };
 
       window._admOpenPersonEdit = (userId) => {
         const user = window._admUsers.find(u => u.id === userId);
