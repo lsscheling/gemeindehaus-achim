@@ -1607,6 +1607,57 @@ async function loadUserData() {
         <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">Bedarf verwalten</div>
         ${renderBedarfCards('adm', admGewerke, admTage, admAnmMap)}
         ${renderBauhelferCard('adm', admAllDays, admAnmMap)}
+        <div class="card" style="margin-top:12px">
+          <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
+               onclick="window._toggleBedarfCard('adm-roles-body','adm-roles-chev')">
+            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Rollen &amp; Berechtigungen</span>
+            <span id="adm-roles-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
+          </div>
+          <div id="adm-roles-body" style="margin-top:12px;display:none;font-size:12px;line-height:1.5">
+            ${[
+              { label: 'Helfer', color: 'var(--clay-pale)', textColor: 'var(--clay-dark)', rows: [
+                'Sieht Dashboard (eigene Einsätze & Helfer-Bedarf)',
+                'Kein Zugriff auf andere Tabs',
+                'Muss von Organisation freigeschaltet werden',
+              ]},
+              { label: 'Teamleiter', color: '#e8f4e8', textColor: '#2d7a2d', rows: [
+                'Zusätzlich: Reiter „Teamleiter"',
+                'Sieht Bedarf & Anmeldungen seiner zugewiesenen Gewerke',
+                'Wird im Ansprechpartner-Tab angezeigt',
+              ]},
+              { label: 'Bau-Küche', color: '#fff3e0', textColor: '#b36200', rows: [
+                'Zusätzlich: Reiter „Bau-Küche"',
+                'Sieht alle Anmeldungen der Bau-Küche-Gewerke',
+              ]},
+              { label: 'Bauleitung', color: '#fdecea', textColor: '#c0392b', rows: [
+                'Erscheint oben im Ansprechpartner-Tab',
+                'Keine erweiterten App-Rechte (nur Sichtbarkeit)',
+              ]},
+              { label: 'Sicherheitsbeauftragter', color: '#f0f0f0', textColor: '#555', rows: [
+                'Erscheint im Ansprechpartner-Tab',
+                'Keine erweiterten App-Rechte',
+              ]},
+              { label: 'Organisation', color: '#ede9fe', textColor: '#5b21b6', rows: [
+                'Zusätzlich: Reiter „Organisation"',
+                'Personenverwaltung (freischalten, sperren, Rollen)',
+                'Neuigkeiten erstellen & bearbeiten',
+                'Alle Bedarfe einsehen & verwalten',
+                'Sieht Teamleiter-Tab',
+              ]},
+              { label: 'Admin', color: '#1c1b18', textColor: '#fff', rows: [
+                'Alle Berechtigungen der Organisation',
+                'Kann Rollen inkl. Admin-Zugang vergeben',
+              ]},
+            ].map(role => `
+              <div style="margin-bottom:10px">
+                <div style="display:inline-block;background:${role.color};color:${role.textColor};border-radius:6px;padding:2px 10px;font-size:11px;font-weight:700;margin-bottom:5px">${role.label}</div>
+                <ul style="margin:0;padding-left:16px;color:var(--text-muted)">
+                  ${role.rows.map(r => `<li>${r}</li>`).join('')}
+                </ul>
+              </div>
+            `).join('')}
+          </div>
+        </div>
       `;
       window._renderAdmNews();
       window._renderPersonenListe();
