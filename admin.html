@@ -403,6 +403,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
             <option value="2">Gruppe 2</option>
             <option value="3">Gruppe 3</option>
           </select>
+          <button type="button" class="btn btn-outline btn-sm" style="margin-left:auto" onclick="cleanupDeletedGewerke()">Gelöschte Gewerke bereinigen</button>
         </div>
         <!-- BULK in planung -->
         <div class="bulk-bar" id="plan-bulk-bar">
@@ -928,7 +929,7 @@ function getGemeindeLabel(id) {
 function getGewerkLabel(id) {
   if (id === 'bauhelfer_allgemein') return 'Bauhelfer allgemein';
   const gw = allGewerkeKonfig.find(g => g.id === id) || gewerkeKonfig.find(g => g.id === id);
-  return gw ? gw.name : id;
+  return gw ? gw.name : '(gelöscht)';
 }
 // Fallback für altes Einzelfeld
 function getAssigned(d) {
@@ -1109,6 +1110,26 @@ async function bulkRemovePlan() {
     return window._db && window.updateDoc(window._docFn(window._db,'anmeldungen',id), { gewerke_zugewiesen: current.filter(g => g !== gewerkId) });
   }));
   clearPlanSelection();
+}
+
+async function cleanupDeletedGewerke() {
+  const validIds = new Set(gewerkeKonfig.map(g => g.id));
+  const affected = allDocs.filter(d => {
+    const z = getAssigned(d);
+    const t = d.teamleiterGewerke || [];
+    return z.some(id => !validIds.has(id)) || t.some(id => !validIds.has(id));
+  });
+  if (!affected.length) { alert('Keine Leichen gefunden — alles sauber.'); return; }
+  if (!confirm(`Bei ${affected.length} Person(en) wurden gelöschte Gewerk-IDs gefunden. Jetzt bereinigen?`)) return;
+  await Promise.all(affected.map(d => {
+    const cleanZ = getAssigned(d).filter(id => validIds.has(id));
+    const cleanT = (d.teamleiterGewerke || []).filter(id => validIds.has(id));
+    return supabase.from('users').update({ gewerke_zugewiesen: cleanZ, teamleiterGewerke: cleanT }).eq('id', d.id)
+      .then(() => { d.gewerke_zugewiesen = cleanZ; d.teamleiterGewerke = cleanT; });
+  }));
+  renderMatrix();
+  renderGewerkSidebar();
+  alert(`${affected.length} Person(en) bereinigt.`);
 }
 
 // ═══════════════════════════════════════════════
@@ -1853,10 +1874,12 @@ window.saveNewTeamleiter = async function() {
   const personId = document.getElementById('tl-person-select').value;
   if (!personId) { alert('Bitte eine Person auswählen.'); return; }
   const gewerke = [...document.querySelectorAll('.tl-gewerk-sel')].map(s => s.value).filter(Boolean);
-  const { error } = await supabase.from('users').update({ rolle: 'teamleiter', teamleiterGewerke: gewerke }).eq('id', personId);
-  if (error) { alert('Fehler: ' + error.message); return; }
   const doc = allDocs.find(d => d.id === personId);
-  if (doc) { doc.rolle = 'teamleiter'; doc.teamleiterGewerke = gewerke; }
+  const existingZugewiesen = getAssigned(doc) || [];
+  const mergedZugewiesen = [...new Set([...existingZugewiesen, ...gewerke])];
+  const { error } = await supabase.from('users').update({ rolle: 'teamleiter', teamleiterGewerke: gewerke, gewerke_zugewiesen: mergedZugewiesen }).eq('id', personId);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  if (doc) { doc.rolle = 'teamleiter'; doc.teamleiterGewerke = gewerke; doc.gewerke_zugewiesen = mergedZugewiesen; }
   window.hideAddTeamleiterForm();
   renderUsersTable();
 };
@@ -1997,9 +2020,11 @@ window.addGewerkToExisting = function(id) {
     const gid = sel.value; if (!gid) return;
     const doc = allDocs.find(x => x.id === id); if (!doc) return;
     const newGewerke = [...(doc.teamleiterGewerke || []), gid];
-    const { error } = await supabase.from('users').update({ teamleiterGewerke: newGewerke }).eq('id', id);
+    const mergedZugewiesen = [...new Set([...getAssigned(doc), gid])];
+    const { error } = await supabase.from('users').update({ teamleiterGewerke: newGewerke, gewerke_zugewiesen: mergedZugewiesen }).eq('id', id);
     if (error) { alert('Fehler: ' + error.message); row.remove(); return; }
     doc.teamleiterGewerke = newGewerke;
+    doc.gewerke_zugewiesen = mergedZugewiesen;
     row.remove();
     renderUsersTable();
   };

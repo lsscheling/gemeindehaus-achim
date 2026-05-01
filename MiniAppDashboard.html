@@ -1447,25 +1447,26 @@ async function loadUserData() {
         if (btn) { btn.textContent = '…'; btn.disabled = true; }
         try {
           const adminVal = document.getElementById('pe-admin')?.checked || false;
+          const tlGewerke = window._admEditRolle === 'teamleiter' ? [...(window._admEditTLGewerke || [])] : [];
+          const baseZugewiesen = [...(window._admEditGewerke || [])];
+          const mergedZugewiesen = [...new Set([...baseZugewiesen, ...tlGewerke])];
           const { error } = await supabase.from('users').update({
             gruppe:             window._admEditGruppe,
-            gewerke_zugewiesen: [...(window._admEditGewerke || [])],
+            gewerke_zugewiesen: mergedZugewiesen,
             rolle:              window._admEditRolle || null,
             sonderrolle:        window._admEditSonderrolle || null,
             admin:              adminVal,
-            teamleiterGewerke:  window._admEditRolle === 'teamleiter'
-                                  ? [...(window._admEditTLGewerke || [])] : []
+            teamleiterGewerke:  tlGewerke
           }).eq('id', userId);
           if (error) throw new Error(error.message);
           const user = window._admUsers.find(u => u.id === userId);
           if (user) {
             user.gruppe             = window._admEditGruppe;
-            user.gewerke_zugewiesen = [...(window._admEditGewerke || [])];
+            user.gewerke_zugewiesen = mergedZugewiesen;
             user.rolle              = window._admEditRolle || null;
             user.sonderrolle        = window._admEditSonderrolle || null;
             user.admin              = adminVal;
-            user.teamleiterGewerke  = window._admEditRolle === 'teamleiter'
-                                        ? [...(window._admEditTLGewerke || [])] : [];
+            user.teamleiterGewerke  = tlGewerke;
           }
           closeOverlay('person-edit-overlay');
           window._renderPersonenListe();
