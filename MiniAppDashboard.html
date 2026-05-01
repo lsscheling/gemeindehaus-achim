@@ -192,11 +192,11 @@
 
   /* EINSATZ CHIPS */
   .einsatz-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-  .day-block { background: white; border: 1px solid var(--clay-pale); border-radius: 8px; padding: 7px 10px 6px; margin-bottom: 6px; }
-  .day-block-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
-  .day-block-label { font-size: 11px; font-weight: 700; color: var(--clay-dark); letter-spacing: .2px; }
-  .day-need-badge { font-size: 10px; font-weight: 700; color: var(--red); background: var(--red-light); border-radius: 6px; padding: 2px 7px; white-space: nowrap; }
-  .day-block-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .day-block { background: white; border: 1px solid var(--clay-pale); border-radius: 8px; padding: 6px 10px; margin-bottom: 6px; display: flex; align-items: flex-start; gap: 8px; }
+  .day-block-header { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; flex-shrink: 0; padding-top: 4px; min-width: 52px; }
+  .day-block-label { font-size: 11px; font-weight: 700; color: var(--clay-dark); white-space: nowrap; letter-spacing: .2px; }
+  .day-need-badge { font-size: 10px; font-weight: 700; color: var(--red); background: var(--red-light); border-radius: 6px; padding: 1px 6px; white-space: nowrap; }
+  .day-block-chips { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
   .einsatz-chip { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 10px; background: var(--sand); border: 1.5px solid var(--clay-pale); cursor: pointer; user-select: none; transition: all .15s; -webkit-tap-highlight-color: transparent; }
   .einsatz-chip.mine { background: var(--mine-light); border-color: rgba(58,107,156,0.25); }
   .einsatz-chip.signed { background: var(--green-light) !important; border-color: var(--green) !important; }
