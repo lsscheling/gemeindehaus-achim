@@ -519,7 +519,7 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  setTimeout(() => t.classList.remove('show'), 5000);
 }
 function copyTel(num) {
   const clean = num.replace(/[\s\-\(\)]/g, '');
@@ -851,6 +851,9 @@ function renderContactList(items) {
     if (rest.length) {
       html += `<div style="border-top:1px solid var(--clay-pale);margin:8px 0 6px"></div>`;
     }
+  }
+  if (rest.length) {
+    html += `<div style="font-size:10px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px">Gewerke</div>`;
   }
   html += rest.map(({ d, roleLabel }) => contactRow(d, roleLabel, false)).join('');
   list.innerHTML = html;
