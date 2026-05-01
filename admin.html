@@ -425,6 +425,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
             <option value="3">Gruppe 3</option>
           </select>
           <button type="button" class="btn btn-accent btn-sm" onclick="bulkAssignGruppe()">Gruppe setzen</button>
+          <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger,#c0392b);border-color:var(--danger,#c0392b)" onclick="bulkRemoveGruppe()">Gruppe entziehen</button>
           <button type="button" class="btn btn-outline btn-sm" onclick="clearPlanSelection()">Auswahl aufheben</button>
         </div>
         <div class="avail-matrix" id="avail-matrix">
@@ -1417,6 +1418,20 @@ window.bulkAssignGruppe = async function bulkAssignGruppe() {
     renderMatrix();
   } catch(e) { alert('Fehler: ' + e.message); }
 }
+window.bulkRemoveGruppe = async function bulkRemoveGruppe() {
+  const ids = [...planSelectedIds];
+  if (!ids.length) return;
+  if (!confirm(`Gruppenzuweisung bei ${ids.length} Person(en) entfernen?`)) return;
+  try {
+    await Promise.all(ids.map(id => {
+      const d = allDocs.find(x => x.id === id);
+      if (d) d.gruppe = null;
+      return supabase.from('users').update({ gruppe: null }).eq('id', id);
+    }));
+    clearPlanSelection();
+    renderMatrix();
+  } catch(e) { alert('Fehler: ' + e.message); }
+};
 window.addAssignment = addAssignment;
 window.removeAssignment = removeAssignment;
 window.assignGruppe = assignGruppe;
