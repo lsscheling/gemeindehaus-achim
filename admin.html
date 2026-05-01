@@ -270,6 +270,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Planung
     </button>
+    <button class="nav-item" onclick="showPanel('gruppen')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg>
+      Gruppen
+    </button>
     <div class="nav-label" style="margin-top:8px">System</div>
     <button class="nav-item " onclick="showPanel('nutzerverwaltung')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/><line x1="18" y1="11" x2="18" y2="17"/><line x1="15" y1="14" x2="21" y2="14"/></svg>
@@ -286,10 +290,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
     <button class="nav-item" onclick="window.open('gantt.html','_blank')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Gantt ↗
-    </button>
-    <button class="nav-item" onclick="showPanel('gruppen')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg>
-      Gruppen
     </button>
     <button class="nav-item" onclick="showPanel('gemeinden')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -522,14 +522,13 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
     </div>
   </div>
   <div class="content">
-    <div class="stats-row" id="gruppen-stats">
-      <div style="color:var(--muted);font-size:13px">Wird geladen…</div>
-    </div>
-    <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;margin-top:4px">Gewerk-Verteilung nach Gruppe</div>
     <div id="gruppen-chart-wrap" style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px;display:none">
       <canvas id="gruppen-chart"></canvas>
     </div>
     <div id="gruppen-table-wrap">
+      <div style="color:var(--muted);font-size:13px">Wird geladen…</div>
+    </div>
+    <div class="stats-row" id="gruppen-stats" style="margin-top:20px">
       <div style="color:var(--muted);font-size:13px">Wird geladen…</div>
     </div>
   </div>
@@ -632,72 +631,159 @@ function showPanel(id) {
   closeSidebar();
 }
 async function loadGruppenPanel() {
-  document.getElementById('gruppen-stats').innerHTML = '<div style="color:var(--muted);font-size:13px">Wird geladen…</div>';
+  document.getElementById('gruppen-chart-wrap').style.display = 'none';
   document.getElementById('gruppen-table-wrap').innerHTML = '<div style="color:var(--muted);font-size:13px">Wird geladen…</div>';
-  const [{ data: users }, { data: gewerkeData }] = await Promise.all([
-    supabase.from('users').select('gruppe, gewerke_zugewiesen'),
-    supabase.from('gewerke_konfig').select('id, name, active').order('sort_order')
+  document.getElementById('gruppen-stats').innerHTML = '<div style="color:var(--muted);font-size:13px">Wird geladen…</div>';
+
+  const [{ data: users }, { data: gewerkeData }, { data: levelsData }] = await Promise.all([
+    supabase.from('users').select('gruppe, gewerke_zugewiesen, erfahrung'),
+    supabase.from('gewerke_konfig').select('id, name, active').order('sort_order'),
+    supabase.from('levels').select('*')
   ]);
   const allUsers   = users || [];
   const allGewerke = (gewerkeData || []).filter(g => g.active);
 
-  // ── Gruppengrößen ──
-  const gc = { 1:0, 2:0, 3:0, 0:0 };
-  allUsers.forEach(u => { const g = u.gruppe; gc[g===1||g===2||g===3 ? g : 0]++; });
-  document.getElementById('gruppen-stats').innerHTML = [
-    { label:'Gruppe 1', count:gc[1], color:'var(--accent)' },
-    { label:'Gruppe 2', count:gc[2], color:'#2d6a4f' },
-    { label:'Gruppe 3', count:gc[3], color:'#185fa5' },
-    { label:'Keine Gruppe', count:gc[0], color:'var(--muted)' }
-  ].map(({ label, count, color }) => `
-    <div class="stat-card">
-      <div class="stat-label">${label}</div>
-      <div class="stat-value" style="color:${color}">${count}</div>
-      <div class="stat-sub">Personen</div>
-    </div>`).join('');
+  // Level-Definitionen (Farben aus den Pillen der Anmeldeseite)
+  const FALLBACK_LEVELS = [
+    { id: 'profi',           name: 'Beruflich ausgebildet', color: 'rgba(45,106,79,0.85)' },
+    { id: 'erfahren',        name: 'Hobbymäßig erfahren',   color: 'rgba(58,122,82,0.72)' },
+    { id: 'grundkenntnisse', name: 'Grundkenntnisse',        color: 'rgba(202,138,4,0.82)' },
+    { id: 'anfaenger',       name: 'Anfänger',               color: 'rgba(136,136,136,0.72)' }
+  ];
+  const CHART_LEVELS = levelsData?.length
+    ? levelsData.map(l => ({ id: l.id, name: l.name, color: (l.color || '#888') + 'cc' }))
+    : FALLBACK_LEVELS;
+  const KEIN_LEVEL = { id: '__kein', name: 'Kein Level', color: 'rgba(200,190,178,0.55)' };
 
-  // ── Gewerk × Gruppe Matrix ──
-  const mx = {};
-  allGewerke.forEach(g => { mx[g.id] = { 1:0, 2:0, 3:0, 0:0, total:0 }; });
+  const GR_LABELS = { 1: 'Gr. 1', 2: 'Gr. 2', 3: 'Gr. 3', 0: 'Keine Gr.' };
+
+  // ── Matrix aufbauen ──
+  // mxLevel[gwId][gruppe][levelId] = count
+  const mxLevel = {};
+  allGewerke.forEach(g => { mxLevel[g.id] = { 1:{}, 2:{}, 3:{}, 0:{} }; });
+  const mxTotal = {}; // gwId → total
+  allGewerke.forEach(g => { mxTotal[g.id] = { 1:0, 2:0, 3:0, 0:0, total:0 }; });
+
+  const bauhelferByGruppe = { 1:0, 2:0, 3:0, 0:0 };
+
   allUsers.forEach(u => {
-    const gr = u.gruppe;
-    (u.gewerke_zugewiesen || []).forEach(gwId => {
-      if (!mx[gwId]) return;
-      mx[gwId].total++;
-      if (gr===1||gr===2||gr===3) mx[gwId][gr]++;
-      else mx[gwId][0]++;
+    const gr = (u.gruppe===1||u.gruppe===2||u.gruppe===3) ? u.gruppe : 0;
+    const gws = u.gewerke_zugewiesen || [];
+    if (gws.length === 0) { bauhelferByGruppe[gr]++; return; }
+    gws.forEach(gwId => {
+      if (!mxLevel[gwId]) return;
+      mxTotal[gwId].total++;
+      mxTotal[gwId][gr]++;
+      const rawLv = ((u.erfahrung || {})[gwId]) || '__kein';
+      const lv = CHART_LEVELS.find(l => l.id === rawLv) ? rawLv : '__kein';
+      mxLevel[gwId][gr][lv] = (mxLevel[gwId][gr][lv] || 0) + 1;
     });
   });
 
+  // ── Flache Label + Daten für gestapelte Gruppen-Balken ──
+  const chartLabels = [];
+  const chartData = {}; // levelId → flat array
+  [...CHART_LEVELS, KEIN_LEVEL].forEach(l => { chartData[l.id] = []; });
+
+  const pushRow = (grLabel, byLevel) => {
+    chartLabels.push(grLabel);
+    [...CHART_LEVELS, KEIN_LEVEL].forEach(l => {
+      chartData[l.id].push(byLevel[l.id] || 0);
+    });
+  };
+  const pushSpacer = () => {
+    chartLabels.push('');
+    [...CHART_LEVELS, KEIN_LEVEL].forEach(l => { chartData[l.id].push(0); });
+  };
+
+  const addGewerkRows = (name, byGrpByLv, totals) => {
+    let added = 0;
+    [1,2,3,0].forEach(gr => {
+      if ((totals[gr] || 0) === 0) return;
+      pushRow(`${name}  ·  ${GR_LABELS[gr]}`, byGrpByLv[gr] || {});
+      added++;
+    });
+    if (added > 0) pushSpacer();
+  };
+
+  allGewerke.filter(g => mxTotal[g.id].total > 0).forEach(g => {
+    addGewerkRows(g.name, mxLevel[g.id], mxTotal[g.id]);
+  });
+
+  // Bauhelfer allgemein
+  const bhTotal = [1,2,3,0].reduce((s,gr) => s + bauhelferByGruppe[gr], 0);
+  if (bhTotal > 0) {
+    const bhByGrpLv = { 1:{}, 2:{}, 3:{}, 0:{} };
+    [1,2,3,0].forEach(gr => { if (bauhelferByGruppe[gr]) bhByGrpLv[gr]['__kein'] = bauhelferByGruppe[gr]; });
+    addGewerkRows('Bauhelfer allgemein', bhByGrpLv, bauhelferByGruppe);
+  }
+
+  // Letzten Spacer entfernen
+  while (chartLabels.length && chartLabels[chartLabels.length-1] === '') {
+    chartLabels.pop();
+    [...CHART_LEVELS, KEIN_LEVEL].forEach(l => { chartData[l.id].pop(); });
+  }
+
   // ── Diagramm ──
-  const chartGewerke = allGewerke.filter(g => mx[g.id].total > 0);
   const chartWrap = document.getElementById('gruppen-chart-wrap');
-  if (chartGewerke.length) {
+  if (chartLabels.length) {
     chartWrap.style.display = '';
-    chartWrap.style.height = Math.max(300, chartGewerke.length * 28) + 'px';
+    chartWrap.style.height = Math.max(280, chartLabels.length * 20 + 80) + 'px';
     if (window._gruppenChart) window._gruppenChart.destroy();
     const ctx = document.getElementById('gruppen-chart').getContext('2d');
+
+    const allLevels = [...CHART_LEVELS, KEIN_LEVEL];
     window._gruppenChart = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: chartGewerke.map(g => g.name),
-        datasets: [
-          { label: 'Gruppe 1',     data: chartGewerke.map(g => mx[g.id][1]), backgroundColor: 'rgba(184,92,42,0.8)', borderRadius: 3 },
-          { label: 'Gruppe 2',     data: chartGewerke.map(g => mx[g.id][2]), backgroundColor: 'rgba(45,106,79,0.8)', borderRadius: 3 },
-          { label: 'Gruppe 3',     data: chartGewerke.map(g => mx[g.id][3]), backgroundColor: 'rgba(24,95,165,0.8)', borderRadius: 3 },
-          { label: 'Keine Gruppe', data: chartGewerke.map(g => mx[g.id][0]), backgroundColor: 'rgba(121,119,110,0.5)', borderRadius: 3 }
-        ]
+        labels: chartLabels,
+        datasets: allLevels.map(lv => ({
+          label: lv.name,
+          data: chartData[lv.id],
+          backgroundColor: lv.color,
+          borderRadius: 2,
+          stack: 'stack',
+          barThickness: 14
+        }))
       },
       options: {
         indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'top', labels: { font: { family: 'DM Sans', size: 12 }, boxWidth: 14 } }
+          legend: {
+            position: 'top',
+            labels: { font: { family: 'DM Sans', size: 11 }, boxWidth: 12, padding: 14 }
+          },
+          tooltip: {
+            callbacks: {
+              title: (items) => items[0]?.label || '',
+              label: (item) => item.parsed.x > 0 ? ` ${item.dataset.label}: ${item.parsed.x}` : null
+            }
+          }
         },
         scales: {
-          x: { beginAtZero: true, ticks: { precision: 0, font: { family: 'DM Sans', size: 11 } }, grid: { color: '#ece8dc' } },
-          y: { ticks: { font: { family: 'DM Sans', size: 11 } }, grid: { display: false } }
+          x: {
+            stacked: true,
+            beginAtZero: true,
+            ticks: { precision: 0, font: { family: 'DM Sans', size: 11 } },
+            grid: { color: '#ece8dc' }
+          },
+          y: {
+            stacked: true,
+            ticks: {
+              font: (ctx) => {
+                // Gewerk-Zeilen (mit ·) fett, Spacer unsichtbar
+                const lbl = ctx.tick?.label || '';
+                return { family: 'DM Sans', size: lbl.includes('·') ? 10 : 10, weight: lbl.includes('allgemein') || (!lbl.includes('·') && lbl !== '') ? '600' : '400' };
+              },
+              color: (ctx) => {
+                const lbl = ctx.tick?.label || '';
+                return lbl === '' ? 'transparent' : '#1c1b18';
+              }
+            },
+            grid: { display: false }
+          }
         }
       }
     });
@@ -705,9 +791,31 @@ async function loadGruppenPanel() {
     chartWrap.style.display = 'none';
   }
 
-  const cell = (n) => n > 0
-    ? `<span style="font-weight:600">${n}</span>`
-    : `<span style="color:var(--muted)">–</span>`;
+  // ── Tabelle ──
+  const cell = (n) => n > 0 ? `<span style="font-weight:600">${n}</span>` : `<span style="color:var(--muted)">–</span>`;
+  const bhRow = [1,2,3,0].reduce((s,gr)=>s+bauhelferByGruppe[gr],0);
+  const tableRows = allGewerke.map((g, i) => {
+    const m = mxTotal[g.id];
+    const last = i === allGewerke.length - 1 && bhRow === 0;
+    return `<tr style="${last?'':'border-bottom:1px solid var(--border);'}background:white"
+        onmouseover="this.style.background='var(--paper)'" onmouseout="this.style.background='white'">
+      <td style="padding:9px 14px;font-weight:${m.total>0?'500':'400'};color:${m.total===0?'var(--muted)':'inherit'}">${g.name}</td>
+      <td style="text-align:center;padding:9px 14px">${cell(m[1])}</td>
+      <td style="text-align:center;padding:9px 14px">${cell(m[2])}</td>
+      <td style="text-align:center;padding:9px 14px">${cell(m[3])}</td>
+      <td style="text-align:center;padding:9px 14px">${cell(m[0])}</td>
+      <td style="text-align:center;padding:9px 14px">${cell(m.total)}</td>
+    </tr>`;
+  }).join('');
+  const bhTableRow = bhRow > 0 ? `
+    <tr style="background:var(--paper);border-top:2px solid var(--border)">
+      <td style="padding:9px 14px;font-weight:500;font-style:italic">Bauhelfer allgemein</td>
+      <td style="text-align:center;padding:9px 14px">${cell(bauhelferByGruppe[1])}</td>
+      <td style="text-align:center;padding:9px 14px">${cell(bauhelferByGruppe[2])}</td>
+      <td style="text-align:center;padding:9px 14px">${cell(bauhelferByGruppe[3])}</td>
+      <td style="text-align:center;padding:9px 14px">${cell(bauhelferByGruppe[0])}</td>
+      <td style="text-align:center;padding:9px 14px">${cell(bhRow)}</td>
+    </tr>` : '';
 
   document.getElementById('gruppen-table-wrap').innerHTML = `
     <div style="overflow-x:auto">
@@ -715,30 +823,31 @@ async function loadGruppenPanel() {
         <thead>
           <tr style="background:var(--cream)">
             <th style="text-align:left;padding:10px 14px;font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border)">Gewerk</th>
-            <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border);color:var(--accent)">Gr. 1</th>
-            <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border);color:#2d6a4f">Gr. 2</th>
-            <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border);color:#185fa5">Gr. 3</th>
-            <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border);color:var(--muted)">Keine Gr.</th>
+            <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border)">Gr. 1</th>
+            <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border)">Gr. 2</th>
+            <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border)">Gr. 3</th>
+            <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border)">Keine Gr.</th>
             <th style="text-align:center;padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid var(--border)">Gesamt</th>
           </tr>
         </thead>
-        <tbody>
-          ${allGewerke.map((g, i) => {
-            const m = mx[g.id];
-            const last = i === allGewerke.length - 1;
-            return `<tr style="${last?'':'border-bottom:1px solid var(--border);'}background:white"
-                        onmouseover="this.style.background='var(--paper)'" onmouseout="this.style.background='white'">
-              <td style="padding:9px 14px;font-weight:${m.total>0?'500':'400'};color:${m.total===0?'var(--muted)':'inherit'}">${g.name}</td>
-              <td style="text-align:center;padding:9px 14px">${cell(m[1])}</td>
-              <td style="text-align:center;padding:9px 14px">${cell(m[2])}</td>
-              <td style="text-align:center;padding:9px 14px">${cell(m[3])}</td>
-              <td style="text-align:center;padding:9px 14px">${cell(m[0])}</td>
-              <td style="text-align:center;padding:9px 14px">${cell(m.total)}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
+        <tbody>${tableRows}${bhTableRow}</tbody>
       </table>
     </div>`;
+
+  // ── Stats ──
+  const gc = { 1:0, 2:0, 3:0, 0:0 };
+  allUsers.forEach(u => { const g = u.gruppe; gc[g===1||g===2||g===3 ? g : 0]++; });
+  document.getElementById('gruppen-stats').innerHTML = [
+    { label:'Gruppe 1',    count:gc[1], color:'var(--accent)' },
+    { label:'Gruppe 2',    count:gc[2], color:'#2d6a4f' },
+    { label:'Gruppe 3',    count:gc[3], color:'#185fa5' },
+    { label:'Keine Gruppe',count:gc[0], color:'var(--muted)' }
+  ].map(({ label, count, color }) => `
+    <div class="stat-card">
+      <div class="stat-label">${label}</div>
+      <div class="stat-value" style="color:${color}">${count}</div>
+      <div class="stat-sub">Personen</div>
+    </div>`).join('');
 }
 
 function toggleSidebar() {
