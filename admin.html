@@ -412,6 +412,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(
           </select>
           <button type="button" class="btn btn-accent btn-sm" onclick="bulkAssignPlan()">Zuweisen</button>
           <span style="width:1px;background:var(--border);align-self:stretch;margin:0 4px"></span>
+          <select id="plan-bulk-remove-sel" class="filter-select">
+            <option value="">Gewerk entziehen …</option>
+          </select>
+          <button type="button" class="btn btn-outline btn-sm" style="color:var(--danger,#c0392b);border-color:var(--danger,#c0392b)" onclick="bulkRemovePlan()">Entziehen</button>
+          <span style="width:1px;background:var(--border);align-self:stretch;margin:0 4px"></span>
           <select id="plan-bulk-gruppe-sel" class="filter-select">
             <option value="">Gruppe zuweisen …</option>
             <option value="1">Gruppe 1</option>
@@ -1091,6 +1096,21 @@ async function bulkAssignPlan() {
   clearPlanSelection();
 }
 
+async function bulkRemovePlan() {
+  const gewerkId = document.getElementById('plan-bulk-remove-sel').value;
+  if (!gewerkId) { alert('Bitte ein Gewerk auswählen.'); return; }
+  const ids = [...planSelectedIds];
+  if (!ids.length) return;
+  if (!confirm(`Gewerk "${getGewerkLabel(gewerkId)}" bei ${ids.length} Person(en) entziehen?`)) return;
+  await Promise.all(ids.map(id => {
+    const d = allDocs.find(x => x.id === id); if (!d) return;
+    const current = getAssigned(d);
+    if (!current.includes(gewerkId)) return;
+    return window._db && window.updateDoc(window._docFn(window._db,'anmeldungen',id), { gewerke_zugewiesen: current.filter(g => g !== gewerkId) });
+  }));
+  clearPlanSelection();
+}
+
 // ═══════════════════════════════════════════════
 // STATS
 // ═══════════════════════════════════════════════
@@ -1121,6 +1141,8 @@ function buildGewerkFilters() {
   const bulkOpts = '<option value="">Gewerk zuweisen …</option>' + gewerkeKonfig.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
   document.getElementById('bulk-gewerk-sel').innerHTML = bulkOpts;
   document.getElementById('plan-bulk-gewerk-sel').innerHTML = bulkOpts;
+  const removeOpts = '<option value="">Gewerk entziehen …</option>' + gewerkeKonfig.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+  document.getElementById('plan-bulk-remove-sel').innerHTML = removeOpts;
 }
 
 // ═══════════════════════════════════════════════
@@ -1151,9 +1173,8 @@ function renderGewerkSidebar() {
     getAssigned(d).forEach(gid => { assignedCounts[gid] = (assignedCounts[gid]||0) + 1; });
   });
 
-  // All unique gewerk IDs that appear in profiles, sorted by interest count
-  let gwIds = [...new Set(Object.keys(interestedCounts))];
-  gwIds.sort((a,b) => (interestedCounts[b]||0) - (interestedCounts[a]||0));
+  // All active gewerke from config, in sort_order
+  let gwIds = gewerkeKonfig.filter(g => g.active !== false).map(g => g.id);
 
   // Apply search filter
   if (_sidebarFilter) {
@@ -1186,6 +1207,8 @@ function renderGewerkSidebar() {
 function selectPlanGewerk(gwId) {
   activeGewerkId = gwId;
   clearPlanSelection();
+  const removesel = document.getElementById('plan-bulk-remove-sel');
+  if (removesel) removesel.value = gwId || '';
   renderGewerkSidebar();
   renderMatrix();
 }
