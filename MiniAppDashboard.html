@@ -240,9 +240,9 @@
     <span class="nav-label">Teamleiter</span>
   </button>
   <!-- Orga: Schieberegler -->
-  <button class="nav-btn" id="nav-adm" style="display:none" onclick="showView('admin',this)" title="Organisation">
+  <button class="nav-btn" id="nav-adm" style="display:none" onclick="showView('admin',this)" title="Admin">
     <svg viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="10" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
-    <span class="nav-label">Organisation</span>
+    <span class="nav-label">Admin</span>
   </button>
   <button class="refresh-btn" id="refresh-btn" onclick="refreshAll()" title="Aktualisieren">↺</button>
   <button class="help-btn" onclick="openHelp()">?</button>
@@ -1616,14 +1616,13 @@ async function loadUserData() {
           <div id="adm-roles-body" style="margin-top:12px;display:none;font-size:12px;line-height:1.5">
             ${[
               { label: 'Helfer', color: 'var(--clay-pale)', textColor: 'var(--clay-dark)', rows: [
-                'Sieht Dashboard (eigene Einsätze & Helfer-Bedarf)',
-                'Kein Zugriff auf andere Tabs',
-                'Muss von Organisation freigeschaltet werden',
+                'Reiter: Dashboard, Ansprechpartner',
+                'Muss von einem Admin freigeschaltet werden',
               ]},
               { label: 'Teamleiter', color: '#e8f4e8', textColor: '#2d7a2d', rows: [
-                'Zusätzlich: Reiter „Teamleiter"',
+                'Zusätzlich: Reiter „Teamleiter" & „Bau-Küche"',
                 'Sieht Bedarf & Anmeldungen seiner zugewiesenen Gewerke',
-                'Wird im Ansprechpartner-Tab angezeigt',
+                'Erscheint im Ansprechpartner-Tab unter „Gewerke"',
               ]},
               { label: 'Bau-Küche', color: '#fff3e0', textColor: '#b36200', rows: [
                 'Zusätzlich: Reiter „Bau-Küche"',
@@ -1631,22 +1630,20 @@ async function loadUserData() {
               ]},
               { label: 'Bauleitung', color: '#fdecea', textColor: '#c0392b', rows: [
                 'Erscheint oben im Ansprechpartner-Tab',
-                'Keine erweiterten App-Rechte (nur Sichtbarkeit)',
+                'Keine zusätzlichen Reiter oder Verwaltungsfunktionen',
               ]},
               { label: 'Sicherheitsbeauftragter', color: '#f0f0f0', textColor: '#555', rows: [
                 'Erscheint im Ansprechpartner-Tab',
-                'Keine erweiterten App-Rechte',
+                'Keine zusätzlichen Reiter oder Verwaltungsfunktionen',
               ]},
               { label: 'Organisation', color: '#ede9fe', textColor: '#5b21b6', rows: [
-                'Zusätzlich: Reiter „Organisation"',
-                'Personenverwaltung (freischalten, sperren, Rollen)',
-                'Neuigkeiten erstellen & bearbeiten',
-                'Alle Bedarfe einsehen & verwalten',
-                'Sieht Teamleiter-Tab',
+                'Erscheint in „Hilfe & Infos" als Ansprechpartner',
+                'Erhält zusätzlich: Reiter „Admin", „Teamleiter" & „Bau-Küche"',
               ]},
               { label: 'Admin', color: '#1c1b18', textColor: '#fff', rows: [
-                'Alle Berechtigungen der Organisation',
-                'Kann Rollen inkl. Admin-Zugang vergeben',
+                'Reiter „Admin": Personenverwaltung, Rollen, Neuigkeiten, Bedarf',
+                'Kann Dashboard freischalten/sperren & Rollen vergeben',
+                'Erhält zusätzlich: Reiter „Teamleiter" & „Bau-Küche"',
               ]},
             ].map(role => `
               <div style="margin-bottom:10px">
