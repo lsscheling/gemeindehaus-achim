@@ -1350,8 +1350,9 @@ async function loadUserData() {
 
         // Gewerke aus Anmeldung mit Erfahrungslevel
         const LEVEL_NAMES = { profi: 'Beruflich ausgebildet', erfahren: 'Hobbymäßig erfahren', grundkenntnisse: 'Grundkenntnisse', anfaenger: 'Anfänger' };
+        const slugToTitle = s => s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         const gwList = (u.gewerke || []).map(gid => {
-          const gwName = gewerkeMap[gid]?.name || gid;
+          const gwName = gewerkeMap[gid]?.name || slugToTitle(gid);
           const lv = (u.erfahrung || {})[gid];
           const lvLabel = lv ? (LEVEL_NAMES[lv] || lv) : '–';
           return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--clay-pale);font-size:12px">
@@ -1371,7 +1372,7 @@ async function loadUserData() {
           </div>` : row('Gewerke', '–'),
         ].filter(Boolean).join('') || '<div style="color:var(--text-muted);font-size:13px">Keine Angaben.</div>';
 
-        document.getElementById('person-detail-overlay').style.display = 'flex';
+        document.getElementById('person-detail-overlay').classList.add('visible');
       };
 
       window._admOpenPersonEdit = (userId) => {
