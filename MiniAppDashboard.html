@@ -1011,14 +1011,20 @@ async function loadUserData() {
     const gewerke = userDoc?.gewerke_zugewiesen || [];
     renderKWTable(gruppe);
 
-    // 2. Gewerk-Konfig + Gantt-Daten laden
-    const [{ data: gewerkeData }, { data: ganttData }] = await Promise.all([
+    // 2. Gewerk-Konfig + Gantt-Daten + Gemeinden + Levels laden
+    const [{ data: gewerkeData }, { data: ganttData }, { data: gemeindenData }, { data: levelsData }] = await Promise.all([
       supabase.from('gewerke_konfig').select('*').order('sort_order'),
-      supabase.from('gantt_daten').select('gewerke').eq('id', 'main').single()
+      supabase.from('gantt_daten').select('gewerke').eq('id', 'main').single(),
+      supabase.from('gemeinden').select('id, name').order('sort_order'),
+      supabase.from('levels').select('id, name')
     ]);
     const gewerkeMap = {};
     (gewerkeData || []).forEach(g => { gewerkeMap[g.id] = g; });
     window._gewerkeMapForEdit = gewerkeMap;
+    window._gemeindenMap = {};
+    (gemeindenData || []).forEach(g => { window._gemeindenMap[g.id] = g.name; });
+    window._levelsMap = {};
+    (levelsData || []).forEach(l => { window._levelsMap[l.id] = l.name; });
     const allBars = ganttData?.gewerke || [];
     window._allBars = allBars;
 
@@ -1349,12 +1355,10 @@ async function loadUserData() {
         const ts = u.registered_at ? new Date(u.registered_at).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : null;
 
         // Gewerke aus Anmeldung mit Erfahrungslevel
-        const LEVEL_NAMES = { profi: 'Beruflich ausgebildet', erfahren: 'Hobbymäßig erfahren', grundkenntnisse: 'Grundkenntnisse', anfaenger: 'Anfänger' };
-        const slugToTitle = s => s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         const gwList = (u.gewerke || []).map(gid => {
-          const gwName = gewerkeMap[gid]?.name || slugToTitle(gid);
+          const gwName = gewerkeMap[gid]?.name || window._gemeindenMap?.[gid] || gid;
           const lv = (u.erfahrung || {})[gid];
-          const lvLabel = lv ? (LEVEL_NAMES[lv] || lv) : '–';
+          const lvLabel = lv ? (window._levelsMap?.[lv] || lv) : '–';
           return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--clay-pale);font-size:12px">
             <span>${gwName}</span><span style="color:var(--text-muted)">${lvLabel}</span>
           </div>`;
@@ -1362,7 +1366,7 @@ async function loadUserData() {
 
         document.getElementById('person-detail-body').innerHTML = [
           row('Angemeldet', ts),
-          row('Gemeinde', u.gemeinde),
+          row('Gemeinde', window._gemeindenMap?.[u.gemeinde] || u.gemeinde),
           u.schichtarbeit ? row('Schichtarbeit', 'Ja') : '',
           row('Gruppenwunsch', u.gruppenwunsch || u.teamwunsch),
           row('Qualifikationen', u.qualifikationen),
