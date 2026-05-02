@@ -1678,13 +1678,14 @@ async function loadUserData() {
                     'Keine zusätzlichen Reiter oder Verwaltungsfunktionen',
                   ]},
                   { label: 'Organisation', color: '#ede9fe', textColor: '#5b21b6', rows: [
-                    'Erscheint in „Hilfe & Infos" als Ansprechpartner',
-                    'Erhält zusätzlich: Reiter „Admin", „Teamleiter" & „Bau-Küche"',
+                    'Gleiche Rechte wie Admin',
+                    'Zusätzlich: Erscheint in „Hilfe & Infos" als Ansprechpartner',
                   ]},
                   { label: 'Admin', color: '#1c1b18', textColor: '#fff', rows: [
                     'Reiter „Admin": Personenverwaltung, Rollen, Neuigkeiten, Bedarf',
                     'Kann Dashboard freischalten/sperren & Rollen vergeben',
-                    'Erhält zusätzlich: Reiter „Teamleiter" & „Bau-Küche"',
+                    'Reiter „Teamleiter" & „Bau-Küche"',
+                    'Erscheint nicht im Ansprechpartner-Tab',
                   ]},
                 ].map(role => `
                   <div style="margin-bottom:10px">
