@@ -857,14 +857,10 @@ function renderContactList(items) {
   const rest       = items.filter(i => i.section !== 'bauleitung');
   let html = '';
   if (bauleitung.length) {
-    html += `<div style="font-size:10px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px">Bauleitung</div>`;
     html += bauleitung.map(({ d, roleLabel }) => contactRow(d, roleLabel, false)).join('');
     if (rest.length) {
-      html += `<div style="border-top:1px solid var(--clay-pale);margin:8px 0 6px"></div>`;
+      html += `<div style="border-top:3px solid var(--clay-pale);margin:10px 0 8px"></div>`;
     }
-  }
-  if (rest.length) {
-    html += `<div style="font-size:10px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px">Gewerke</div>`;
   }
   html += rest.map(({ d, roleLabel }) => contactRow(d, roleLabel, false)).join('');
   list.innerHTML = html;
