@@ -2050,6 +2050,40 @@ async function loadUserData() {
               </div>
               <div id="adm-persons-active" style="margin-top:8px;display:none"></div>
             </div>
+            <div class="card" style="margin-bottom:12px;box-shadow:none;border:1px solid var(--clay-pale)">
+              <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
+                   onclick="window._toggleBedarfCard('adm-ph-body-wrap','adm-ph-chev')">
+                <span style="font-size:13px;font-weight:600;flex:1;color:var(--text)">Platzhalter-Teamleiter</span>
+                <button onclick="event.stopPropagation();window._openPlatzhalterForm()"
+                  style="background:var(--clay);color:white;border:none;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+                  + Anlegen
+                </button>
+                <span id="adm-ph-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
+              </div>
+              <div id="adm-ph-body-wrap" style="margin-top:8px;display:none">
+                <div id="adm-ph-form" style="display:none;background:var(--sand);border-radius:10px;padding:12px;margin-bottom:10px">
+                  <div style="font-size:12px;font-weight:600;margin-bottom:8px">Neuer Platzhalter</div>
+                  <div style="display:flex;gap:8px;margin-bottom:8px">
+                    <input id="adm-ph-vorname" type="text" placeholder="Vorname" style="${inputStyle};flex:1">
+                    <input id="adm-ph-nachname" type="text" placeholder="Nachname" style="${inputStyle};flex:1">
+                  </div>
+                  <select id="adm-ph-gewerk" style="${inputStyle};margin-bottom:10px">
+                    ${activeGwList.map(g => `<option value="${g.id}">${g.name}</option>`).join('')}
+                  </select>
+                  <div style="display:flex;gap:8px">
+                    <button onclick="window._savePlatzhalterTL(this)"
+                      style="background:var(--clay);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+                      Speichern
+                    </button>
+                    <button onclick="document.getElementById('adm-ph-form').style.display='none'"
+                      style="background:none;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 12px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer">
+                      Abbrechen
+                    </button>
+                  </div>
+                </div>
+                <div id="adm-ph-body"></div>
+              </div>
+            </div>
             <div class="card" style="box-shadow:none;border:1px solid var(--clay-pale)">
               <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
                    onclick="window._toggleBedarfCard('adm-roles-body','adm-roles-chev')">
@@ -2101,76 +2135,6 @@ async function loadUserData() {
         </div>
         <div class="card" style="margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
-               onclick="window._toggleBedarfCard('adm-ph-body-wrap','adm-ph-chev')">
-            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Platzhalter-Teamleiter</span>
-            <button onclick="event.stopPropagation();window._openPlatzhalterForm()"
-              style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
-              + Platzhalter anlegen
-            </button>
-            <span id="adm-ph-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
-          </div>
-          <div id="adm-ph-body-wrap" style="margin-top:12px;display:none">
-            <div id="adm-ph-form" style="display:none;background:var(--sand);border-radius:10px;padding:12px;margin-bottom:10px">
-              <div style="font-size:12px;font-weight:600;margin-bottom:8px">Neuer Platzhalter</div>
-              <div style="display:flex;gap:8px;margin-bottom:8px">
-                <input id="adm-ph-vorname" type="text" placeholder="Vorname" style="${inputStyle};flex:1">
-                <input id="adm-ph-nachname" type="text" placeholder="Nachname" style="${inputStyle};flex:1">
-              </div>
-              <select id="adm-ph-gewerk" style="${inputStyle};margin-bottom:10px">
-                ${activeGwList.map(g => `<option value="${g.id}">${g.name}</option>`).join('')}
-              </select>
-              <div style="display:flex;gap:8px">
-                <button onclick="window._savePlatzhalterTL(this)"
-                  style="background:var(--clay);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
-                  Speichern
-                </button>
-                <button onclick="document.getElementById('adm-ph-form').style.display='none'"
-                  style="background:none;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 12px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer">
-                  Abbrechen
-                </button>
-              </div>
-            </div>
-            <div id="adm-ph-body"></div>
-          </div>
-        </div>
-        <div class="card" style="margin-bottom:12px">
-          <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
-               onclick="window._toggleBedarfCard('adm-zt-body','adm-zt-chev')">
-            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Gewerk-Zeiträume</span>
-            <span id="adm-zt-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
-          </div>
-          <div id="adm-zt-body" style="margin-top:12px;display:none">
-            <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Legt fest, in welchen Kalenderwochen ein Gewerk aktiv ist (Mo–Sa).</div>
-            ${activeGwList.map(gw => {
-              const bar   = (window._allBars||[]).find(b => b.gewerkId === gw.id);
-              const sDate = bar?.start ? parseLocalDate(bar.start) : null;
-              const eDate = bar?.end   ? parseLocalDate(bar.end)   : null;
-              const sKW   = sDate ? isoWeek(sDate) : '';
-              const sJahr = sDate ? sDate.getFullYear() : new Date().getFullYear();
-              const eKW   = eDate ? isoWeek(eDate) : '';
-              const eJahr = eDate ? eDate.getFullYear() : new Date().getFullYear();
-              const numStyle = 'font-family:"DM Sans",sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 10px;outline:none;background:white;width:60px';
-              const yrStyle  = 'font-family:"DM Sans",sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 10px;outline:none;background:white;width:72px';
-              return `<div style="margin-bottom:14px">
-                <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">${gw.name}</div>
-                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                  <label style="font-size:12px;color:var(--text-muted)">Von KW</label>
-                  <input id="zt-skw-${gw.id}"   type="number" min="1" max="53" value="${sKW}"   style="${numStyle}">
-                  <input id="zt-sjahr-${gw.id}" type="number" min="2020" max="2099" value="${sJahr}" style="${yrStyle}">
-                  <label style="font-size:12px;color:var(--text-muted)">Bis KW</label>
-                  <input id="zt-ekw-${gw.id}"   type="number" min="1" max="53" value="${eKW}"   style="${numStyle}">
-                  <input id="zt-ejahr-${gw.id}" type="number" min="2020" max="2099" value="${eJahr}" style="${yrStyle}">
-                  <button onclick="window._saveZeitraum('${gw.id}', this)"
-                    style="background:var(--clay);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
-                    Speichern
-                  </button>
-                </div>
-              </div>`;
-            }).join('')}
-          </div>
-        </div>
-        <div class="card" style="margin-bottom:12px">
-          <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
                onclick="window._toggleBedarfCard('adm-news-body','adm-news-chev')">
             <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Neuigkeiten / Informationen</span>
             <button onclick="event.stopPropagation();window._admNewsNew()"
@@ -2203,6 +2167,35 @@ async function loadUserData() {
         <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">Bedarf verwalten</div>
         ${renderBedarfCards('adm', admGewerke, admTage, admAnmMap)}
         ${renderBauhelferCard('adm', admAllDays, admAnmMap)}
+        <div style="border-top:2px solid var(--clay-pale);margin:20px 0 16px"></div>
+        <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px">Gewerk-Zeiträume</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px">Legt fest, in welchen Kalenderwochen ein Gewerk aktiv ist (Mo–Sa).</div>
+        ${activeGwList.map(gw => {
+          const bar   = (window._allBars||[]).find(b => b.gewerkId === gw.id);
+          const sDate = bar?.start ? parseLocalDate(bar.start) : null;
+          const eDate = bar?.end   ? parseLocalDate(bar.end)   : null;
+          const sKW   = sDate ? isoWeek(sDate) : '';
+          const sJahr = sDate ? sDate.getFullYear() : new Date().getFullYear();
+          const eKW   = eDate ? isoWeek(eDate) : '';
+          const eJahr = eDate ? eDate.getFullYear() : new Date().getFullYear();
+          const numStyle = "width:44px;font-size:12px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none";
+          const yrStyle  = "width:56px;font-size:12px;border:1px solid var(--clay-pale);border-radius:8px;padding:4px 6px;text-align:center;font-family:'DM Sans',sans-serif;outline:none";
+          return `<div style="margin-bottom:14px">
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">${gw.name}</div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <span style="font-size:11px;color:var(--text-muted)">Von KW</span>
+              <input id="zt-skw-${gw.id}"   type="number" inputmode="numeric" min="1" max="53" value="${sKW}"   style="${numStyle}">
+              <input id="zt-sjahr-${gw.id}" type="number" inputmode="numeric" min="2020" max="2099" value="${sJahr}" style="${yrStyle}">
+              <span style="font-size:11px;color:var(--text-muted)">Bis KW</span>
+              <input id="zt-ekw-${gw.id}"   type="number" inputmode="numeric" min="1" max="53" value="${eKW}"   style="${numStyle}">
+              <input id="zt-ejahr-${gw.id}" type="number" inputmode="numeric" min="2020" max="2099" value="${eJahr}" style="${yrStyle}">
+              <button onclick="window._saveZeitraum('${gw.id}', this)"
+                style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;flex-shrink:0">
+                Speichern
+              </button>
+            </div>
+          </div>`;
+        }).join('')}
       `;
       window._renderAdmNews();
       window._renderPlatzhalterTL();
