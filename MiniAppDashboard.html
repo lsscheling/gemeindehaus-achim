@@ -682,7 +682,7 @@ let _newsItems = [];
 async function loadNews() {
   try {
     const { data } = await supabase.from('neuigkeiten').select('*').order('ts', { ascending: false });
-    _newsItems = (data || []).map(n => ({ id: n.id, ts: Number(n.ts) || 0, datum: n.datum || '', text: n.text || '' }));
+    _newsItems = (data || []).map(n => ({ id: n.id, ts: Number(n.ts) || 0, titel: n.titel || '', datum: n.datum || '', text: n.text || '' }));
   } catch(e) {
     _newsItems = [];
   }
