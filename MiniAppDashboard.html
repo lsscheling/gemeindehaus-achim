@@ -384,6 +384,33 @@
   </div>
 </div>
 
+<!-- ══════════ PLATZHALTER ERSETZEN OVERLAY ══════════ -->
+<div class="overlay" id="adm-replace-overlay" onclick="overlayClose(event,'adm-replace-overlay')">
+  <div class="sheet">
+    <div class="news-header">
+      <div class="news-header-title">Platzhalter ersetzen</div>
+      <button class="sheet-close" onclick="closeOverlay('adm-replace-overlay')">✕</button>
+    </div>
+    <div style="padding:12px 16px 0">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Platzhalter</div>
+      <div id="adm-replace-ph-name" style="font-size:14px;font-weight:600;margin-bottom:12px"></div>
+      <input type="hidden" id="adm-replace-ph-id">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Ersetzen durch (nach Namensähnlichkeit sortiert)</div>
+      <div id="adm-replace-list" style="display:flex;flex-direction:column;gap:4px;max-height:45vh;overflow-y:auto"></div>
+    </div>
+    <div style="padding:12px 16px 4px;display:flex;gap:8px">
+      <button id="adm-replace-confirm-btn" onclick="window._confirmReplace(this)"
+        style="flex:1;background:var(--clay);color:white;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+        Ersetzen & Daten übertragen
+      </button>
+      <button onclick="closeOverlay('adm-replace-overlay')"
+        style="background:none;border:1px solid var(--clay-pale);border-radius:10px;padding:12px 16px;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer">
+        Abbrechen
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════ GEWERK-INTERESSE OVERLAY ══════════ -->
 <div class="overlay" id="gw-interesse-overlay" onclick="overlayClose(event,'gw-interesse-overlay')">
   <div class="sheet">
@@ -1431,8 +1458,8 @@ async function loadUserData() {
         if (query) users = users.filter(u =>
           ((u.vorname||'') + ' ' + (u.nachname||'')).toLowerCase().includes(query)
         );
-        const pending = users.filter(u => !u.dashboard_aktiv);
-        const active  = users.filter(u =>  u.dashboard_aktiv);
+        const pending = users.filter(u => !u.dashboard_aktiv && !u.placeholder);
+        const active  = users.filter(u =>  u.dashboard_aktiv && !u.placeholder);
         const SONDERROLLEN_LABELS_ADM = { organisation: 'Organisation', bauleitung: 'Bauleitung', 'bauküche': 'Bau-Küche', sicherheitsbeauftragter: 'Sicherheitsbeauftragter' };
         const renderRow = (u) => {
           const name  = ((u.vorname||'') + ' ' + (u.nachname||'')).trim() || '(kein Name)';
@@ -1779,6 +1806,154 @@ async function loadUserData() {
         renderNewsOverlay();
       };
 
+      // ── Platzhalter-Teamleiter ──
+      const gwMap2 = window._gewerkeMapForEdit || {};
+      const activeGwList = Object.values(gwMap2).filter(g => g.active !== false && g.id !== 'bauhelfer_allgemein').sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+
+      window._renderPlatzhalterTL = () => {
+        const body = document.getElementById('adm-ph-body');
+        if (!body) return;
+        const placeholders = (window._admUsers || []).filter(u => u.placeholder);
+        if (!placeholders.length) {
+          body.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:4px 0">Keine Platzhalter vorhanden.</div>';
+        } else {
+          body.innerHTML = placeholders.map(u => {
+            const name = ((u.vorname||'') + ' ' + (u.nachname||'')).trim() || '(kein Name)';
+            const gwLabels = (u.teamleiterGewerke||[]).map(id => gwMap2[id]?.name || id).join(', ');
+            return `<div style="padding:8px 0;border-bottom:1px solid var(--clay-pale);display:flex;align-items:center;gap:8px">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:500">${name}</div>
+                ${gwLabels ? `<div style="font-size:11px;color:var(--text-muted);margin-top:1px">${gwLabels}</div>` : ''}
+              </div>
+              <span style="background:#fef3c7;color:#92400e;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:600;flex-shrink:0">⚠ Platzhalter</span>
+              <button onclick="window._openReplaceModal('${u.id}')"
+                style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;flex-shrink:0">
+                Ersetzen
+              </button>
+            </div>`;
+          }).join('');
+        }
+      };
+
+      window._openPlatzhalterForm = () => {
+        const f = document.getElementById('adm-ph-form');
+        if (!f) return;
+        f.style.display = '';
+        const sel = document.getElementById('adm-ph-gewerk');
+        if (sel) sel.innerHTML = activeGwList.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+      };
+
+      window._savePlatzhalterTL = async (btn) => {
+        const vorname  = (document.getElementById('adm-ph-vorname')?.value || '').trim();
+        const nachname = (document.getElementById('adm-ph-nachname')?.value || '').trim();
+        const gwId     = document.getElementById('adm-ph-gewerk')?.value;
+        if (!vorname && !nachname) { alert('Bitte Namen eingeben.'); return; }
+        if (btn) { btn.textContent = '…'; btn.disabled = true; }
+        try {
+          const tlGw  = gwId ? [gwId] : [];
+          const { data: newUser, error } = await supabase.from('users').insert({
+            vorname, nachname, rolle: 'teamleiter',
+            teamleiterGewerke: tlGw, gewerke_zugewiesen: tlGw,
+            placeholder: true, dashboard_aktiv: false
+          }).select('*').single();
+          if (error) throw new Error(error.message);
+          window._admUsers.push(newUser);
+          document.getElementById('adm-ph-vorname').value = '';
+          document.getElementById('adm-ph-nachname').value = '';
+          document.getElementById('adm-ph-form').style.display = 'none';
+          window._renderPlatzhalterTL();
+          if (btn) { btn.textContent = 'Speichern'; btn.disabled = false; }
+        } catch(e) {
+          alert('Fehler: ' + e.message);
+          if (btn) { btn.textContent = 'Speichern'; btn.disabled = false; }
+        }
+      };
+
+      window._openReplaceModal = (placeholderId) => {
+        const ph = (window._admUsers||[]).find(u => u.id === placeholderId);
+        if (!ph) return;
+        const phName = ((ph.vorname||'') + ' ' + (ph.nachname||'')).trim();
+        document.getElementById('adm-replace-ph-name').textContent = phName;
+        document.getElementById('adm-replace-ph-id').value = placeholderId;
+        const realUsers = (window._admUsers||[]).filter(u => !u.placeholder);
+        function nameSim(a, b) {
+          a = a.toLowerCase(); b = b.toLowerCase();
+          if (!a.length || !b.length) return 0;
+          if (a === b) return 1;
+          const m = a.length, n = b.length;
+          const d = Array.from({length:m+1}, (_,i) => Array.from({length:n+1}, (_,j) => i===0?j:j===0?i:0));
+          for (let i=1;i<=m;i++) for (let j=1;j<=n;j++)
+            d[i][j] = a[i-1]===b[j-1] ? d[i-1][j-1] : 1+Math.min(d[i-1][j],d[i][j-1],d[i-1][j-1]);
+          return 1 - d[m][n]/Math.max(m,n);
+        }
+        const scored = realUsers.map(u => {
+          const uName = ((u.vorname||'') + ' ' + (u.nachname||'')).trim();
+          const score = Math.max(
+            nameSim(phName, uName),
+            nameSim(ph.vorname||'', u.vorname||'') * 0.5 + nameSim(ph.nachname||'', u.nachname||'') * 0.5
+          );
+          return { u, score, uName };
+        }).sort((a,b) => b.score - a.score).slice(0, 12);
+        document.getElementById('adm-replace-list').innerHTML = scored.map(({ u, score, uName }) => {
+          const highlight = score >= 0.5 ? 'background:var(--green-light);' : '';
+          return `<label style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;cursor:pointer;${highlight}">
+            <input type="radio" name="adm-replace-user" value="${u.id}" style="flex-shrink:0">
+            <span style="font-size:13px;font-weight:500;flex:1">${uName}</span>
+            <span style="font-size:11px;color:var(--text-muted)">${u.dashboard_aktiv ? 'freigeschaltet' : 'ausstehend'}</span>
+          </label>`;
+        }).join('');
+        document.getElementById('adm-replace-overlay').classList.add('visible');
+      };
+
+      window._confirmReplace = async (btn) => {
+        const placeholderId = document.getElementById('adm-replace-ph-id').value;
+        const selected = document.querySelector('input[name="adm-replace-user"]:checked');
+        if (!selected) { alert('Bitte eine Person auswählen.'); return; }
+        const realUserId = selected.value;
+        const ph = (window._admUsers||[]).find(u => u.id === placeholderId);
+        const realUser = (window._admUsers||[]).find(u => u.id === realUserId);
+        if (!ph || !realUser) return;
+        if (btn) { btn.textContent = '…'; btn.disabled = true; }
+        try {
+          const mergedGw  = [...new Set([...(realUser.teamleiterGewerke||[]), ...(ph.teamleiterGewerke||[])])];
+          const mergedZug = [...new Set([...(realUser.gewerke_zugewiesen||[]), ...(ph.teamleiterGewerke||[])])];
+          const { error: e1 } = await supabase.from('users').update({ rolle: 'teamleiter', teamleiterGewerke: mergedGw, gewerke_zugewiesen: mergedZug }).eq('id', realUserId);
+          if (e1) throw new Error(e1.message);
+          const { error: e2 } = await supabase.from('users').delete().eq('id', placeholderId);
+          if (e2) throw new Error(e2.message);
+          realUser.rolle = 'teamleiter'; realUser.teamleiterGewerke = mergedGw; realUser.gewerke_zugewiesen = mergedZug;
+          window._admUsers = (window._admUsers||[]).filter(u => u.id !== placeholderId);
+          closeOverlay('adm-replace-overlay');
+          window._renderPlatzhalterTL();
+          window._renderPersonenListe();
+          if (btn) { btn.textContent = 'Ersetzen & Daten übertragen'; btn.disabled = false; }
+        } catch(e) {
+          alert('Fehler: ' + e.message);
+          if (btn) { btn.textContent = 'Ersetzen & Daten übertragen'; btn.disabled = false; }
+        }
+      };
+
+      // ── Gewerk-Zeiträume ──
+      window._saveZeitraum = async (gwId, btn) => {
+        const startVal = document.getElementById(`zt-start-${gwId}`)?.value;
+        const endVal   = document.getElementById(`zt-end-${gwId}`)?.value;
+        if (!startVal || !endVal) { alert('Bitte Start- und Enddatum angeben.'); return; }
+        if (btn) { btn.textContent = '…'; btn.disabled = true; }
+        try {
+          const bars = window._allBars || [];
+          const existing = bars.find(b => b.gewerkId === gwId);
+          if (existing) { existing.start = startVal; existing.end = endVal; }
+          else bars.push({ id: 'bar_' + Date.now(), gewerkId: gwId, name: gwMap2[gwId]?.name || gwId, color: gwMap2[gwId]?.color || '#999', start: startVal, end: endVal });
+          const { error } = await supabase.from('gantt_daten').update({ gewerke: bars }).eq('id', 'main');
+          if (error) throw new Error(error.message);
+          window._allBars = bars;
+          if (btn) { btn.textContent = '✓'; setTimeout(() => { if (btn) btn.textContent = 'Speichern'; }, 2000); btn.disabled = false; }
+        } catch(e) {
+          alert('Fehler: ' + e.message);
+          if (btn) { btn.textContent = 'Speichern'; btn.disabled = false; }
+        }
+      };
+
       const inputStyle = 'width:100%;font-family:"DM Sans",sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:8px 10px;outline:none;background:white;box-sizing:border-box';
       document.getElementById('adm-view-body').innerHTML = `
         <div class="card" style="margin-bottom:12px">
@@ -1866,6 +2041,68 @@ async function loadUserData() {
         </div>
         <div class="card" style="margin-bottom:12px">
           <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
+               onclick="window._toggleBedarfCard('adm-ph-body-wrap','adm-ph-chev')">
+            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Platzhalter-Teamleiter</span>
+            <button onclick="event.stopPropagation();window._openPlatzhalderForm()"
+              style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+              + Platzhalter anlegen
+            </button>
+            <span id="adm-ph-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
+          </div>
+          <div id="adm-ph-body-wrap" style="margin-top:12px;display:none">
+            <div id="adm-ph-form" style="display:none;background:var(--sand);border-radius:10px;padding:12px;margin-bottom:10px">
+              <div style="font-size:12px;font-weight:600;margin-bottom:8px">Neuer Platzhalter</div>
+              <div style="display:flex;gap:8px;margin-bottom:8px">
+                <input id="adm-ph-vorname" type="text" placeholder="Vorname" style="${inputStyle};flex:1">
+                <input id="adm-ph-nachname" type="text" placeholder="Nachname" style="${inputStyle};flex:1">
+              </div>
+              <select id="adm-ph-gewerk" style="${inputStyle};margin-bottom:10px">
+                ${activeGwList.map(g => `<option value="${g.id}">${g.name}</option>`).join('')}
+              </select>
+              <div style="display:flex;gap:8px">
+                <button onclick="window._savePlatzhalterTL(this)"
+                  style="background:var(--clay);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+                  Speichern
+                </button>
+                <button onclick="document.getElementById('adm-ph-form').style.display='none'"
+                  style="background:none;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 12px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer">
+                  Abbrechen
+                </button>
+              </div>
+            </div>
+            <div id="adm-ph-body"></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
+               onclick="window._toggleBedarfCard('adm-zt-body','adm-zt-chev')">
+            <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Gewerk-Zeiträume</span>
+            <span id="adm-zt-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
+          </div>
+          <div id="adm-zt-body" style="margin-top:12px;display:none">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Legt fest, an welchen Tagen ein Gewerk aktiv ist (Grundlage für die Bedarf-Karten).</div>
+            ${activeGwList.map(gw => {
+              const bar = (window._allBars||[]).find(b => b.gewerkId === gw.id);
+              return `<div style="margin-bottom:14px">
+                <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">${gw.name}</div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                  <label style="font-size:12px;color:var(--text-muted)">Von</label>
+                  <input id="zt-start-${gw.id}" type="date" value="${bar?.start||''}"
+                    style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 10px;outline:none;background:white">
+                  <label style="font-size:12px;color:var(--text-muted)">Bis</label>
+                  <input id="zt-end-${gw.id}" type="date" value="${bar?.end||''}"
+                    style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 10px;outline:none;background:white">
+                  <button onclick="window._saveZeitraum('${gw.id}', this)"
+                    style="background:var(--clay);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+                    Speichern
+                  </button>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
                onclick="window._toggleBedarfCard('adm-news-body','adm-news-chev')">
             <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Neuigkeiten / Informationen</span>
             <button onclick="event.stopPropagation();window._admNewsNew()"
@@ -1899,6 +2136,7 @@ async function loadUserData() {
         ${renderBauhelferCard('adm', admAllDays, admAnmMap)}
       `;
       window._renderAdmNews();
+      window._renderPlatzhalterTL();
       window._renderPersonenListe();
     }
 
