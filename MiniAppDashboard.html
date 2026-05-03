@@ -1037,13 +1037,25 @@ async function loadUserData() {
         return `<span class="gewerk-tag mine">${g ? g.name : id}</span>`;
       }).join('');
 
+      // Gewerke aus eigenen Einsatz-Anmeldungen ergänzen
+      let alleGewerke = [...gewerke];
+      if (tgId) {
+        const { data: einsatzRows } = await supabase
+          .from('einsatz_anmeldungen')
+          .select('gewerk_id')
+          .contains('angemeldete', [tgId]);
+        const einsatzGwIds = [...new Set((einsatzRows || []).map(r => r.gewerk_id))]
+          .filter(id => id && id !== 'bauhelfer_allgemein' && !alleGewerke.includes(id));
+        alleGewerke = [...alleGewerke, ...einsatzGwIds];
+      }
+
       // Teamleiter der eigenen Gewerke, sortiert nach erstem passendem Gewerk-Namen
       const { data: tlData } = await supabase.from('users').select('*').eq('rolle', 'teamleiter');
       const teamleiter = (tlData || [])
-        .filter(d => (d.teamleiterGewerke || []).some(g => gewerke.includes(g)))
+        .filter(d => (d.teamleiterGewerke || []).some(g => alleGewerke.includes(g)))
         .sort((a, b) => {
-          const gwA = gewerke.find(g => (a.teamleiterGewerke||[]).includes(g));
-          const gwB = gewerke.find(g => (b.teamleiterGewerke||[]).includes(g));
+          const gwA = alleGewerke.find(g => (a.teamleiterGewerke||[]).includes(g));
+          const gwB = alleGewerke.find(g => (b.teamleiterGewerke||[]).includes(g));
           return (gewerkeMap[gwA]?.name || '').localeCompare(gewerkeMap[gwB]?.name || '', 'de');
         });
 
@@ -1068,7 +1080,7 @@ async function loadUserData() {
         teamHtml += `<div style="font-size:10px;font-weight:700;color:var(--clay);letter-spacing:.5px;text-transform:uppercase;margin:10px 0 4px">Ansprechpartner</div>`;
         teamleiter.forEach(d => {
           // Label = Name des ersten passenden Gewerks des TL
-          const gwLabel = gewerke
+          const gwLabel = alleGewerke
             .map(g => ({ id: g, name: gewerkeMap[g]?.name || g }))
             .find(g => (d.teamleiterGewerke || []).includes(g.id))?.name || '';
           teamHtml += personRow(d, gwLabel);
