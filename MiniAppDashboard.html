@@ -708,7 +708,8 @@ function renderNewsOverlay() {
   }
   body.innerHTML = _newsItems.map(n =>
     `<div class="news-card">
-       <div class="news-date">${n.datum || ''}</div>
+       ${n.datum ? `<div class="news-date">${n.datum}</div>` : ''}
+       ${n.titel ? `<div style="font-size:14px;font-weight:700;margin-bottom:4px">${n.titel}</div>` : ''}
        <div class="news-text">${(n.text || '').replace(/\n/g,'<br>')}</div>
      </div>`
   ).join('');
@@ -1774,7 +1775,8 @@ async function loadUserData() {
           ? _newsItems.map(n => `
             <div style="background:var(--sand);border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:8px">
               <div style="flex:1">
-                <div style="font-size:11px;font-weight:600;color:var(--clay-dark);margin-bottom:3px">${n.datum||''}</div>
+                ${n.datum ? `<div style="font-size:11px;font-weight:600;color:var(--clay-dark);margin-bottom:3px">${n.datum}</div>` : ''}
+                ${n.titel ? `<div style="font-size:13px;font-weight:700;margin-bottom:2px">${n.titel}</div>` : ''}
                 <div style="font-size:13px;line-height:1.5">${(n.text||'').replace(/\n/g,'<br>')}</div>
               </div>
               <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
@@ -1789,6 +1791,7 @@ async function loadUserData() {
       window._admNewsEdit = (id) => {
         const n = _newsItems.find(x => x.id === id); if (!n) return;
         window._admNewsEditId = id;
+        document.getElementById('adm-news-titel').value = n.titel || '';
         document.getElementById('adm-news-datum').value = n.datum || '';
         document.getElementById('adm-news-text').value  = n.text  || '';
         document.getElementById('adm-news-form').style.display = '';
@@ -1796,7 +1799,8 @@ async function loadUserData() {
       };
       window._admNewsNew = () => {
         window._admNewsEditId = null;
-        document.getElementById('adm-news-datum').value = new Date().toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'});
+        document.getElementById('adm-news-titel').value = '';
+        document.getElementById('adm-news-datum').value = '';
         document.getElementById('adm-news-text').value  = '';
         document.getElementById('adm-news-form').style.display = '';
         document.getElementById('adm-news-form-title').textContent = 'Neue Meldung';
@@ -1806,6 +1810,7 @@ async function loadUserData() {
         document.getElementById('adm-news-form').style.display = 'none';
       };
       window._admNewsSave = async () => {
+        const titel = document.getElementById('adm-news-titel').value.trim();
         const datum = document.getElementById('adm-news-datum').value.trim();
         const text  = document.getElementById('adm-news-text').value.trim();
         if (!text) { alert('Bitte einen Text eingeben.'); return; }
@@ -1814,14 +1819,14 @@ async function loadUserData() {
         try {
           const ts = Date.now();
           if (window._admNewsEditId) {
-            const { error } = await supabase.from('neuigkeiten').update({ datum, text, ts }).eq('id', window._admNewsEditId);
+            const { error } = await supabase.from('neuigkeiten').update({ titel, datum, text, ts }).eq('id', window._admNewsEditId);
             if (error) throw new Error(error.message);
             const idx = _newsItems.findIndex(x => x.id === window._admNewsEditId);
-            if (idx >= 0) _newsItems[idx] = { ..._newsItems[idx], datum, text, ts };
+            if (idx >= 0) _newsItems[idx] = { ..._newsItems[idx], titel, datum, text, ts };
           } else {
-            const { data: newRow, error } = await supabase.from('neuigkeiten').insert({ datum, text, ts }).select('id').single();
+            const { data: newRow, error } = await supabase.from('neuigkeiten').insert({ titel, datum, text, ts }).select('id').single();
             if (error) throw new Error(error.message);
-            _newsItems.unshift({ id: newRow.id, datum, text, ts });
+            _newsItems.unshift({ id: newRow.id, titel, datum, text, ts });
           }
           window._admNewsCancel();
           window._renderAdmNews();
@@ -2163,7 +2168,8 @@ async function loadUserData() {
           <div id="adm-news-body" style="margin-top:12px;display:none">
             <div id="adm-news-form" style="display:none;background:var(--sand);border-radius:10px;padding:12px;margin-bottom:10px">
               <div style="font-size:12px;font-weight:600;margin-bottom:8px" id="adm-news-form-title">Neue Meldung</div>
-              <input id="adm-news-datum" type="text" placeholder="Datum (z.B. 7. April 2026)" style="${inputStyle};margin-bottom:8px">
+              <input id="adm-news-titel" type="text" placeholder="Titel (optional)" style="${inputStyle};margin-bottom:8px">
+              <input id="adm-news-datum" type="text" placeholder="Datum (optional, z.B. 7. April 2026)" style="${inputStyle};margin-bottom:8px">
               <textarea id="adm-news-text" rows="3" placeholder="Text der Meldung …"
                 style="${inputStyle};resize:vertical;min-height:70px;margin-bottom:10px"></textarea>
               <div style="display:flex;gap:8px">
