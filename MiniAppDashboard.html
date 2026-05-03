@@ -1585,7 +1585,7 @@ async function loadUserData() {
           row('Gruppenwunsch', u.gruppenwunsch || u.teamwunsch),
           row('Qualifikationen', u.qualifikationen),
           gwList ? `<div>
-            <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px">Gewerke (Anmeldung)</div>
+            <div style="font-size:11px;font-weight:700;color:var(--clay);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px">Gewerk-Interesse & Erfahrung</div>
             ${gwList}
           </div>` : row('Gewerke', '–'),
         ].filter(Boolean).join('') || '<div style="color:var(--text-muted);font-size:13px">Keine Angaben.</div>';
@@ -1633,6 +1633,16 @@ async function loadUserData() {
             ${g.name}${dot}
           </div>`;
         }).join('');
+
+        // Legende Farbpunkte
+        document.getElementById('person-edit-gewerke').insertAdjacentHTML('afterend',
+          `<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:11px;color:var(--text-muted)">
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:50%;background:#bbb;border:1.5px solid white;display:inline-block"></span> Interesse, kein Level</span>
+            ${Object.entries(window._levelsColorMap||{}).map(([id,color]) =>
+              `<span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:50%;background:${color};border:1.5px solid white;display:inline-block"></span> ${window._levelsMap?.[id]||id}</span>`
+            ).join('')}
+          </div>`
+        );
 
         // Rollen-Picker
         const rolleBtn = (key, label) => {
@@ -2047,12 +2057,11 @@ async function loadUserData() {
                   { label: 'Teamleiter', color: '#e8f4e8', textColor: '#2d7a2d', rows: [
                     'Zusätzlich: Reiter „Teamleiter" & „Bau-Küche"',
                     'Sieht Bedarf & Anmeldungen seiner zugewiesenen Gewerke',
-                    'Erscheint im Ansprechpartner-Tab unter „Gewerke"',
+                    'Erscheint im Ansprechpartner-Tab',
                   ]},
                   { label: 'Bau-Küche', color: '#fff3e0', textColor: '#b36200', rows: [
                     'Zusätzlich: Reiter „Bau-Küche"',
-                    'Sieht alle Anmeldungen der Bau-Küche-Gewerke',
-                    'Erscheint im Ansprechpartner-Tab unter „Gewerke"',
+                    'Erscheint im Ansprechpartner-Tab',
                   ]},
                   { label: 'Bauleitung', color: '#fdecea', textColor: '#c0392b', rows: [
                     'Erscheint oben im Ansprechpartner-Tab',
@@ -2067,10 +2076,8 @@ async function loadUserData() {
                     'Zusätzlich: Erscheint in „Hilfe & Infos" als Ansprechpartner',
                   ]},
                   { label: 'Admin', color: '#1c1b18', textColor: '#fff', rows: [
-                    'Reiter „Admin": Personenverwaltung, Rollen, Neuigkeiten, Bedarf',
-                    'Kann Dashboard freischalten/sperren & Rollen vergeben',
-                    'Reiter „Teamleiter" & „Bau-Küche"',
-                    'Erscheint nicht im Ansprechpartner-Tab',
+                    'Alle Reiter',
+                    'Reiter „Admin" für Verwaltung (Freischaltung, Zuweisung, …)',
                   ]},
                 ].map(role => `
                   <div style="margin-bottom:10px">
