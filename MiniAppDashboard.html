@@ -478,6 +478,10 @@
         style="background:var(--clay);color:white;border:none;border-radius:10px;padding:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%">
         Speichern
       </button>
+      <button id="person-edit-delete-btn" onclick="window._deletePersonFromOverlay()"
+        style="background:none;border:1px solid var(--red,#e74c3c);color:var(--red,#e74c3c);border-radius:10px;padding:10px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%">
+        Person löschen
+      </button>
     </div>
   </div>
 </div>
@@ -1508,6 +1512,25 @@ async function loadUserData() {
         }
       };
 
+      window._deletePersonFromOverlay = async () => {
+        const userId = window._admEditUserId; if (!userId) return;
+        const user = (window._admUsers||[]).find(u => u.id === userId);
+        const displayName = user ? (((user.vorname||'') + ' ' + (user.nachname||'')).trim() || '(kein Name)') : userId;
+        if (!confirm(`Person „${displayName}" wirklich unwiderruflich löschen?\n\nDieser Vorgang kann nicht rückgängig gemacht werden.`)) return;
+        const btn = document.getElementById('person-edit-delete-btn');
+        if (btn) { btn.textContent = '…'; btn.disabled = true; }
+        try {
+          const { error } = await supabase.from('users').delete().eq('id', userId);
+          if (error) throw new Error(error.message);
+          window._admUsers = (window._admUsers||[]).filter(u => u.id !== userId);
+          closeOverlay('person-edit-overlay');
+          window._renderPersonenListe();
+        } catch(e) {
+          alert('Fehler: ' + e.message);
+          if (btn) { btn.textContent = 'Person löschen'; btn.disabled = false; }
+        }
+      };
+
       window._toggleDashboard = async (userId) => {
         const user = window._admUsers.find(u => u.id === userId);
         if (!user) return;
@@ -1830,8 +1853,26 @@ async function loadUserData() {
                 style="background:var(--clay);color:white;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;flex-shrink:0">
                 Ersetzen
               </button>
+              <button onclick="window._deletePlatzhalter('${u.id}', this)"
+                style="background:none;border:1px solid var(--red,#e74c3c);color:var(--red,#e74c3c);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;flex-shrink:0">
+                🗑
+              </button>
             </div>`;
           }).join('');
+        }
+      };
+
+      window._deletePlatzhalter = async (placeholderId, btn) => {
+        if (!confirm('Platzhalter wirklich löschen?')) return;
+        if (btn) { btn.textContent = '…'; btn.disabled = true; }
+        try {
+          const { error } = await supabase.from('users').delete().eq('id', placeholderId);
+          if (error) throw new Error(error.message);
+          window._admUsers = (window._admUsers||[]).filter(u => u.id !== placeholderId);
+          window._renderPlatzhalterTL();
+        } catch(e) {
+          alert('Fehler: ' + e.message);
+          if (btn) { btn.textContent = '🗑'; btn.disabled = false; }
         }
       };
 
