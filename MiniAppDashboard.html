@@ -272,6 +272,18 @@
     </div>
   </div>
 
+  <!-- Gewerk-Interesse -->
+  <div class="card collapsed" id="card-gewerke-interesse">
+    <div class="card-header" onclick="toggleCard('card-gewerke-interesse')">
+      <div class="card-header-icon">🔧</div>
+      <div class="card-title">Gewerk-Interesse</div>
+      <span class="card-chevron">▼</span>
+    </div>
+    <div class="card-body" id="gewerke-interesse-body">
+      <div style="color:var(--text-muted);font-size:13px">Wird geladen …</div>
+    </div>
+  </div>
+
   <!-- Meine Einsätze -->
   <div class="card" id="card-einsaetze">
     <div class="card-header" onclick="toggleCard('card-einsaetze')">
@@ -368,6 +380,27 @@
         <table class="kw-table" id="kw-table"></table>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ GEWERK-INTERESSE OVERLAY ══════════ -->
+<div class="overlay" id="gw-interesse-overlay" onclick="overlayClose(event,'gw-interesse-overlay')">
+  <div class="sheet">
+    <div class="news-header">
+      <div class="news-header-title">Gewerk-Interesse bearbeiten</div>
+      <button class="sheet-close" onclick="closeOverlay('gw-interesse-overlay')">✕</button>
+    </div>
+    <div id="gw-interesse-list" style="padding:4px 16px 0;overflow-y:auto;max-height:60vh"></div>
+    <div style="padding:12px 16px 4px;display:flex;gap:8px">
+      <button id="gw-interesse-save-btn" onclick="window._saveGewerkInteresse(this)"
+        style="flex:1;background:var(--clay);color:white;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
+        Speichern
+      </button>
+      <button onclick="closeOverlay('gw-interesse-overlay')"
+        style="background:none;border:1px solid var(--clay-pale);border-radius:10px;padding:12px 16px;font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer">
+        Abbrechen
+      </button>
     </div>
   </div>
 </div>
@@ -1002,6 +1035,7 @@ async function loadUserData() {
       const { data: userData } = await supabase.from('users').select('*').eq('telegram_id', tgId).limit(1);
       if (userData?.length) userDoc = userData[0];
     }
+    window._currentUser = userDoc;
 
     const gruppe  = userDoc?.gruppe  || null;
     const gewerke = userDoc?.gewerke_zugewiesen || [];
@@ -1091,6 +1125,115 @@ async function loadUserData() {
 
       teamBody.innerHTML = teamHtml;
     }
+
+    // ── Gewerk-Interesse ──
+    window._renderGewerkInteresse = () => {
+      const u = window._currentUser;
+      const body = document.getElementById('gewerke-interesse-body');
+      if (!body) return;
+      if (!u) {
+        body.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Nicht eingeloggt.</div>';
+        return;
+      }
+      const myGw = u.gewerke || [];
+      const gwMap = window._gewerkeMapForEdit || {};
+      const btnStyle = 'margin-top:12px;width:100%;background:var(--clay);color:white;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:600;font-family:\'DM Sans\',sans-serif;cursor:pointer';
+      if (!myGw.length) {
+        body.innerHTML = `<div style="color:var(--text-muted);font-size:13px;margin-bottom:8px">Noch keine Interessen angegeben.</div>
+          <button onclick="window._openGewerkInteresseEdit()" style="${btnStyle}">Bearbeiten</button>`;
+        return;
+      }
+      const rows = myGw.map(gid => {
+        const gwName = gwMap[gid]?.name || window._gemeindenMap?.[gid] || gid;
+        const lv = (u.erfahrung || {})[gid];
+        const lvName = lv ? (window._levelsMap?.[lv] || lv) : '–';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--clay-pale);font-size:13px">
+          <span>${gwName}</span>
+          <span style="color:var(--text-muted);font-size:12px">${lvName}</span>
+        </div>`;
+      }).join('');
+      body.innerHTML = rows + `<button onclick="window._openGewerkInteresseEdit()" style="${btnStyle}">Bearbeiten</button>`;
+    };
+
+    window._openGewerkInteresseEdit = () => {
+      const u = window._currentUser;
+      if (!u) return;
+      const gwMap = window._gewerkeMapForEdit || {};
+      const levelsMap = window._levelsMap || {};
+      const myGw = u.gewerke || [];
+      const myErf = u.erfahrung || {};
+      const visibleGw = Object.values(gwMap)
+        .filter(g => g.visible_in_form === true && g.active !== false)
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      const listEl = document.getElementById('gw-interesse-list');
+      listEl.innerHTML = visibleGw.map(gw => {
+        const checked = myGw.includes(gw.id);
+        const allowedIds = (gw.allowed_levels || []);
+        const levelOptions = (allowedIds.length > 0
+          ? allowedIds.map(lid => ({ id: lid, name: levelsMap[lid] || lid }))
+          : Object.entries(levelsMap).map(([id, name]) => ({ id, name }))
+        );
+        const currentLv = myErf[gw.id] || '';
+        return `<div style="padding:10px 0;border-bottom:1px solid var(--clay-pale)">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+            <input type="checkbox" id="gw-cb-${gw.id}" value="${gw.id}" ${checked ? 'checked' : ''}
+              onchange="window._toggleGwLevel('${gw.id}',this.checked)"
+              style="width:18px;height:18px;flex-shrink:0;accent-color:var(--clay)">
+            <span style="font-size:14px;font-weight:500">${gw.name}</span>
+          </label>
+          <div id="gw-level-${gw.id}" style="margin-top:6px;margin-left:28px;display:${checked ? 'block' : 'none'}">
+            <select id="gw-lv-${gw.id}"
+              style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 10px;outline:none;background:white;width:100%">
+              <option value="">– Erfahrungslevel –</option>
+              ${levelOptions.map(l => `<option value="${l.id}" ${currentLv === l.id ? 'selected' : ''}>${l.name}</option>`).join('')}
+            </select>
+          </div>
+        </div>`;
+      }).join('');
+      document.getElementById('gw-interesse-overlay').classList.add('visible');
+    };
+
+    window._toggleGwLevel = (gwId, checked) => {
+      const el = document.getElementById(`gw-level-${gwId}`);
+      if (el) el.style.display = checked ? 'block' : 'none';
+    };
+
+    window._saveGewerkInteresse = async (btn) => {
+      const u = window._currentUser;
+      if (!u) return;
+      if (btn) { btn.textContent = '…'; btn.disabled = true; }
+      const gwMap = window._gewerkeMapForEdit || {};
+      const visibleIds = new Set(Object.values(gwMap).filter(g => g.visible_in_form === true).map(g => g.id));
+      const newGewerke = [];
+      const newErfahrung = { ...(u.erfahrung || {}) };
+      // Entferne alle visible gewerke aus erfahrung, baue neu auf
+      visibleIds.forEach(id => delete newErfahrung[id]);
+      visibleIds.forEach(id => {
+        const cb = document.getElementById(`gw-cb-${id}`);
+        if (cb?.checked) {
+          newGewerke.push(id);
+          const lv = document.getElementById(`gw-lv-${id}`)?.value;
+          if (lv) newErfahrung[id] = lv;
+        }
+      });
+      // Behalte Gewerke die nicht visible_in_form sind (z.B. bauhelfer_allgemein)
+      const kept = (u.gewerke || []).filter(id => !visibleIds.has(id));
+      const finalGewerke = [...kept, ...newGewerke];
+      try {
+        const { error } = await supabase.from('users').update({ gewerke: finalGewerke, erfahrung: newErfahrung }).eq('id', u.id);
+        if (error) throw new Error(error.message);
+        u.gewerke = finalGewerke;
+        u.erfahrung = newErfahrung;
+        window._currentUser = u;
+        closeOverlay('gw-interesse-overlay');
+        window._renderGewerkInteresse();
+      } catch(e) {
+        alert('Fehler: ' + e.message);
+        if (btn) { btn.textContent = 'Speichern'; btn.disabled = false; }
+      }
+    };
+
+    window._renderGewerkInteresse();
 
     // ── Shared: Tage + AnmMap für eine Liste von Gewerk-IDs laden ──
     const WD2 = ['So','Mo','Di','Mi','Do','Fr','Sa'];
