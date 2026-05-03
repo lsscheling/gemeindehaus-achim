@@ -1992,9 +1992,15 @@ async function loadUserData() {
 
       // ── Gewerk-Zeiträume ──
       window._saveZeitraum = async (gwId, btn) => {
-        const startVal = document.getElementById(`zt-start-${gwId}`)?.value;
-        const endVal   = document.getElementById(`zt-end-${gwId}`)?.value;
-        if (!startVal || !endVal) { alert('Bitte Start- und Enddatum angeben.'); return; }
+        const sKW   = parseInt(document.getElementById(`zt-skw-${gwId}`)?.value);
+        const sJahr = parseInt(document.getElementById(`zt-sjahr-${gwId}`)?.value);
+        const eKW   = parseInt(document.getElementById(`zt-ekw-${gwId}`)?.value);
+        const eJahr = parseInt(document.getElementById(`zt-ejahr-${gwId}`)?.value);
+        if (!sKW || !sJahr || !eKW || !eJahr) { alert('Bitte alle KW- und Jahresfelder ausfüllen.'); return; }
+        const startMon = kwToMonday(sJahr, sKW);
+        const endSun   = new Date(kwToMonday(eJahr, eKW)); endSun.setDate(endSun.getDate() + 6);
+        const startVal = dateToISO(startMon);
+        const endVal   = dateToISO(endSun);
         if (btn) { btn.textContent = '…'; btn.disabled = true; }
         try {
           const bars = window._allBars || [];
@@ -2134,18 +2140,26 @@ async function loadUserData() {
             <span id="adm-zt-chev" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
           </div>
           <div id="adm-zt-body" style="margin-top:12px;display:none">
-            <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Legt fest, an welchen Tagen ein Gewerk aktiv ist (Grundlage für die Bedarf-Karten).</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">Legt fest, in welchen Kalenderwochen ein Gewerk aktiv ist (Mo–Sa).</div>
             ${activeGwList.map(gw => {
-              const bar = (window._allBars||[]).find(b => b.gewerkId === gw.id);
+              const bar   = (window._allBars||[]).find(b => b.gewerkId === gw.id);
+              const sDate = bar?.start ? parseLocalDate(bar.start) : null;
+              const eDate = bar?.end   ? parseLocalDate(bar.end)   : null;
+              const sKW   = sDate ? isoWeek(sDate) : '';
+              const sJahr = sDate ? sDate.getFullYear() : new Date().getFullYear();
+              const eKW   = eDate ? isoWeek(eDate) : '';
+              const eJahr = eDate ? eDate.getFullYear() : new Date().getFullYear();
+              const numStyle = 'font-family:"DM Sans",sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 10px;outline:none;background:white;width:60px';
+              const yrStyle  = 'font-family:"DM Sans",sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 10px;outline:none;background:white;width:72px';
               return `<div style="margin-bottom:14px">
                 <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">${gw.name}</div>
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                  <label style="font-size:12px;color:var(--text-muted)">Von</label>
-                  <input id="zt-start-${gw.id}" type="date" value="${bar?.start||''}"
-                    style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 10px;outline:none;background:white">
-                  <label style="font-size:12px;color:var(--text-muted)">Bis</label>
-                  <input id="zt-end-${gw.id}" type="date" value="${bar?.end||''}"
-                    style="font-family:'DM Sans',sans-serif;font-size:13px;border:1px solid var(--clay-pale);border-radius:8px;padding:6px 10px;outline:none;background:white">
+                  <label style="font-size:12px;color:var(--text-muted)">Von KW</label>
+                  <input id="zt-skw-${gw.id}"   type="number" min="1" max="53" value="${sKW}"   style="${numStyle}">
+                  <input id="zt-sjahr-${gw.id}" type="number" min="2020" max="2099" value="${sJahr}" style="${yrStyle}">
+                  <label style="font-size:12px;color:var(--text-muted)">Bis KW</label>
+                  <input id="zt-ekw-${gw.id}"   type="number" min="1" max="53" value="${eKW}"   style="${numStyle}">
+                  <input id="zt-ejahr-${gw.id}" type="number" min="2020" max="2099" value="${eJahr}" style="${yrStyle}">
                   <button onclick="window._saveZeitraum('${gw.id}', this)"
                     style="background:var(--clay);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer">
                     Speichern
