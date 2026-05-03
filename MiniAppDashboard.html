@@ -706,6 +706,12 @@ function renderNewsOverlay() {
     body.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Noch keine Neuigkeiten.</div>';
     return;
   }
+  // Pill-Text auf Titel des neuesten Eintrags aktualisieren
+  const pillText = document.querySelector('.news-pill-text');
+  if (pillText) {
+    const latest = _newsItems[0];
+    pillText.textContent = latest.titel || latest.datum || 'Neuigkeiten / Informationen';
+  }
   body.innerHTML = _newsItems.map(n =>
     `<div class="news-card">
        ${n.datum ? `<div class="news-date">${n.datum}</div>` : ''}
