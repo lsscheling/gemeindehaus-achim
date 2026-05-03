@@ -1065,23 +1065,29 @@ async function loadUserData() {
     } else {
       teamBadge.textContent = 'Gruppe ' + gruppe;
 
-      // Gewerk-Tags
-      const gwTags = gewerke.map(id => {
-        const g = gewerkeMap[id];
-        return `<span class="gewerk-tag mine">${g ? g.name : id}</span>`;
-      }).join('');
-
       // Gewerke aus eigenen Einsatz-Anmeldungen ergänzen
       let alleGewerke = [...gewerke];
+      let einsatzGwIds = [];
       if (tgId) {
+        const todayISO = new Date().toISOString().slice(0, 10);
         const { data: einsatzRows } = await supabase
           .from('einsatz_anmeldungen')
-          .select('gewerk_id')
-          .contains('angemeldete', [tgId]);
-        const einsatzGwIds = [...new Set((einsatzRows || []).map(r => r.gewerk_id))]
-          .filter(id => id && id !== 'bauhelfer_allgemein' && !alleGewerke.includes(id));
+          .select('gewerk_id, angemeldete')
+          .gte('date', todayISO);
+        const tgKey = String(tgId);
+        einsatzGwIds = [...new Set(
+          (einsatzRows || [])
+            .filter(r => r.angemeldete && Object.prototype.hasOwnProperty.call(r.angemeldete, tgKey))
+            .map(r => r.gewerk_id)
+        )].filter(id => id && id !== 'bauhelfer_allgemein' && !alleGewerke.includes(id));
         alleGewerke = [...alleGewerke, ...einsatzGwIds];
       }
+
+      // Gewerk-Tags: zugewiesene (gefüllt) + angemeldete (blass)
+      const gwTags = [
+        ...gewerke.map(id => `<span class="gewerk-tag mine">${gewerkeMap[id]?.name || id}</span>`),
+        ...einsatzGwIds.map(id => `<span class="gewerk-tag">${gewerkeMap[id]?.name || id}</span>`)
+      ].join('');
 
       // Teamleiter der eigenen Gewerke, sortiert nach erstem passendem Gewerk-Namen
       const { data: tlData } = await supabase.from('users').select('*').eq('rolle', 'teamleiter');
