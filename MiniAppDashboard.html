@@ -69,6 +69,9 @@
   .news-pill-text { font-size: 13px; font-weight: 600; flex: 1; }
   .news-pill-count { background: var(--clay-pale); color: var(--clay-dark); border-radius: 8px; padding: 2px 8px; font-size: 12px; font-weight: 700; }
   .news-pill-arrow { font-size: 14px; color: var(--text-muted); }
+  .news-pill-text { overflow: hidden; position: relative; }
+  @keyframes npSlideIn  { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  @keyframes npSlideOut { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-100%); opacity: 0; } }
 
   /* CARD */
   .card { background: var(--white); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow-sm); margin-bottom: 14px; }
@@ -706,11 +709,26 @@ function renderNewsOverlay() {
     body.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Noch keine Neuigkeiten.</div>';
     return;
   }
-  // Pill-Text auf Titel des neuesten Eintrags aktualisieren
+  // Pill-Ticker durch alle Einträge
+  if (window._newsTicker) clearInterval(window._newsTicker);
   const pillText = document.querySelector('.news-pill-text');
   if (pillText) {
-    const latest = _newsItems[0];
-    pillText.textContent = latest.titel || latest.datum || 'Neuigkeiten / Informationen';
+    const labels = _newsItems.map(n => n.titel || n.datum || null).filter(Boolean);
+    if (!labels.length) labels.push('Neuigkeiten / Informationen');
+    pillText.innerHTML = `<span style="display:block">${labels[0]}</span>`;
+    if (labels.length > 1) {
+      let idx = 0;
+      window._newsTicker = setInterval(() => {
+        idx = (idx + 1) % labels.length;
+        const span = pillText.querySelector('span');
+        if (!span) return;
+        span.style.animation = 'npSlideOut 0.3s forwards';
+        setTimeout(() => {
+          span.textContent = labels[idx];
+          span.style.animation = 'npSlideIn 0.3s forwards';
+        }, 300);
+      }, 2000);
+    }
   }
   body.innerHTML = _newsItems.map(n =>
     `<div class="news-card">
