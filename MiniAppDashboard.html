@@ -1275,6 +1275,7 @@ async function loadUserData() {
     }
 
     function renderBauhelferCard(ns, allDays, anmMap) {
+      const bhName = gewerkeMap['bauhelfer_allgemein']?.name || 'Bauhelfer';
       const bodyId = `body-${ns}-bauhelfer`;
       const chevId = `chev-${ns}-bauhelfer`;
       let rows = '';
@@ -1289,17 +1290,17 @@ async function loadUserData() {
         const dayLbl = WD2[date.getDay()] + ', ' + fmtDateDE(date);
         rows += `<div class="gewerk-row" style="align-items:center;gap:8px">
           <span class="gewerk-row-name" style="cursor:pointer;flex:1"
-            onclick="window._showAnmeldungen('${ns}','${docId}','${dayLbl}','Bauhelfer allgemein')">${dayLbl}</span>
+            onclick="window._showAnmeldungen('${ns}','${docId}','${dayLbl}','${bhName}')">${dayLbl}</span>
           <span id="bdg-${ns}-${docId}">${bedarfBadgeUser(count, null)}</span>
           <span style="font-size:18px;color:var(--clay-dark);cursor:pointer"
-            onclick="window._showAnmeldungen('${ns}','${docId}','${dayLbl}','Bauhelfer allgemein')">›</span>
+            onclick="window._showAnmeldungen('${ns}','${docId}','${dayLbl}','${bhName}')">›</span>
         </div>`;
       });
       const inner = rows || '<div style="color:var(--text-muted);font-size:13px;padding:4px 0">Noch keine Anmeldungen.</div>';
       return `<div class="card" style="margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none"
              onclick="window._toggleBedarfCard('${bodyId}','${chevId}')">
-          <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">Bauhelfer allgemein</span>
+          <span style="font-size:14px;font-weight:700;flex:1;color:var(--text)">${bhName}</span>
           <span id="${chevId}" style="color:var(--text-muted);font-size:12px;transition:transform .2s;flex-shrink:0;transform:rotate(-90deg)">▼</span>
         </div>
         <div id="${bodyId}" style="margin-top:12px;display:none">${inner}</div>
@@ -1512,9 +1513,8 @@ async function loadUserData() {
         const ts = u.registered_at ? new Date(u.registered_at).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : null;
 
         // Gewerke aus Anmeldung mit Erfahrungslevel
-        const SPECIAL_IDS = { bauhelfer_allgemein: 'Bauhelfer allgemein' };
         const gwList = (u.gewerke || []).map(gid => {
-          const gwName = gewerkeMap[gid]?.name || window._gemeindenMap?.[gid] || SPECIAL_IDS[gid] || gid;
+          const gwName = gewerkeMap[gid]?.name || window._gemeindenMap?.[gid] || gid;
           const lv = (u.erfahrung || {})[gid];
           const lvLabel = lv ? (window._levelsMap?.[lv] || lv) : '–';
           return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--clay-pale);font-size:12px">
