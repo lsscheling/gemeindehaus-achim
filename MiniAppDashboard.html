@@ -1080,7 +1080,7 @@ async function loadUserData() {
           (einsatzRows || [])
             .filter(r => r.angemeldete && Object.prototype.hasOwnProperty.call(r.angemeldete, tgKey))
             .map(r => r.gewerk_id)
-        )].filter(id => id && id !== 'bauhelfer_allgemein' && !alleGewerke.includes(id));
+        )].filter(id => id && id !== 'bauhelfer_allgemein' && id !== 'bauhelfer' && !alleGewerke.includes(id));
         alleGewerke = [...alleGewerke, ...einsatzGwIds];
       }
 
