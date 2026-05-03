@@ -1635,8 +1635,9 @@ async function loadUserData() {
         }).join('');
 
         // Legende Farbpunkte
+        document.getElementById('pe-gw-legende')?.remove();
         document.getElementById('person-edit-gewerke').insertAdjacentHTML('afterend',
-          `<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:11px;color:var(--text-muted)">
+          `<div id="pe-gw-legende" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;font-size:11px;color:var(--text-muted)">
             <span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:50%;background:#bbb;border:1.5px solid white;display:inline-block"></span> Interesse, kein Level</span>
             ${Object.entries(window._levelsColorMap||{}).map(([id,color]) =>
               `<span style="display:flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:50%;background:${color};border:1.5px solid white;display:inline-block"></span> ${window._levelsMap?.[id]||id}</span>`
@@ -1677,15 +1678,11 @@ async function loadUserData() {
       };
 
       window._admSelectRolle = (key) => {
-        // Toggle: nochmal klicken = abwählen
         if (key === 'teamleiter') {
           window._admEditRolle = window._admEditRolle === 'teamleiter' ? null : 'teamleiter';
-          window._admEditSonderrolle = null;
         } else {
           window._admEditSonderrolle = window._admEditSonderrolle === key ? null : key;
-          window._admEditRolle = null;
         }
-        // Buttons aktualisieren
         ['teamleiter', ...SONDERROLLEN_LIST.map(r => r.key)].forEach(k => {
           const btn = document.getElementById('pe-rolle-' + k);
           if (!btn) return;
