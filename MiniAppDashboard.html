@@ -1469,8 +1469,9 @@ async function loadUserData() {
           const name  = ((u.vorname||'') + ' ' + (u.nachname||'')).trim() || '(kein Name)';
           const isAct = u.dashboard_aktiv;
           const hasAssignment = (u.gewerke_zugewiesen||[]).length > 0;
-          const hasMatch = hasAssignment && (u.gewerke_zugewiesen||[]).some(id => (u.gewerke||[]).includes(id));
-          const nameColor = hasMatch ? '#2563eb' : hasAssignment ? 'var(--clay)' : 'var(--text)';
+          const interests = u.gewerke || [];
+          const allInterestsCovered = interests.length > 0 && interests.every(id => (u.gewerke_zugewiesen||[]).includes(id));
+          const nameBg = allInterestsCovered ? '#dbeafe' : hasAssignment ? 'var(--clay-pale)' : 'transparent';
           const gruppe = u.gruppe ? `Gr. ${u.gruppe}` : '';
           const gwCount = (u.gewerke_zugewiesen || []).length;
           const gwLabel = gwCount ? `${gwCount} Gewerk${gwCount>1?'e':''}` : '';
@@ -1480,8 +1481,8 @@ async function loadUserData() {
           const meta = [gruppe, gwLabel, rolleLabel, adminLabel].filter(Boolean).join(' · ');
           return `<div style="padding:8px 0;border-bottom:1px solid var(--clay-pale)">
             <div style="display:flex;align-items:center;gap:6px">
-              <div style="flex:1;min-width:0;cursor:pointer" onclick="window._admOpenPersonDetail('${u.id}')">
-                <div style="font-size:13px;font-weight:500;text-decoration:underline;text-underline-offset:2px;color:${nameColor}">${name}</div>
+              <div style="flex:1;min-width:0;cursor:pointer;background:${nameBg};border-radius:6px;padding:4px 6px;margin:-4px -6px" onclick="window._admOpenPersonDetail('${u.id}')">
+                <div style="font-size:13px;font-weight:500;text-decoration:underline;text-underline-offset:2px">${name}</div>
                 ${meta ? `<div style="font-size:11px;color:var(--text-muted);margin-top:1px">${meta}</div>` : ''}
               </div>
               <button onclick="window._admOpenPersonEdit('${u.id}')"
