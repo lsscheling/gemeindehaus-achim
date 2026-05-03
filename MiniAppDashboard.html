@@ -1046,7 +1046,7 @@ async function loadUserData() {
       supabase.from('gewerke_konfig').select('*').order('sort_order'),
       supabase.from('gantt_daten').select('gewerke').eq('id', 'main').single(),
       supabase.from('gemeinden').select('id, name').order('sort_order'),
-      supabase.from('levels').select('id, name')
+      supabase.from('levels').select('id, name, color')
     ]);
     const gewerkeMap = {};
     (gewerkeData || []).forEach(g => { gewerkeMap[g.id] = g; });
@@ -1054,7 +1054,8 @@ async function loadUserData() {
     window._gemeindenMap = {};
     (gemeindenData || []).forEach(g => { window._gemeindenMap[g.id] = g.name; });
     window._levelsMap = {};
-    (levelsData || []).forEach(l => { window._levelsMap[l.id] = l.name; });
+    window._levelsColorMap = {};
+    (levelsData || []).forEach(l => { window._levelsMap[l.id] = l.name; window._levelsColorMap[l.id] = l.color; });
     const allBars = ganttData?.gewerke || [];
     window._allBars = allBars;
 
@@ -1231,6 +1232,7 @@ async function loadUserData() {
         u.gewerke = finalGewerke;
         u.erfahrung = newErfahrung;
         window._currentUser = u;
+        if (btn) { btn.textContent = 'Speichern'; btn.disabled = false; }
         closeOverlay('gw-interesse-overlay');
         window._renderGewerkInteresse();
       } catch(e) {
@@ -1563,12 +1565,18 @@ async function loadUserData() {
         // Gewerke (persönliche Zuweisung)
         const gMap = window._gewerkeMapForEdit || {};
         const activeGw = Object.values(gMap).filter(g => g.active).sort((a,b) => a.sort_order - b.sort_order);
+        const userGwInterests = user.gewerke || [];
+        const userErfahrung   = user.erfahrung || {};
         document.getElementById('person-edit-gewerke').innerHTML = activeGw.map(g => {
-          const sel = window._admEditGewerke.has(g.id);
+          const sel      = window._admEditGewerke.has(g.id);
+          const hasInt   = userGwInterests.includes(g.id);
+          const lvId     = userErfahrung[g.id];
+          const dotColor = lvId ? (window._levelsColorMap?.[lvId] || '#999') : '#bbb';
+          const dot      = hasInt ? `<span style="position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:${dotColor};border:1.5px solid white;flex-shrink:0"></span>` : '';
           return `<div onclick="window._admToggleGewerk('${g.id}',this)" id="pe-gw-${g.id}"
-            style="padding:5px 11px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;border:1.5px solid;
+            style="position:relative;padding:5px 11px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;border:1.5px solid;
                    ${sel ? 'background:var(--mine);color:white;border-color:var(--mine)' : 'background:var(--sand);color:var(--text);border-color:var(--clay-pale)'}">
-            ${g.name}
+            ${g.name}${dot}
           </div>`;
         }).join('');
 
