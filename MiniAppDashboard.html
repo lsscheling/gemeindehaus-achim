@@ -1480,7 +1480,7 @@ async function loadUserData() {
           const adminLabel = u.admin ? 'Admin' : '';
           const meta = [gruppe, gwLabel, rolleLabel, adminLabel].filter(Boolean).join(' · ');
           return `<div style="padding:8px 0;border-bottom:1px solid var(--clay-pale)">
-            <div style="display:flex;align-items:center;gap:6px">
+            <div style="display:flex;align-items:center;gap:10px">
               <div style="flex:1;min-width:0;cursor:pointer;background:${nameBg};border-radius:6px;padding:4px 6px;margin:-4px -6px" onclick="window._admOpenPersonDetail('${u.id}')">
                 <div style="font-size:13px;font-weight:500;text-decoration:underline;text-underline-offset:2px">${name}</div>
                 ${meta ? `<div style="font-size:11px;color:var(--text-muted);margin-top:1px">${meta}</div>` : ''}
