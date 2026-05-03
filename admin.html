@@ -760,7 +760,7 @@ async function loadGruppenPanel() {
   if (bhTotal > 0) {
     const bhByGrpLv = { 1:{}, 2:{}, 3:{}, 0:{} };
     [1,2,3,0].forEach(gr => { if (bauhelferByGruppe[gr]) bhByGrpLv[gr]['__kein'] = bauhelferByGruppe[gr]; });
-    addGewerkRows('Bauhelfer allgemein', bhByGrpLv, bauhelferByGruppe, bauhelferSchichtByGruppe);
+    addGewerkRows(getGewerkLabel('bauhelfer_allgemein'), bhByGrpLv, bauhelferByGruppe, bauhelferSchichtByGruppe);
   }
 
   // Letzten Spacer entfernen
@@ -860,7 +860,7 @@ async function loadGruppenPanel() {
   }).join('');
   const bhTableRow = bhRow > 0 ? `
     <tr style="background:var(--paper);border-top:2px solid var(--border)">
-      <td style="padding:9px 14px;font-weight:500;font-style:italic">Bauhelfer allgemein</td>
+      <td style="padding:9px 14px;font-weight:500;font-style:italic">${getGewerkLabel('bauhelfer_allgemein')}</td>
       <td style="text-align:center;padding:9px 14px">${cell(bauhelferByGruppe[1])}</td>
       <td style="text-align:center;padding:9px 14px">${cell(bauhelferByGruppe[2])}</td>
       <td style="text-align:center;padding:9px 14px">${cell(bauhelferByGruppe[3])}</td>
@@ -973,7 +973,6 @@ function getGemeindeLabel(id) {
 }
 
 function getGewerkLabel(id) {
-  if (id === 'bauhelfer_allgemein') return 'Bauhelfer allgemein';
   const gw = allGewerkeKonfig.find(g => g.id === id) || gewerkeKonfig.find(g => g.id === id);
   return gw ? gw.name : '(gelöscht)';
 }
@@ -1604,9 +1603,9 @@ function buildPersonForm(data) {
         <option value="keine" ${d.gemeinde==='keine'?'selected':''}>Keine</option>
       </select>
     </div>
-    <div class="msection">Bauhelfer allgemein</div>
+    <div class="msection">${getGewerkLabel('bauhelfer_allgemein')}</div>
     <label class="mcheck" style="max-width:300px">
-      <input type="checkbox" name="mf-gewerk" value="bauhelfer_allgemein" ${bauhelferChecked?'checked':''}> Bauhelfer allgemein
+      <input type="checkbox" name="mf-gewerk" value="bauhelfer_allgemein" ${bauhelferChecked?'checked':''}> ${getGewerkLabel('bauhelfer_allgemein')}
     </label>
     <div class="msection">Gewerk(e) & Erfahrung</div>
     <div class="mcheckgrid" id="mf-gewerk-grid">${gwHtml}</div>
